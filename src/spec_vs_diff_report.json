@@ -1,0 +1,42 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-12T06:34:34.955Z",
+  "summary": "Frontend updates appear to address per-subject percentage calculation and add max-marks utilities, and a backend upgrade migration was added. However, the diff summary does not show the backend save/persistence logic changes required by REQ-11, and the migration logic shown may not match the stated grade-wise per-subject maxima (notably for Grade 12 and some other grades), nor does it show any recomputation/normalization of dependent stored percentage fields.",
+  "missing_requirements": [
+    {
+      "id": "REQ-11",
+      "requirement": "Fix backend AcademicEntry persistence so regular-subject max marks are stored per subject (grade-wise) rather than incorrectly storing termMaxMarks into maxMarksPerSubject; ensure computerMaxMarks/aiMaxMarks are persisted from SaveAcademicInput values.",
+      "reason": "The diff summary for backend/main.mo is truncated before the saveAcademic* implementation. There is no visible evidence that the save path now stores AcademicEntry.maxMarksPerSubject as the grade-wise regular subject max (e.g., 80 for Grade 9), or that it preserves incoming computerMaxMarks/aiMaxMarks without overwriting.",
+      "evidence": [
+        "backend/main.mo (truncated)"
+      ]
+    },
+    {
+      "id": "REQ-13",
+      "requirement": "On upgrade, conditionally migrate previously stored incorrect max-marks fields to grade-wise per-subject maximums for all relevant grades (e.g., Grade 9 -> 80), following existing grade-wise rules.",
+      "reason": "While a migration updates maxMarksPerSubject when it differs, the shown normalization logic sets Grade 12 maxMarksPerSubject to entry.termMaxMarks when termMaxMarks is between 60 and 100, and for other grades uses entry.termMaxMarks if <= 50; this does not clearly implement a grade-wise per-subject maximum (it can still be based on termMaxMarks), and may not match the requirement to normalize to grade-wise per-subject maxima.",
+      "evidence": [
+        "backend/migration.mo"
+      ]
+    },
+    {
+      "id": "REQ-13",
+      "requirement": "Ensure any dependent stored percentages that rely on these maximums remain consistent with the corrected basis and existing 100% clamp.",
+      "reason": "The migration shown only updates maxMarksPerSubject; it does not update/recompute any stored percentage fields (termPercentage/overallPercentage/combinedGradePercentage/etc.) that could depend on max marks.",
+      "evidence": [
+        "backend/migration.mo"
+      ]
+    }
+  ],
+  "hallucinated_features": [],
+  "confidence": 0.62,
+  "changed_files": [
+    "backend/main.mo",
+    "backend/migration.mo",
+    "frontend-file-summaries.txt",
+    "frontend/src/components/ProgressView.tsx",
+    "frontend/src/lib/maxMarks.ts",
+    "project_state.json"
+  ]
+}

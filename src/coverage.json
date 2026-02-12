@@ -1,0 +1,56 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-12T06:34:34.957Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 3,
+    "implemented": 1,
+    "items": [
+      {
+        "id": "REQ-11",
+        "summary": "Fix backend AcademicEntry persistence so regular-subject max marks are stored per subject (grade-wise) rather than incorrectly storing termMaxMarks into maxMarksPerSubject; this must ensure per-subject percentages like Grade 9 Maths (68/80) compute correctly.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-12",
+        "summary": "Ensure the Progress View displays per-subject percentages using the correct per-subject maximum marks basis for the entry (regular subjects use entry.maxMarksPerSubject; Computer uses entry.computerMaxMarks; AI uses entry.aiMaxMarks) so that Grade 9 Maths 68/80 displays as 85.0% (not ~15.1%).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/ProgressView.tsx",
+          "frontend/src/lib/maxMarks.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ProgressView.tsx",
+          "frontend/src/lib/maxMarks.ts"
+        ]
+      },
+      {
+        "id": "REQ-13",
+        "summary": "Add a conditional migration to normalize previously stored AcademicEntry max-marks fields so older entries affected by the incorrect storage (e.g., maxMarksPerSubject accidentally set to termMaxMarks) are updated to grade-wise per-subject maximums, and any dependent stored percentages that rely on these maximums remain consistent with the corrected basis and existing 100% clamp.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      }
+    ]
+  },
+  "changedFiles": [
+    "backend/main.mo",
+    "backend/migration.mo",
+    "build-request.json",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/components/ProgressView.tsx",
+    "frontend/src/lib/maxMarks.ts",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}

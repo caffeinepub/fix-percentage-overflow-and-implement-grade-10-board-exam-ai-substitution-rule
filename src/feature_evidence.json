@@ -1,0 +1,26 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-ensure-the-progress-view-displays-per-subject-percentages-using-the-correct-per-subject-maximum-marks-basis-for-the-entry-regular-subjects-use-entry-maxmarkspersubject-computer-uses-entry-computermaxmarks-ai-uses-entry-aimaxmarks-so-that-grade-9-maths-68-80-displays-as-85-0-not-15-1",
+      "featureTitle": "Ensure the Progress View displays per-subject percentages using the correct per-subject maximum marks basis for the entry (regular subjects use entry.maxMarksPerSubject; Computer uses entry.computerMaxMarks; AI uses entry.aiMaxMarks) so that Grade 9 Maths 68/80 displays as 85.0% (not ~15.1%).",
+      "files": [
+        "frontend/src/components/ProgressView.tsx",
+        "frontend/src/lib/maxMarks.ts"
+      ],
+      "components": [
+        "authorization@3.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "blob-storage@4.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-12"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

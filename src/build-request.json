@@ -1,0 +1,73 @@
+{
+  "kind": "build_request",
+  "title": "Fix per-subject percentage to use grade-wise maximum marks (e.g., Grade 9 Maths out of 80)",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-11",
+      "text": "Fix backend AcademicEntry persistence so regular-subject max marks are stored per subject (grade-wise) rather than incorrectly storing termMaxMarks into maxMarksPerSubject; this must ensure per-subject percentages like Grade 9 Maths (68/80) compute correctly.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "each subject should be out of current total of specify gradre"
+        ]
+      },
+      "acceptanceCriteria": [
+        "When saving a Grade 9 term entry, AcademicEntry.maxMarksPerSubject is stored as 80 (grade-wise regular subject max), not as the entry's termMaxMarks total.",
+        "AcademicEntry.computerMaxMarks and AcademicEntry.aiMaxMarks are stored using the incoming SaveAcademicInput.computerMaxMarks and SaveAcademicInput.aiMaxMarks (do not overwrite them with unrelated term/grade special-cases).",
+        "After the change, fetching entries via getAcademicEntries returns maxMarksPerSubject/computerMaxMarks/aiMaxMarks values that align with the grade-wise rules used by the frontend."
+      ]
+    },
+    {
+      "id": "REQ-12",
+      "text": "Ensure the Progress View displays per-subject percentages using the correct per-subject maximum marks basis for the entry (regular subjects use entry.maxMarksPerSubject; Computer uses entry.computerMaxMarks; AI uses entry.aiMaxMarks) so that Grade 9 Maths 68/80 displays as 85.0% (not ~15.1%).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "why am i getting lower percentage for each subjet example 68 out of 80, percentage-15.1%"
+        ]
+      },
+      "acceptanceCriteria": [
+        "For an AcademicEntry with grade=9 and subjects.math=68 and maxMarksPerSubject=80, the UI shows 85.0% for Maths in the per-subject breakdown.",
+        "If an entry has a missing/zero maxMarksPerSubject (or computerMaxMarks/aiMaxMarks for those subjects), the UI does not show an obviously wrong low percentage; it should instead show 0% or a clear fallback behavior consistent across subjects."
+      ]
+    },
+    {
+      "id": "REQ-13",
+      "text": "Add a conditional migration to normalize previously stored AcademicEntry max-marks fields so older entries affected by the incorrect storage (e.g., maxMarksPerSubject accidentally set to termMaxMarks) are updated to grade-wise per-subject maximums, and any dependent stored percentages that rely on these maximums remain consistent with the corrected basis and existing 100% clamp.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "each subject should be out of current total of specify gradre"
+        ]
+      },
+      "acceptanceCriteria": [
+        "On upgrade, existing stored entries with incorrect maxMarksPerSubject are updated so regular subjects in Grade 9 use maxMarksPerSubject=80 (and other grades follow the existing grade-wise rules).",
+        "The migration is conditional (only runs/recomputes when detecting older/incorrect stored max-marks fields) to avoid unnecessary rewrites.",
+        "After migration, per-subject percentages in Progress View for older entries compute correctly (e.g., 68/80 → 85.0%)."
+      ]
+    }
+  ],
+  "constraints": [
+    "Backend must remain a single Motoko actor in backend/main.mo; do not introduce additional backend services.",
+    "Do not edit frontend paths listed as immutable in SYSTEM_CONTEXT (compose existing UI components instead).",
+    "All user-facing text must be in English."
+  ],
+  "nonGoals": [
+    "Adding new subjects, new grading schemes, or changing the grade-wise maximum marks policy beyond making per-subject max marks use the correct grade-specific basis.",
+    "Introducing external databases, third-party auth providers, or real-time messaging."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}
