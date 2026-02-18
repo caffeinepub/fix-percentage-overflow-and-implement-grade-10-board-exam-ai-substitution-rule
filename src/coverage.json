@@ -1,53 +1,52 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-12T06:34:34.957Z",
+  "generatedAt": "2026-02-18T15:07:20.543Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
     "total": 3,
-    "implemented": 1,
+    "implemented": 0,
     "items": [
       {
-        "id": "REQ-11",
-        "summary": "Fix backend AcademicEntry persistence so regular-subject max marks are stored per subject (grade-wise) rather than incorrectly storing termMaxMarks into maxMarksPerSubject; this must ensure per-subject percentages like Grade 9 Maths (68/80) compute correctly.",
-        "status": "unknown",
-        "plannedFiles": [],
+        "id": "REQ-1",
+        "summary": "Create a new table component that displays raw-marks percentage for every grade (9, 10, 11, 12) across both Term 1 and Term 2, with columns for Grade, Term 1 %, and Term 2 %",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/src/components/RawMarksPercentageTable.tsx"
+        ],
         "matchedFiles": []
       },
       {
-        "id": "REQ-12",
-        "summary": "Ensure the Progress View displays per-subject percentages using the correct per-subject maximum marks basis for the entry (regular subjects use entry.maxMarksPerSubject; Computer uses entry.computerMaxMarks; AI uses entry.aiMaxMarks) so that Grade 9 Maths 68/80 displays as 85.0% (not ~15.1%).",
-        "status": "implemented",
+        "id": "REQ-2",
+        "summary": "Create a frequency-polygon chart that visualizes the combined percentage distribution using Term 1 and Term 2 data, plotting percentage ranges on the x-axis and frequency counts on the y-axis with connected line segments",
+        "status": "missing",
         "plannedFiles": [
-          "frontend/src/components/ProgressView.tsx",
-          "frontend/src/lib/maxMarks.ts"
+          "frontend/src/components/FrequencyPolygonChart.tsx"
         ],
-        "matchedFiles": [
-          "frontend/src/components/ProgressView.tsx",
-          "frontend/src/lib/maxMarks.ts"
-        ]
+        "matchedFiles": []
       },
       {
-        "id": "REQ-13",
-        "summary": "Add a conditional migration to normalize previously stored AcademicEntry max-marks fields so older entries affected by the incorrect storage (e.g., maxMarksPerSubject accidentally set to termMaxMarks) are updated to grade-wise per-subject maximums, and any dependent stored percentages that rely on these maximums remain consistent with the corrected basis and existing 100% clamp.",
-        "status": "unknown",
-        "plannedFiles": [],
+        "id": "REQ-3",
+        "summary": "Integrate the new raw-marks percentage table and frequency-polygon chart into the existing AcademicModule component, adding them as new tabs or sections in the Progress View",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/src/components/AcademicModule.tsx"
+        ],
         "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
+    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/components/ProgressView.tsx",
-    "frontend/src/lib/maxMarks.ts",
+    "frontend/src/config.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

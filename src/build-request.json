@@ -1,70 +1,70 @@
 {
   "kind": "build_request",
-  "title": "Fix per-subject percentage to use grade-wise maximum marks (e.g., Grade 9 Maths out of 80)",
+  "title": "Add raw-marks percentage table and frequency-polygon chart",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-11",
-      "text": "Fix backend AcademicEntry persistence so regular-subject max marks are stored per subject (grade-wise) rather than incorrectly storing termMaxMarks into maxMarksPerSubject; this must ensure per-subject percentages like Grade 9 Maths (68/80) compute correctly.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "each subject should be out of current total of specify gradre"
-        ]
-      },
-      "acceptanceCriteria": [
-        "When saving a Grade 9 term entry, AcademicEntry.maxMarksPerSubject is stored as 80 (grade-wise regular subject max), not as the entry's termMaxMarks total.",
-        "AcademicEntry.computerMaxMarks and AcademicEntry.aiMaxMarks are stored using the incoming SaveAcademicInput.computerMaxMarks and SaveAcademicInput.aiMaxMarks (do not overwrite them with unrelated term/grade special-cases).",
-        "After the change, fetching entries via getAcademicEntries returns maxMarksPerSubject/computerMaxMarks/aiMaxMarks values that align with the grade-wise rules used by the frontend."
-      ]
-    },
-    {
-      "id": "REQ-12",
-      "text": "Ensure the Progress View displays per-subject percentages using the correct per-subject maximum marks basis for the entry (regular subjects use entry.maxMarksPerSubject; Computer uses entry.computerMaxMarks; AI uses entry.aiMaxMarks) so that Grade 9 Maths 68/80 displays as 85.0% (not ~15.1%).",
+      "id": "REQ-1",
+      "text": "Create a new table component that displays raw-marks percentage for every grade (9, 10, 11, 12) across both Term 1 and Term 2, with columns for Grade, Term 1 %, and Term 2 %",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-12"
         ],
         "quotes": [
-          "why am i getting lower percentage for each subjet example 68 out of 80, percentage-15.1%"
+          "new table that shows raw‑marks percentage for every grade and for each term"
         ]
       },
       "acceptanceCriteria": [
-        "For an AcademicEntry with grade=9 and subjects.math=68 and maxMarksPerSubject=80, the UI shows 85.0% for Maths in the per-subject breakdown.",
-        "If an entry has a missing/zero maxMarksPerSubject (or computerMaxMarks/aiMaxMarks for those subjects), the UI does not show an obviously wrong low percentage; it should instead show 0% or a clear fallback behavior consistent across subjects."
+        "Table shows all grades (9, 10, 11, 12) with their respective Term 1 and Term 2 percentages",
+        "Percentages are calculated from raw marks divided by maximum possible marks for each grade and term",
+        "Table is sortable and displays formatted percentage values"
       ]
     },
     {
-      "id": "REQ-13",
-      "text": "Add a conditional migration to normalize previously stored AcademicEntry max-marks fields so older entries affected by the incorrect storage (e.g., maxMarksPerSubject accidentally set to termMaxMarks) are updated to grade-wise per-subject maximums, and any dependent stored percentages that rely on these maximums remain consistent with the corrected basis and existing 100% clamp.",
-      "target": "backend",
+      "id": "REQ-2",
+      "text": "Create a frequency-polygon chart that visualizes the combined percentage distribution using Term 1 and Term 2 data, plotting percentage ranges on the x-axis and frequency counts on the y-axis with connected line segments",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-12"
         ],
         "quotes": [
-          "each subject should be out of current total of specify gradre"
+          "A frequency‑polygon chart that shows combined percentage using Term 1 and Term 2"
         ]
       },
       "acceptanceCriteria": [
-        "On upgrade, existing stored entries with incorrect maxMarksPerSubject are updated so regular subjects in Grade 9 use maxMarksPerSubject=80 (and other grades follow the existing grade-wise rules).",
-        "The migration is conditional (only runs/recomputes when detecting older/incorrect stored max-marks fields) to avoid unnecessary rewrites.",
-        "After migration, per-subject percentages in Progress View for older entries compute correctly (e.g., 68/80 → 85.0%)."
+        "Chart displays frequency-polygon (line chart with markers) showing distribution of combined percentages from Term 1 and Term 2",
+        "X-axis shows percentage ranges (e.g., 0-10%, 10-20%, etc.)",
+        "Y-axis shows frequency count of students/entries in each range",
+        "Line segments connect the frequency points to form a polygon shape"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Integrate the new raw-marks percentage table and frequency-polygon chart into the existing AcademicModule component, adding them as new tabs or sections in the Progress View",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-12"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Both new components are accessible from the Academic Module interface",
+        "Navigation between existing views and new views is seamless",
+        "Data flows correctly from existing academic entries to populate both visualizations"
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo; do not introduce additional backend services.",
-    "Do not edit frontend paths listed as immutable in SYSTEM_CONTEXT (compose existing UI components instead).",
-    "All user-facing text must be in English."
+    "Use existing academic entry data structure from backend without schema changes",
+    "Maintain compatibility with current max marks calculation logic in frontend/src/lib/maxMarks.ts",
+    "Chart must use Recharts library consistent with existing ProgressView component"
   ],
   "nonGoals": [
-    "Adding new subjects, new grading schemes, or changing the grade-wise maximum marks policy beyond making per-subject max marks use the correct grade-specific basis.",
-    "Introducing external databases, third-party auth providers, or real-time messaging."
+    "Modifying backend data models or adding new backend endpoints",
+    "Changing existing Progress View or Subject Analysis functionality",
+    "Adding data filtering or date range selection for the new views"
   ],
   "imageRequirements": {
     "required": [],

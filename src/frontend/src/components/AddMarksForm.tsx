@@ -282,11 +282,9 @@ export default function AddMarksForm({ onSuccess }: AddMarksFormProps) {
         });
 
         const termPct = formatPercent(Number(entry.termPercentage));
-        const combinedPct = formatPercent(Number(entry.combinedGradePercentage));
-        const overallPct = formatPercent(Number(entry.overallPercentage));
 
         toast.success(
-          `Entry added successfully! Term %: ${termPct}%, Combined Grade %: ${combinedPct}%, Overall %: ${overallPct}%`,
+          `Entry added successfully! Term %: ${termPct}%`,
           { duration: 5000 }
         );
       }
@@ -446,19 +444,21 @@ export default function AddMarksForm({ onSuccess }: AddMarksFormProps) {
               <div className="flex items-center justify-between">
                 <Label className="text-lg font-semibold">Subject Marks</Label>
                 <span className="text-sm text-muted-foreground">
-                  Total Maximum: <span className="font-bold text-foreground">{termMaxMarks}</span> marks
+                  Total Maximum: <span className="font-semibold text-foreground">{termMaxMarks}</span>
                 </span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {activeSubjects.map((subject) => {
                   const key = subjectKeyMap[subject];
                   const maxMarks = getMaxMarksForSubject(subject, selectedGrade!, isBoardExam);
+                  const colorClass = subjectColors[subject] || 'from-gray-500 to-gray-600';
+                  
                   return (
                     <div key={subject} className="space-y-2">
                       <Label htmlFor={key} className="flex items-center gap-2">
-                        <span className={`w-3 h-3 rounded-full bg-gradient-to-r ${subjectColors[subject] || 'from-gray-400 to-gray-500'}`} />
+                        <div className={`h-3 w-3 rounded-full bg-gradient-to-r ${colorClass}`} />
                         {subject}
-                        <span className="text-xs text-muted-foreground ml-auto">(max: {maxMarks})</span>
+                        <span className="text-xs text-muted-foreground ml-auto">(Max: {maxMarks})</span>
                       </Label>
                       <Input
                         id={key}
@@ -467,7 +467,7 @@ export default function AddMarksForm({ onSuccess }: AddMarksFormProps) {
                         max={maxMarks}
                         value={marks[key] || ''}
                         onChange={(e) => setMarks({ ...marks, [key]: e.target.value })}
-                        placeholder={`0-${maxMarks}`}
+                        placeholder={`Enter marks (0-${maxMarks})`}
                         className="text-lg"
                       />
                     </div>

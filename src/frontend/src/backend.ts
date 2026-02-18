@@ -140,7 +140,6 @@ export interface AcademicEntry {
     timestamp: Time;
     termPercentage: bigint;
     computerMaxMarks: bigint;
-    combinedGradePercentage: bigint;
     termTotalMarks: bigint;
     aiMaxMarks: bigint;
 }
@@ -162,6 +161,11 @@ export interface ExportTypes {
     academicEntries: AcademicEntriesExport;
     coding: CodingExport;
 }
+export interface GradeAggregate {
+    term2Percentage: bigint;
+    combinedOverallPercentage: bigint;
+    term1Percentage: bigint;
+}
 export interface CodingAttempt {
     result: string;
     code: string;
@@ -172,6 +176,9 @@ export interface CodingAttempt {
 export interface CodingExport {
     attempts: Array<[Principal, Array<CodingAttempt>]>;
     challenges: Array<CodingChallenge>;
+}
+export interface GradeAggregates {
+    aggregates: Array<[bigint, GradeAggregate]>;
 }
 export interface _CaffeineStorageRefillResult {
     success?: boolean;
@@ -214,6 +221,7 @@ export interface backendInterface {
         combinedTotal: bigint;
         combinedAverage: bigint;
     }>;
+    getGradeAggregatePercentages(): Promise<GradeAggregates>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     importData(data: ExportTypes): Promise<void>;
     initializeAccessControl(): Promise<void>;
@@ -497,6 +505,20 @@ export class Backend implements backendInterface {
             return from_candid_record_n28(this._uploadFile, this._downloadFile, result);
         }
     }
+    async getGradeAggregatePercentages(): Promise<GradeAggregates> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getGradeAggregatePercentages();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getGradeAggregatePercentages();
+            return result;
+        }
+    }
     async getUserProfile(arg0: Principal): Promise<UserProfile | null> {
         if (this.processError) {
             try {
@@ -664,7 +686,6 @@ function from_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uin
     timestamp: _Time;
     termPercentage: bigint;
     computerMaxMarks: bigint;
-    combinedGradePercentage: bigint;
     termTotalMarks: bigint;
     aiMaxMarks: bigint;
 }): {
@@ -682,7 +703,6 @@ function from_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uin
     timestamp: Time;
     termPercentage: bigint;
     computerMaxMarks: bigint;
-    combinedGradePercentage: bigint;
     termTotalMarks: bigint;
     aiMaxMarks: bigint;
 } {
@@ -701,7 +721,6 @@ function from_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uin
         timestamp: value.timestamp,
         termPercentage: value.termPercentage,
         computerMaxMarks: value.computerMaxMarks,
-        combinedGradePercentage: value.combinedGradePercentage,
         termTotalMarks: value.termTotalMarks,
         aiMaxMarks: value.aiMaxMarks
     };
@@ -1060,7 +1079,6 @@ function to_candid_record_n38(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     timestamp: Time;
     termPercentage: bigint;
     computerMaxMarks: bigint;
-    combinedGradePercentage: bigint;
     termTotalMarks: bigint;
     aiMaxMarks: bigint;
 }): {
@@ -1078,7 +1096,6 @@ function to_candid_record_n38(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     timestamp: _Time;
     termPercentage: bigint;
     computerMaxMarks: bigint;
-    combinedGradePercentage: bigint;
     termTotalMarks: bigint;
     aiMaxMarks: bigint;
 } {
@@ -1097,7 +1114,6 @@ function to_candid_record_n38(_uploadFile: (file: ExternalBlob) => Promise<Uint8
         timestamp: value.timestamp,
         termPercentage: value.termPercentage,
         computerMaxMarks: value.computerMaxMarks,
-        combinedGradePercentage: value.combinedGradePercentage,
         termTotalMarks: value.termTotalMarks,
         aiMaxMarks: value.aiMaxMarks
     };

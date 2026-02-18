@@ -29,7 +29,6 @@ export interface AcademicEntry {
   'timestamp' : Time,
   'termPercentage' : bigint,
   'computerMaxMarks' : bigint,
-  'combinedGradePercentage' : bigint,
   'termTotalMarks' : bigint,
   'aiMaxMarks' : bigint,
 }
@@ -59,6 +58,14 @@ export interface CodingExport {
 export interface ExportTypes {
   'academicEntries' : AcademicEntriesExport,
   'coding' : CodingExport,
+}
+export interface GradeAggregate {
+  'term2Percentage' : bigint,
+  'combinedOverallPercentage' : bigint,
+  'term1Percentage' : bigint,
+}
+export interface GradeAggregates {
+  'aggregates' : Array<[bigint, GradeAggregate]>,
 }
 export interface SaveAcademicInput {
   'marks' : SubjectScores,
@@ -152,6 +159,7 @@ export interface _SERVICE {
       'combinedAverage' : bigint,
     }
   >,
+  'getGradeAggregatePercentages' : ActorMethod<[], GradeAggregates>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'importData' : ActorMethod<[ExportTypes], undefined>,
   'initializeAccessControl' : ActorMethod<[], undefined>,

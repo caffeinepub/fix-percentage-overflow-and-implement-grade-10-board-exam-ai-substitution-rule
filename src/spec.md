@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Correct per-subject percentage calculations by storing and using grade-wise per-subject maximum marks (e.g., Grade 9 regular subjects out of 80) instead of mistakenly using term total maximum marks.
+**Goal:** Add raw-marks percentage table and frequency-polygon chart to the Academic Module for visualizing grade performance across terms.
 
 **Planned changes:**
-- Backend: Fix AcademicEntry persistence so `maxMarksPerSubject` stores the grade-wise regular-subject maximum (not `termMaxMarks`), and ensure `computerMaxMarks` / `aiMaxMarks` are saved from the incoming input values without being overwritten by unrelated logic.
-- Backend: Add a conditional migration to detect and normalize previously saved entries where `maxMarksPerSubject` was incorrectly stored (e.g., set to a term total), updating to the correct grade-wise per-subject maximums.
-- Frontend: Update Progress View per-subject percentage calculation to use the correct maximum basis per subject (`entry.maxMarksPerSubject` for regular subjects, `entry.computerMaxMarks` for Computer, `entry.aiMaxMarks` for AI) with a consistent fallback for missing/zero max values.
+- Create a new table component displaying raw-marks percentage for grades 9-12 across Term 1 and Term 2
+- Create a frequency-polygon chart visualizing combined percentage distribution from both terms
+- Integrate both new components into the AcademicModule as new tabs or sections in the Progress View
 
-**User-visible outcome:** In Progress View, per-subject percentages display correctly (e.g., Grade 9 Maths 68/80 shows 85.0% instead of a much lower incorrect percentage), including for older entries after normalization.
+**User-visible outcome:** Users can view a sortable table showing raw-marks percentages for each grade and term, and visualize the overall percentage distribution through a frequency-polygon chart with connected line segments showing performance trends.

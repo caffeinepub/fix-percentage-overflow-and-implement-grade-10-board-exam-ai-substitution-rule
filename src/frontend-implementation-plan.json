@@ -1,25 +1,54 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Progress View per-subject percentages based on correct max-marks fields with safe fallback",
+  "title": "Add raw-marks percentage table and frequency-polygon chart",
   "requirements": [
     {
-      "id": "REQ-12",
-      "summary": "Compute and display per-subject percentages in Progress View using entry-level per-subject max marks (regular: maxMarksPerSubject, Computer: computerMaxMarks, AI: aiMaxMarks) with a consistent fallback when max marks are missing/invalid.",
+      "id": "REQ-1",
+      "summary": "Create a new table component that displays raw-marks percentage for every grade (9, 10, 11, 12) across both Term 1 and Term 2, with columns for Grade, Term 1 %, and Term 2 %",
       "acceptanceCriteria": [
-        "For an AcademicEntry with grade=9 and subjects.math=68 and maxMarksPerSubject=80, the UI shows 85.0% for Maths in the per-subject breakdown.",
-        "If an entry has a missing/zero maxMarksPerSubject (or computerMaxMarks/aiMaxMarks for those subjects), the UI does not show an obviously wrong low percentage; it should instead show 0% or a clear fallback behavior consistent across subjects."
+        "Table shows all grades (9, 10, 11, 12) with their respective Term 1 and Term 2 percentages",
+        "Percentages are calculated from raw marks divided by maximum possible marks for each grade and term",
+        "Table is sortable and displays formatted percentage values"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ProgressView.tsx",
-          "operation": "modify",
-          "description": "Update per-subject percentage calculation to (1) select the correct max-marks field by subject type (regular/computer/ai), (2) guard against missing/zero/suspicious stored max marks (e.g., equal to entry.termMaxMarks or otherwise clearly not per-subject) by applying a consistent fallback (0% or grade-wise expected per-subject max), and (3) use the shared percentage utility (calculatePercentage/clampTo100 + formatPercent) so Grade 9 Maths 68/80 renders as 85.0% and bad stored max marks do not produce misleading low percentages."
-        },
+          "path": "frontend/src/components/RawMarksPercentageTable.tsx",
+          "operation": "create",
+          "description": "Create a new table component that fetches grade aggregate percentages using the existing getGradeAggregatePercentages backend capability and displays Term 1 and Term 2 percentages for grades 9-12. Use shadcn/ui Table components for consistent styling with the existing app. Include sortable columns for Grade, Term 1 %, and Term 2 %, formatted using the percent utility from frontend/src/lib/percent.ts. Handle loading and error states appropriately."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Create a frequency-polygon chart that visualizes the combined percentage distribution using Term 1 and Term 2 data, plotting percentage ranges on the x-axis and frequency counts on the y-axis with connected line segments",
+      "acceptanceCriteria": [
+        "Chart displays frequency-polygon (line chart with markers) showing distribution of combined percentages from Term 1 and Term 2",
+        "X-axis shows percentage ranges (e.g., 0-10%, 10-20%, etc.)",
+        "Y-axis shows frequency count of students/entries in each range",
+        "Line segments connect the frequency points to form a polygon shape"
+      ],
+      "file_operations": [
         {
-          "path": "frontend/src/lib/maxMarks.ts",
+          "path": "frontend/src/components/FrequencyPolygonChart.tsx",
+          "operation": "create",
+          "description": "Create a frequency-polygon chart component using Recharts library (consistent with existing ProgressView component). Fetch all academic entries using the existing getAcademicEntries backend capability and compute combined percentages from Term 1 and Term 2 data for each grade. Group entries into percentage ranges (e.g., 0-10%, 10-20%, ..., 90-100%) and count frequency in each range. Use Recharts LineChart with markers to create the polygon visualization. X-axis displays percentage ranges, Y-axis displays frequency counts. Apply theme-aware colors consistent with existing charts in ProgressView."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Integrate the new raw-marks percentage table and frequency-polygon chart into the existing AcademicModule component, adding them as new tabs or sections in the Progress View",
+      "acceptanceCriteria": [
+        "Both new components are accessible from the Academic Module interface",
+        "Navigation between existing views and new views is seamless",
+        "Data flows correctly from existing academic entries to populate both visualizations"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/AcademicModule.tsx",
           "operation": "modify",
-          "description": "Add a small utility to derive an expected per-subject maximum for a backend subject key (e.g., 'math', 'computer', 'ai') based on grade-wise rules, so ProgressView can apply a consistent fallback when entry max-marks fields are missing/invalid."
+          "description": "Add two new tabs to the existing Tabs component: 'Raw Marks %' and 'Frequency Distribution'. Import and render RawMarksPercentageTable and FrequencyPolygonChart components in their respective tab panels. Maintain the existing tab structure for 'Add Marks', 'Progress View', and 'Subject Analysis'. Ensure the new tabs follow the same layout and styling patterns as existing tabs."
         }
       ]
     }

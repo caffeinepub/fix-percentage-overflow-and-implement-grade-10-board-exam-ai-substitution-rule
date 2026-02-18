@@ -51,7 +51,6 @@ export interface AcademicEntry {
     timestamp: Time;
     termPercentage: bigint;
     computerMaxMarks: bigint;
-    combinedGradePercentage: bigint;
     termTotalMarks: bigint;
     aiMaxMarks: bigint;
 }
@@ -73,6 +72,11 @@ export interface ExportTypes {
     academicEntries: AcademicEntriesExport;
     coding: CodingExport;
 }
+export interface GradeAggregate {
+    term2Percentage: bigint;
+    combinedOverallPercentage: bigint;
+    term1Percentage: bigint;
+}
 export interface CodingAttempt {
     result: string;
     code: string;
@@ -83,6 +87,9 @@ export interface CodingAttempt {
 export interface CodingExport {
     attempts: Array<[Principal, Array<CodingAttempt>]>;
     challenges: Array<CodingChallenge>;
+}
+export interface GradeAggregates {
+    aggregates: Array<[bigint, GradeAggregate]>;
 }
 export interface CodingChallenge {
     id: bigint;
@@ -115,6 +122,7 @@ export interface backendInterface {
         combinedTotal: bigint;
         combinedAverage: bigint;
     }>;
+    getGradeAggregatePercentages(): Promise<GradeAggregates>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     importData(data: ExportTypes): Promise<void>;
     initializeAccessControl(): Promise<void>;

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import { Principal } from '@icp-sdk/core/principal';
-import type { AcademicEntry, BoardExamResults, CodingAttempt, CodingChallenge, UserProfile, UserRole, SubjectScores, ExportTypes } from '../backend';
+import type { AcademicEntry, BoardExamResults, CodingAttempt, CodingChallenge, UserProfile, UserRole, SubjectScores, ExportTypes, GradeAggregates } from '../backend';
 
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
@@ -112,6 +112,21 @@ export function useGetCombinedAcademicEntriesByGrade(grade: number) {
   });
 }
 
+export function useGetGradeAggregatePercentages() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<GradeAggregates>({
+    queryKey: ['gradeAggregates'],
+    queryFn: async () => {
+      if (!actor) return { aggregates: [] };
+      return actor.getGradeAggregatePercentages();
+    },
+    enabled: !!actor && !isFetching,
+    refetchOnMount: 'always',
+    staleTime: 0,
+  });
+}
+
 export function useGetBoardExamResults() {
   const { actor, isFetching } = useActor();
 
@@ -169,7 +184,9 @@ export function useAddAcademicEntry() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['academicEntries'] });
+      await queryClient.invalidateQueries({ queryKey: ['gradeAggregates'] });
       await queryClient.refetchQueries({ queryKey: ['academicEntries'] });
+      await queryClient.refetchQueries({ queryKey: ['gradeAggregates'] });
     },
   });
 }
@@ -297,7 +314,7 @@ export function useImportData() {
       queryClient.invalidateQueries({ queryKey: ['boardExamResults'] });
       queryClient.invalidateQueries({ queryKey: ['codingAttempts'] });
       queryClient.invalidateQueries({ queryKey: ['codingChallenges'] });
+      queryClient.invalidateQueries({ queryKey: ['gradeAggregates'] });
     },
   });
 }
-

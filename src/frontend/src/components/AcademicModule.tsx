@@ -3,7 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AddMarksForm from '@/components/AddMarksForm';
 import ProgressView from '@/components/ProgressView';
-import { BookOpen, TrendingUp } from 'lucide-react';
+import SubjectAnalysisView from '@/components/SubjectAnalysisView';
+import { BookOpen, TrendingUp, BarChart3 } from 'lucide-react';
 
 export default function AcademicModule() {
   const [activeTab, setActiveTab] = useState<string>('add');
@@ -20,7 +21,7 @@ export default function AcademicModule() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
+        <TabsList className="grid w-full max-w-2xl grid-cols-3">
           <TabsTrigger value="add" className="gap-2">
             <BookOpen className="w-4 h-4" />
             Add Marks
@@ -28,6 +29,10 @@ export default function AcademicModule() {
           <TabsTrigger value="progress" className="gap-2">
             <TrendingUp className="w-4 h-4" />
             View Progress
+          </TabsTrigger>
+          <TabsTrigger value="analysis" className="gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Subject Analysis
           </TabsTrigger>
         </TabsList>
 
@@ -37,6 +42,10 @@ export default function AcademicModule() {
 
         <TabsContent value="progress" className="space-y-6">
           <ProgressView />
+        </TabsContent>
+
+        <TabsContent value="analysis" className="space-y-6">
+          <SubjectAnalysisView />
         </TabsContent>
       </Tabs>
     </div>

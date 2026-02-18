@@ -1,5 +1,4 @@
 import AccessControl "authorization/access-control";
-import Iter "mo:core/Iter";
 import List "mo:core/List";
 import Map "mo:core/Map";
 import Nat "mo:core/Nat";
@@ -8,9 +7,9 @@ import Runtime "mo:core/Runtime";
 import MixinStorage "blob-storage/Mixin";
 import Text "mo:core/Text";
 import Time "mo:core/Time";
-import Migration "migration";
 
-(with migration = Migration.run)
+
+
 actor {
   include MixinStorage();
 
@@ -54,7 +53,6 @@ actor {
     totalFinalMarks : Nat;
     overallMaxMarks : Nat;
     overallPercentage : Nat;
-    combinedGradePercentage : Nat;
     gradeText : Text;
     timestamp : Time.Time;
     maxMarksPerSubject : Nat;
@@ -103,6 +101,16 @@ actor {
   public type ExportTypes = {
     academicEntries : AcademicEntriesExport;
     coding : CodingExport;
+  };
+
+  public type GradeAggregate = {
+    term1Percentage : Nat;
+    term2Percentage : Nat;
+    combinedOverallPercentage : Nat;
+  };
+
+  public type GradeAggregates = {
+    aggregates : [(Nat, GradeAggregate)];
   };
 
   var accessControlState = AccessControl.initState();
@@ -162,6 +170,69 @@ actor {
     } else { 0 };
   };
 
+  func calculateGrade(percentage : Nat) : Text {
+    if (percentage >= 90) { "A+" } else if (percentage >= 80) {
+      "A";
+    } else if (percentage >= 70) {
+      "B+";
+    } else if (percentage >= 60) { "B" } else if (percentage >= 50) {
+      "C";
+    } else { "D" };
+  };
+
+  func calculateTermMarks(subjects : SubjectScores) : Nat {
+    var totalMarks = 0;
+    totalMarks := addSubjectMarks(totalMarks, subjects.math);
+    totalMarks := addSubjectMarks(totalMarks, subjects.english);
+    totalMarks := addSubjectMarks(totalMarks, subjects.hindi);
+    totalMarks := addSubjectMarks(totalMarks, subjects.evs);
+    totalMarks := addSubjectMarks(totalMarks, subjects.computer);
+    totalMarks := addSubjectMarks(totalMarks, subjects.kannada);
+    totalMarks := addSubjectMarks(totalMarks, subjects.science);
+    totalMarks := addSubjectMarks(totalMarks, subjects.social);
+    totalMarks := addSubjectMarks(totalMarks, subjects.ai);
+    totalMarks := addSubjectMarks(totalMarks, subjects.physics);
+    totalMarks := addSubjectMarks(totalMarks, subjects.chemistry);
+    totalMarks := addSubjectMarks(totalMarks, subjects.biology);
+    totalMarks := addSubjectMarks(totalMarks, subjects.economics);
+    totalMarks := addSubjectMarks(totalMarks, subjects.businessStudies);
+    totalMarks := addSubjectMarks(totalMarks, subjects.accountancy);
+    totalMarks := addSubjectMarks(totalMarks, subjects.statistics);
+    totalMarks := addSubjectMarks(totalMarks, subjects.management);
+    totalMarks := addSubjectMarks(totalMarks, subjects.psychology);
+    totalMarks := addSubjectMarks(totalMarks, subjects.pe);
+    totalMarks;
+  };
+
+  func addSubjectMarks(totalMarks : Nat, subject : ?Nat) : Nat {
+    switch (subject) {
+      case (?marks) { totalMarks + marks };
+      case (null) { totalMarks };
+    };
+  };
+
+  func calculateFinalMarks(subjects : SubjectScores, term : Nat) : Nat {
+    var totalMarks = 0;
+    if (term == 8 or term == 9) {
+      totalMarks += switch (subjects.science) {
+        case (?marks) { marks };
+        case (null) { 0 };
+      };
+      totalMarks += switch (subjects.social) {
+        case (?marks) { marks };
+        case (null) { 0 };
+      };
+    };
+    totalMarks;
+  };
+
+  func calculateTermPercentage(termTotalMarks : Nat, termMaxMarks : Nat) : Nat {
+    if (termMaxMarks > 0 and termTotalMarks > 0) {
+      let percentage = (termTotalMarks * 100) / termMaxMarks;
+      if (percentage > 100) { 100 } else { percentage };
+    } else { 0 };
+  };
+
   public shared ({ caller }) func addAcademicEntry(grade : Nat, academicInputs : [SaveAcademicInput], _finalMarks : ?Nat) : async [AcademicEntry] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can add academic entries");
@@ -204,7 +275,6 @@ actor {
         totalFinalMarks = finalMarks;
         overallMaxMarks;
         overallPercentage;
-        combinedGradePercentage = calculateTermPercentage(finalMarks, input.termMaxMarks);
         gradeText = calculateGrade(termPercentage);
         timestamp = Time.now();
         maxMarksPerSubject = input.termMaxMarks;
@@ -218,69 +288,6 @@ actor {
     };
 
     academicEntriesList.toArray();
-  };
-
-  func calculateFinalMarks(subjects : SubjectScores, term : Nat) : Nat {
-    var totalMarks = 0;
-    if (term == 8 or term == 9) {
-      totalMarks += switch (subjects.science) {
-        case (?marks) { marks };
-        case (null) { 0 };
-      };
-      totalMarks += switch (subjects.social) {
-        case (?marks) { marks };
-        case (null) { 0 };
-      };
-    };
-    totalMarks;
-  };
-
-  func addSubjectMarks(totalMarks : Nat, subject : ?Nat) : Nat {
-    switch (subject) {
-      case (?marks) { totalMarks + marks };
-      case (null) { totalMarks };
-    };
-  };
-
-  func calculateTermMarks(subjects : SubjectScores) : Nat {
-    var totalMarks = 0;
-    totalMarks := addSubjectMarks(totalMarks, subjects.math);
-    totalMarks := addSubjectMarks(totalMarks, subjects.english);
-    totalMarks := addSubjectMarks(totalMarks, subjects.hindi);
-    totalMarks := addSubjectMarks(totalMarks, subjects.evs);
-    totalMarks := addSubjectMarks(totalMarks, subjects.computer);
-    totalMarks := addSubjectMarks(totalMarks, subjects.kannada);
-    totalMarks := addSubjectMarks(totalMarks, subjects.science);
-    totalMarks := addSubjectMarks(totalMarks, subjects.social);
-    totalMarks := addSubjectMarks(totalMarks, subjects.ai);
-    totalMarks := addSubjectMarks(totalMarks, subjects.physics);
-    totalMarks := addSubjectMarks(totalMarks, subjects.chemistry);
-    totalMarks := addSubjectMarks(totalMarks, subjects.biology);
-    totalMarks := addSubjectMarks(totalMarks, subjects.economics);
-    totalMarks := addSubjectMarks(totalMarks, subjects.businessStudies);
-    totalMarks := addSubjectMarks(totalMarks, subjects.accountancy);
-    totalMarks := addSubjectMarks(totalMarks, subjects.statistics);
-    totalMarks := addSubjectMarks(totalMarks, subjects.management);
-    totalMarks := addSubjectMarks(totalMarks, subjects.psychology);
-    totalMarks := addSubjectMarks(totalMarks, subjects.pe);
-    totalMarks;
-  };
-
-  func calculateGrade(percentage : Nat) : Text {
-    if (percentage >= 90) { "A+" } else if (percentage >= 80) {
-      "A";
-    } else if (percentage >= 70) {
-      "B+";
-    } else if (percentage >= 60) {
-      "B";
-    } else if (percentage >= 50) { "C" } else { "D" };
-  };
-
-  func calculateTermPercentage(termTotalMarks : Nat, termMaxMarks : Nat) : Nat {
-    if (termMaxMarks > 0 and termTotalMarks > 0) {
-      let percentage = (termTotalMarks * 100) / termMaxMarks;
-      if (percentage > 100) { 100 } else { percentage };
-    } else { 0 };
   };
 
   public shared ({ caller }) func saveBoardExamResults(boardExamTotal : Nat, maxMarks : Nat) : async () {
@@ -383,13 +390,11 @@ actor {
           termCount += 1;
         };
 
-        let combinedAverage = (
-          if (filteredEntries.size() > 0 and termCount > 0) {
-            if (combinedMaxMarks > 0) {
-              (combinedTotal * 100) / combinedMaxMarks;
-            } else { 0 };
-          } else { 0 }
-        );
+        let combinedAverage = if (filteredEntries.size() > 0 and termCount > 0) {
+          if (combinedMaxMarks > 0) {
+            (combinedTotal * 100) / combinedMaxMarks;
+          } else { 0 };
+        } else { 0 };
 
         {
           term1;
@@ -397,6 +402,58 @@ actor {
           combinedTotal;
           combinedAverage;
         };
+      };
+    };
+  };
+
+  public query ({ caller }) func getGradeAggregatePercentages() : async GradeAggregates {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view aggregate percentages");
+    };
+
+    switch (academicEntries.get(caller)) {
+      case (null) { { aggregates = [] } };
+      case (?entries) {
+        let gradeAggregatesList = List.empty<(Nat, GradeAggregate)>();
+
+        for (grade in Nat.range(1, 13)) {
+          let term1Entry = entries.values().find(
+            func(entry) { entry.grade == grade and entry.term == 1 }
+          );
+          let term2Entry = entries.values().find(
+            func(entry) { entry.grade == grade and entry.term == 2 }
+          );
+
+          let term1Percentage = switch (term1Entry) {
+            case (null) { 0 };
+            case (?entry) { entry.termPercentage };
+          };
+
+          let term2Percentage = switch (term2Entry) {
+            case (null) { 0 };
+            case (?entry) { entry.termPercentage };
+          };
+
+          // Calculate combinedAverage as the average of term1 and term2 (if both exist)
+          let combinedAverage = if (term1Percentage > 0 and term2Percentage > 0) {
+            (term1Percentage + term2Percentage) / 2;
+          } else if (term1Percentage > 0) {
+            term1Percentage; // Only term 1 exists
+          } else {
+            term2Percentage; // Only term 2 exists or 0 if both are missing
+          };
+
+          if (term1Percentage > 0 or term2Percentage > 0) {
+            let aggregate : GradeAggregate = {
+              term1Percentage;
+              term2Percentage;
+              combinedOverallPercentage = combinedAverage;
+            };
+            gradeAggregatesList.add((grade, aggregate));
+          };
+        };
+
+        { aggregates = gradeAggregatesList.toArray() };
       };
     };
   };
@@ -437,7 +494,7 @@ actor {
     title : Text,
     description : Text,
     sampleInput : Text,
-    sampleOutput : Text
+    sampleOutput : Text,
   ) : async CodingChallenge {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admin can add coding challenge");

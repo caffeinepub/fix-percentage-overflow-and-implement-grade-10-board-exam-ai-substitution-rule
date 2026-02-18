@@ -65,7 +65,6 @@ export const AcademicEntry = IDL.Record({
   'timestamp' : Time,
   'termPercentage' : IDL.Nat,
   'computerMaxMarks' : IDL.Nat,
-  'combinedGradePercentage' : IDL.Nat,
   'termTotalMarks' : IDL.Nat,
   'aiMaxMarks' : IDL.Nat,
 });
@@ -93,6 +92,14 @@ export const CodingAttempt = IDL.Record({
   'score' : IDL.Opt(IDL.Nat),
   'challengeId' : IDL.Nat,
   'timestamp' : Time,
+});
+export const GradeAggregate = IDL.Record({
+  'term2Percentage' : IDL.Nat,
+  'combinedOverallPercentage' : IDL.Nat,
+  'term1Percentage' : IDL.Nat,
+});
+export const GradeAggregates = IDL.Record({
+  'aggregates' : IDL.Vec(IDL.Tuple(IDL.Nat, GradeAggregate)),
 });
 export const AcademicEntriesExport = IDL.Record({
   'academicEntries' : IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Vec(AcademicEntry))),
@@ -178,6 +185,7 @@ export const idlService = IDL.Service({
       ],
       ['query'],
     ),
+  'getGradeAggregatePercentages' : IDL.Func([], [GradeAggregates], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
@@ -256,7 +264,6 @@ export const idlFactory = ({ IDL }) => {
     'timestamp' : Time,
     'termPercentage' : IDL.Nat,
     'computerMaxMarks' : IDL.Nat,
-    'combinedGradePercentage' : IDL.Nat,
     'termTotalMarks' : IDL.Nat,
     'aiMaxMarks' : IDL.Nat,
   });
@@ -284,6 +291,14 @@ export const idlFactory = ({ IDL }) => {
     'score' : IDL.Opt(IDL.Nat),
     'challengeId' : IDL.Nat,
     'timestamp' : Time,
+  });
+  const GradeAggregate = IDL.Record({
+    'term2Percentage' : IDL.Nat,
+    'combinedOverallPercentage' : IDL.Nat,
+    'term1Percentage' : IDL.Nat,
+  });
+  const GradeAggregates = IDL.Record({
+    'aggregates' : IDL.Vec(IDL.Tuple(IDL.Nat, GradeAggregate)),
   });
   const AcademicEntriesExport = IDL.Record({
     'academicEntries' : IDL.Vec(
@@ -371,6 +386,7 @@ export const idlFactory = ({ IDL }) => {
         ],
         ['query'],
       ),
+    'getGradeAggregatePercentages' : IDL.Func([], [GradeAggregates], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],

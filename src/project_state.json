@@ -1,89 +1,35 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 9,
-  "summary": "Fix percentage overflow, implement Grade 10 board exam AI substitution rule, and correct subject/term percentage calculations to use grade-wise maximum marks (so per-subject percentages like 68/80 display correctly).",
-  "architectural_notes": [
-    "Add a centralized grade-wise max-marks configuration used by all percentage/max-marks calculations (including special cases like AI and Computer)."
-  ],
-  "known_issues": [
-    "Overall percentage is currently exceeding 100% in some cases",
-    "Per-subject percentage display can be wrong (e.g., Grade 9 Maths 68/80 shows ~15.1%) due to using an incorrect max-marks basis (term/overall max) instead of the subject’s max marks."
-  ],
-  "isFixRequest": true,
-  "existing_features": [
-    {
-      "id": "feature-ensure-all-percentage-calculations-displayed-and-stored-by-the-app-cannot-exceed-100-cap-at-100-for-term-percentages-combined-grade-percentages-overall-percentages-and-board-exam-percentages",
-      "title": "Ensure all percentage calculations displayed and stored by the app cannot exceed 100% (cap at 100) for term percentages, combined grade percentages, overall percentages, and board exam percentages.",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-for-grade-10-board-exam-results-implement-the-rule-ai-acts-as-a-substitute-for-core-subjects-math-science-social-ssc-by-replacing-the-lowest-score-among-those-three-with-the-ai-score-only-if-doing-so-improves-the-total-the-board-exam-total-and-percentage-must-be-calculated-using-this-substitution-logic",
-      "title": "For Grade 10 Board Exam results, implement the rule: AI acts as a substitute for core subjects (Math, Science, Social/SSC) by replacing the lowest score among those three with the AI score only if doing so improves the total; the board exam total and percentage must be calculated using this substitution logic.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-the-grade-10-board-exam-entry-ui-copy-english-to-explain-that-ai-is-a-substitute-for-the-lowest-core-subject-math-science-social-and-does-not-add-an-extra-subject-to-the-board-exam-total",
-      "title": "Update the Grade 10 Board Exam entry UI copy (English) to explain that AI is a substitute for the lowest core subject (Math/Science/Social) and does not add an extra subject to the board exam total.",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-the-grade-wise-maximum-marks-rules-used-by-the-add-marks-form-so-the-allowed-input-ranges-and-computed-termmaxmarks-follow-grades-8-9-each-non-special-subject-is-out-of-80-grade-9-ai-is-out-of-50-grades-5-7-each-non-special-subject-is-out-of-60-grades-3-4-each-non-special-subject-is-out-of-50-grades-1-2-each-non-special-subject-is-out-of-30-computer-is-out-of-20-for-grades-1-7-and-out-of-30-for-grade-8-apply-the-ai-is-out-of-50-rule-only-to-grade-9-term-entries-do-not-cap-grade-10-term-ai-to-50-unless-explicitly-configured-for-grade-10",
-      "title": "Update the grade-wise maximum marks rules used by the Add Marks form so the allowed input ranges and computed termMaxMarks follow: Grades 8–9: each non-special subject is out of 80; Grade 9 AI is out of 50; Grades 5–7: each non-special subject is out of 60; Grades 3–4: each non-special subject is out of 50; Grades 1–2: each non-special subject is out of 30; Computer is out of 20 for Grades 1–7 and out of 30 for Grade 8. Apply the 'AI is out of 50' rule only to Grade 9 term entries (do not cap Grade 10 term AI to 50 unless explicitly configured for Grade 10).",
-      "reqIds": [
-        "REQ-5"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-ensure-progress-view-uses-the-stored-per-subject-maximum-marks-fields-maxmarkspersubject-computermaxmarks-aimaxmarks-and-or-termmaxmarks-consistently-so-displayed-subject-percentages-and-totals-reflect-the-updated-grade-wise-maximum-marks-rules",
-      "title": "Ensure Progress View uses the stored per-subject maximum marks fields (maxMarksPerSubject, computerMaxMarks, aiMaxMarks, and/or termMaxMarks) consistently so displayed subject percentages and totals reflect the updated grade-wise maximum marks rules.",
-      "reqIds": [
-        "REQ-7"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-the-shared-grade-wise-maximum-marks-rules-used-by-the-frontend-so-they-match-grades-8-9-each-regular-subject-is-out-of-80-grade-9-ai-is-out-of-50-grades-5-7-each-regular-subject-is-out-of-60-grades-3-4-each-regular-subject-is-out-of-50-grades-1-2-each-regular-subject-is-out-of-30-computer-is-out-of-20-for-grades-1-7-and-out-of-30-for-grade-8",
-      "title": "Update the shared grade-wise maximum marks rules used by the frontend so they match: Grades 8–9: each regular subject is out of 80; Grade 9 AI is out of 50; Grades 5–7: each regular subject is out of 60; Grades 3–4: each regular subject is out of 50; Grades 1–2: each regular subject is out of 30; Computer is out of 20 for Grades 1–7 and out of 30 for Grade 8.",
-      "reqIds": [
-        "REQ-8"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-ensure-the-progress-view-displays-per-subject-percentages-using-the-correct-per-subject-maximum-marks-basis-for-the-entry-regular-subjects-use-entry-maxmarkspersubject-computer-uses-entry-computermaxmarks-ai-uses-entry-aimaxmarks-so-that-grade-9-maths-68-80-displays-as-85-0-not-15-1",
-      "title": "Ensure the Progress View displays per-subject percentages using the correct per-subject maximum marks basis for the entry (regular subjects use entry.maxMarksPerSubject; Computer uses entry.computerMaxMarks; AI uses entry.aiMaxMarks) so that Grade 9 Maths 68/80 displays as 85.0% (not ~15.1%).",
-      "reqIds": [
-        "REQ-12"
-      ],
-      "version": 1
-    }
-  ],
+  "projectStateVersion": 3,
+  "summary": "Grade management system with analytics tables and frequency-polygon charts for raw-marks percentages across terms",
+  "architectural_notes": [],
+  "known_issues": [],
+  "isFixRequest": false,
+  "existing_features": [],
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Cap overall percentage calculation so it cannot exceed 100%",
+      "summary": "Table showing raw-marks percentage for every grade and each term",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "For Board Exam Grade 10: treat AI as a substitute that replaces the lowest score among core subjects (Maths, Science, SSC) when calculating results",
+      "summary": "Frequency-polygon chart showing combined percentage using Term 1 and Term 2",
       "reqIds": [],
       "status": "pending"
     },
     {
+      "id": "AR-3",
+      "summary": "Create a new table component that displays raw-marks percentage for every grade (9, 10, 11, 12) across both Term 1 and Term 2, with columns for Grade, Term 1 %, and Term 2 %",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    },
+    {
       "id": "AR-4",
-      "summary": "Fix the backend academic entry calculations so that overallMaxMarks/overallPercentage are computed from the correct maximum marks basis (not a value that can make percentages exceed 100), while still enforcing the 100% cap as a safety guard.",
+      "summary": "Create a frequency-polygon chart that visualizes the combined percentage distribution using Term 1 and Term 2 data, plotting percentage ranges on the x-axis and frequency counts on the y-axis with connected line segments",
       "reqIds": [
         "REQ-2"
       ],
@@ -91,58 +37,14 @@
     },
     {
       "id": "AR-5",
-      "summary": "Implement grade-wise subject maximum marks rules (including AI and Computer): Grades 8–9 subjects 80; Grade 9 AI 50; Grades 5–7 subjects 60; Grades 3–4 subjects 50; Grades 1–2 subjects 30; Computer 20 for Grades 1–7 and 30 for Grade 8.",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-7",
-      "summary": "Fix backend academic entry calculations so stored max-marks fields and percentages are based on the correct maximum marks for the entry (instead of deriving values from obtained marks). Specifically, when saving an academic entry: (1) store termMaxMarks from the request and use it as the maximum marks basis; (2) compute overallMaxMarks using the same maximum marks basis appropriate for the entry (not equal to the obtained final marks); (3) store maxMarksPerSubject/computerMaxMarks/aiMaxMarks consistently with the grade-wise rules so the frontend can accurately compute subject and overall percentages; keep the existing 100% cap as a safety guard.",
+      "summary": "Integrate the new raw-marks percentage table and frequency-polygon chart into the existing AcademicModule component, adding them as new tabs or sections in the Progress View",
       "reqIds": [
-        "REQ-6"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-9",
-      "summary": "Fix the backend academic entry persistence so stored max-marks fields come from the request and remain consistent with the grade-wise rules: use the incoming SaveAcademicInput.termMaxMarks, SaveAcademicInput.computerMaxMarks, and SaveAcademicInput.aiMaxMarks when saving an AcademicEntry, and compute overallMaxMarks/overallPercentage using the correct maximum-marks basis (while keeping the existing 100% percentage safety cap).",
-      "reqIds": [
-        "REQ-9"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-10",
-      "summary": "If existing stored AcademicEntry records may contain outdated/incorrect max-marks fields due to earlier logic, add a conditional migration to recompute and normalize stored max-marks fields and dependent percentages so older entries align with the updated grade-wise rules and stored fields.",
-      "reqIds": [
-        "REQ-10"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-11",
-      "summary": "Fix per-subject percentage display/calculation so it uses the subject’s grade-wise max marks (e.g., Grade 9 Maths out of 80) rather than term/overall max marks, preventing incorrect values like 15.1% for 68/80.",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-12",
-      "summary": "Fix backend AcademicEntry persistence so regular-subject max marks are stored per subject (grade-wise) rather than incorrectly storing termMaxMarks into maxMarksPerSubject; this must ensure per-subject percentages like Grade 9 Maths (68/80) compute correctly.",
-      "reqIds": [
-        "REQ-11"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-14",
-      "summary": "Add a conditional migration to normalize previously stored AcademicEntry max-marks fields so older entries affected by the incorrect storage (e.g., maxMarksPerSubject accidentally set to termMaxMarks) are updated to grade-wise per-subject maximums, and any dependent stored percentages that rely on these maximums remain consistent with the corrected basis and existing 100% clamp.",
-      "reqIds": [
-        "REQ-13"
+        "REQ-3"
       ],
       "status": "pending"
     }
   ],
-  "projectName": "Fix percentage overflow and implement Grade 10 board exam AI substitution rule",
+  "projectName": "Add raw-marks percentage table and frequency-polygon chart",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }
