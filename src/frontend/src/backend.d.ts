@@ -48,6 +48,7 @@ export interface AcademicEntry {
     overallMaxMarks: bigint;
     grade: bigint;
     termMaxMarks: bigint;
+    subjects9?: Score9Scale;
     timestamp: Time;
     termPercentage: bigint;
     computerMaxMarks: bigint;
@@ -59,12 +60,34 @@ export interface BoardExamResults {
     boardExamTotal: bigint;
     percentage: bigint;
 }
+export interface Score9Scale {
+    ai?: number;
+    pe?: number;
+    evs?: number;
+    biology?: number;
+    social?: number;
+    hindi?: number;
+    math?: number;
+    businessStudies?: number;
+    computer?: number;
+    economics?: number;
+    chemistry?: number;
+    accountancy?: number;
+    physics?: number;
+    management?: number;
+    psychology?: number;
+    kannada?: number;
+    english?: number;
+    statistics?: number;
+    science?: number;
+}
 export interface SaveAcademicInput {
     marks: SubjectScores;
     stream?: string;
     term: bigint;
     subgroup?: string;
     termMaxMarks: bigint;
+    marks9?: Score9Scale;
     computerMaxMarks: bigint;
     aiMaxMarks: bigint;
 }

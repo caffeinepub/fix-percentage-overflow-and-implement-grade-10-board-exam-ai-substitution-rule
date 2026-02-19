@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AddMarksForm from '@/components/AddMarksForm';
 import ProgressView from '@/components/ProgressView';
 import SubjectAnalysisView from '@/components/SubjectAnalysisView';
-import { BookOpen, TrendingUp, BarChart3 } from 'lucide-react';
+import NineScaleGradesView from '@/components/NineScaleGradesView';
+import { BookOpen, TrendingUp, BarChart3, Award } from 'lucide-react';
 
 export default function AcademicModule() {
   const [activeTab, setActiveTab] = useState<string>('add');
@@ -21,7 +21,7 @@ export default function AcademicModule() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full max-w-2xl grid-cols-3">
+        <TabsList className="grid w-full max-w-3xl grid-cols-4">
           <TabsTrigger value="add" className="gap-2">
             <BookOpen className="w-4 h-4" />
             Add Marks
@@ -33,6 +33,10 @@ export default function AcademicModule() {
           <TabsTrigger value="analysis" className="gap-2">
             <BarChart3 className="w-4 h-4" />
             Subject Analysis
+          </TabsTrigger>
+          <TabsTrigger value="nine-scale" className="gap-2">
+            <Award className="w-4 h-4" />
+            9-Scale Grades
           </TabsTrigger>
         </TabsList>
 
@@ -46,6 +50,10 @@ export default function AcademicModule() {
 
         <TabsContent value="analysis" className="space-y-6">
           <SubjectAnalysisView />
+        </TabsContent>
+
+        <TabsContent value="nine-scale" className="space-y-6">
+          <NineScaleGradesView />
         </TabsContent>
       </Tabs>
     </div>

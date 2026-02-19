@@ -1,50 +1,51 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Grade management system with analytics tables and frequency-polygon charts for raw-marks percentages across terms",
+  "summary": "New project",
   "architectural_notes": [],
-  "known_issues": [],
-  "isFixRequest": false,
-  "existing_features": [],
-  "new_feature_requests": [
+  "known_issues": [
+    "Raw marks display showing percentages instead of actual numbers (e.g., 92% instead of 73)",
+    "Grade filtering by section and term not working properly",
+    "9-point grading scale calculation broken",
+    "Grade calculation should use percentage thresholds (e.g., 85% = A) not grading system numbers"
+  ],
+  "isFixRequest": true,
+  "existing_features": [
     {
-      "id": "AR-1",
-      "summary": "Table showing raw-marks percentage for every grade and each term",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Frequency-polygon chart showing combined percentage using Term 1 and Term 2",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Create a new table component that displays raw-marks percentage for every grade (9, 10, 11, 12) across both Term 1 and Term 2, with columns for Grade, Term 1 %, and Term 2 %",
+      "id": "feature-display-raw-marks-as-actual-numbers-e-g-73-instead-of-percentages-e-g-92-throughout-the-application",
+      "title": "Display raw marks as actual numbers (e.g., 73) instead of percentages (e.g., 92%) throughout the application",
       "reqIds": [
         "REQ-1"
       ],
-      "status": "pending"
+      "version": 1
     },
     {
-      "id": "AR-4",
-      "summary": "Create a frequency-polygon chart that visualizes the combined percentage distribution using Term 1 and Term 2 data, plotting percentage ranges on the x-axis and frequency counts on the y-axis with connected line segments",
+      "id": "feature-enable-filtering-of-grades-by-both-section-and-term-in-the-grades-view",
+      "title": "Enable filtering of grades by both section and term in the grades view",
       "reqIds": [
         "REQ-2"
       ],
-      "status": "pending"
+      "version": 1
     },
     {
-      "id": "AR-5",
-      "summary": "Integrate the new raw-marks percentage table and frequency-polygon chart into the existing AcademicModule component, adding them as new tabs or sections in the Progress View",
+      "id": "feature-fix-9-scale-grading-system-calculation-to-work-properly",
+      "title": "Fix 9-scale grading system calculation to work properly",
       "reqIds": [
         "REQ-3"
       ],
-      "status": "pending"
+      "version": 1
+    },
+    {
+      "id": "feature-calculate-letter-grades-a-b-c-etc-based-on-percentage-thresholds-e-g-85-a-grade-rather-than-using-grading-system-numbers",
+      "title": "Calculate letter grades (A, B, C, etc.) based on percentage thresholds (e.g., 85% = A grade) rather than using grading system numbers",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
     }
   ],
-  "projectName": "Add raw-marks percentage table and frequency-polygon chart",
+  "new_feature_requests": [],
+  "projectName": "Fix marks display, filtering, and grade calculation",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

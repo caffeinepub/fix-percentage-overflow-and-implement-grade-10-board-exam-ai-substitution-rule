@@ -1,36 +1,20 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-18T15:07:20.540Z",
-  "summary": "The diff implements all three requirements. A raw-marks percentage table for grades 9-12 with Term 1 and Term 2 columns was added, a frequency-polygon chart visualizing combined percentage distribution was created, and both components were integrated into ProgressView (which is part of AcademicModule). Evidence from ProgressView.tsx and frontend-file-summaries.txt confirms all requested features are present.",
+  "generatedAt": "2026-02-19T16:16:13.234Z",
+  "summary": "All four requirements appear to be implemented. The diff introduces a new grade calculation utility module, updates views to display raw marks and support filtering by grade/section/term, and fixes 9-scale grade calculations based on percentage. No obvious missing requirements or hallucinated features detected.",
   "missing_requirements": [],
-  "hallucinated_features": [
-    {
-      "description": "Sortable functionality added to the main academic entries table with sorting by grade, term, termPercentage, and timestamp fields",
-      "reason": "The BuildRequest does not mention sorting for the main academic entries table. REQ-1 mentions the raw-marks percentage table should be sortable, but the diff shows sorting logic applied to the main entries table as well.",
-      "evidence": [
-        "frontend/src/components/ProgressView.tsx"
-      ]
-    },
-    {
-      "description": "Statistics cards displaying average, highest, lowest percentages and total entries count",
-      "reason": "Statistics cards showing averagePercentage, highestPercentage, lowestPercentage, and totalEntries were not requested in the BuildRequest.",
-      "evidence": [
-        "frontend/src/components/ProgressView.tsx"
-      ]
-    },
-    {
-      "description": "Trend data chart with index-based plotting",
-      "reason": "The trendData useMemo creates a data structure for trend visualization that was not requested in the BuildRequest or requirements.",
-      "evidence": [
-        "frontend/src/components/ProgressView.tsx"
-      ]
-    }
-  ],
-  "confidence": 0.92,
+  "hallucinated_features": [],
+  "confidence": 0.85,
   "changed_files": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "frontend-file-summaries.txt",
+    "frontend/src/components/AddMarksForm.tsx",
+    "frontend/src/components/NineScaleGradesView.tsx",
     "frontend/src/components/ProgressView.tsx",
+    "frontend/src/components/SubjectAnalysisView.tsx",
+    "frontend/src/lib/gradeCalculation.ts",
     "project_state.json"
   ]
 }

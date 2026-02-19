@@ -1,15 +1,16 @@
 import AccessControl "authorization/access-control";
 import List "mo:core/List";
 import Map "mo:core/Map";
+import Migration "migration";
 import Nat "mo:core/Nat";
+import Nat8 "mo:core/Nat8";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
 import MixinStorage "blob-storage/Mixin";
 import Text "mo:core/Text";
 import Time "mo:core/Time";
 
-
-
+(with migration = Migration.run)
 actor {
   include MixinStorage();
 
@@ -35,6 +36,28 @@ actor {
     pe : ?Nat;
   };
 
+  public type Score9Scale = {
+    math : ?Nat8;
+    english : ?Nat8;
+    hindi : ?Nat8;
+    evs : ?Nat8;
+    computer : ?Nat8;
+    kannada : ?Nat8;
+    science : ?Nat8;
+    social : ?Nat8;
+    ai : ?Nat8;
+    physics : ?Nat8;
+    chemistry : ?Nat8;
+    biology : ?Nat8;
+    economics : ?Nat8;
+    businessStudies : ?Nat8;
+    accountancy : ?Nat8;
+    statistics : ?Nat8;
+    management : ?Nat8;
+    psychology : ?Nat8;
+    pe : ?Nat8;
+  };
+
   public type BoardExamResults = {
     boardExamTotal : Nat;
     maxMarks : Nat;
@@ -47,6 +70,7 @@ actor {
     stream : ?Text;
     subgroup : ?Text;
     subjects : SubjectScores;
+    subjects9 : ?Score9Scale;
     termTotalMarks : Nat;
     termMaxMarks : Nat;
     termPercentage : Nat;
@@ -81,6 +105,7 @@ actor {
   public type SaveAcademicInput = {
     term : Nat;
     marks : SubjectScores;
+    marks9 : ?Score9Scale;
     termMaxMarks : Nat;
     stream : ?Text;
     subgroup : ?Text;
@@ -233,6 +258,28 @@ actor {
     } else { 0 };
   };
 
+  func calculate9ScaleScore(_marks : Nat) : Nat8 {
+    let marks = if (_marks > 100) { 100 } else { _marks };
+
+    if (marks >= 91) { 9 : Nat8 } else if (marks >= 81) {
+      8 : Nat8;
+    } else if (marks >= 71) {
+      7 : Nat8;
+    } else if (marks >= 61) {
+      6 : Nat8;
+    } else if (marks >= 51) { 5 : Nat8 } else if (marks >= 41) {
+      4 : Nat8;
+    } else if (marks >= 33) {
+      3 : Nat8;
+    } else if (marks >= 21) {
+      2 : Nat8;
+    } else if (marks >= 11) {
+      1 : Nat8;
+    } else {
+      0 : Nat8;
+    };
+  };
+
   public shared ({ caller }) func addAcademicEntry(grade : Nat, academicInputs : [SaveAcademicInput], _finalMarks : ?Nat) : async [AcademicEntry] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can add academic entries");
@@ -263,12 +310,92 @@ actor {
         input.aiMaxMarks;
       };
 
+      let calculatedScore9Scale : Score9Scale = {
+        math = switch (subjects.math) {
+          case (?marks) { ?calculate9ScaleScore(marks) };
+          case (null) { null };
+        };
+        english = switch (subjects.english) {
+          case (?marks) { ?calculate9ScaleScore(marks) };
+          case (null) { null };
+        };
+        hindi = switch (subjects.hindi) {
+          case (?marks) { ?calculate9ScaleScore(marks) };
+          case (null) { null };
+        };
+        evs = switch (subjects.evs) {
+          case (?marks) { ?calculate9ScaleScore(marks) };
+          case (null) { null };
+        };
+        computer = switch (subjects.computer) {
+          case (?marks) { ?calculate9ScaleScore(marks) };
+          case (null) { null };
+        };
+        kannada = switch (subjects.kannada) {
+          case (?marks) { ?calculate9ScaleScore(marks) };
+          case (null) { null };
+        };
+        science = switch (subjects.science) {
+          case (?marks) { ?calculate9ScaleScore(marks) };
+          case (null) { null };
+        };
+        social = switch (subjects.social) {
+          case (?marks) { ?calculate9ScaleScore(marks) };
+          case (null) { null };
+        };
+        ai = switch (subjects.ai) {
+          case (?marks) { ?calculate9ScaleScore(marks) };
+          case (null) { null };
+        };
+        physics = switch (subjects.physics) {
+          case (?marks) { ?calculate9ScaleScore(marks) };
+          case (null) { null };
+        };
+        chemistry = switch (subjects.chemistry) {
+          case (?marks) { ?calculate9ScaleScore(marks) };
+          case (null) { null };
+        };
+        biology = switch (subjects.biology) {
+          case (?marks) { ?calculate9ScaleScore(marks) };
+          case (null) { null };
+        };
+        economics = switch (subjects.economics) {
+          case (?marks) { ?calculate9ScaleScore(marks) };
+          case (null) { null };
+        };
+        businessStudies = switch (subjects.businessStudies) {
+          case (?marks) { ?calculate9ScaleScore(marks) };
+          case (null) { null };
+        };
+        accountancy = switch (subjects.accountancy) {
+          case (?marks) { ?calculate9ScaleScore(marks) };
+          case (null) { null };
+        };
+        statistics = switch (subjects.statistics) {
+          case (?marks) { ?calculate9ScaleScore(marks) };
+          case (null) { null };
+        };
+        management = switch (subjects.management) {
+          case (?marks) { ?calculate9ScaleScore(marks) };
+          case (null) { null };
+        };
+        psychology = switch (subjects.psychology) {
+          case (?marks) { ?calculate9ScaleScore(marks) };
+          case (null) { null };
+        };
+        pe = switch (subjects.pe) {
+          case (?marks) { ?calculate9ScaleScore(marks) };
+          case (null) { null };
+        };
+      };
+
       let entry : AcademicEntry = {
         grade;
         term;
         stream = input.stream;
         subgroup = input.subgroup;
         subjects;
+        subjects9 = ?calculatedScore9Scale;
         termTotalMarks;
         termMaxMarks = input.termMaxMarks;
         termPercentage;

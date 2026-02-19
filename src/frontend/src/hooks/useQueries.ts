@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import { Principal } from '@icp-sdk/core/principal';
-import type { AcademicEntry, BoardExamResults, CodingAttempt, CodingChallenge, UserProfile, UserRole, SubjectScores, ExportTypes, GradeAggregates } from '../backend';
+import type { AcademicEntry, BoardExamResults, CodingAttempt, CodingChallenge, UserProfile, UserRole, SubjectScores, Score9Scale, ExportTypes, GradeAggregates } from '../backend';
 
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
@@ -157,7 +157,9 @@ export function useAddAcademicEntry() {
       term: number;
       stream: string | null;
       subgroup: string | null;
+      section: string;
       marks: SubjectScores;
+      marks9: Score9Scale | null;
       termMaxMarks: number;
       computerMaxMarks: number;
       aiMaxMarks: number;
@@ -167,6 +169,7 @@ export function useAddAcademicEntry() {
       const academicInputs = [{
         term: BigInt(params.term),
         marks: params.marks,
+        marks9: params.marks9 || undefined,
         stream: params.stream || undefined,
         subgroup: params.subgroup || undefined,
         termMaxMarks: BigInt(params.termMaxMarks),

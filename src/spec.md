@@ -1,11 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Add raw-marks percentage table and frequency-polygon chart to the Academic Module for visualizing grade performance across terms.
+**Goal:** Fix marks display format, add filtering capabilities, and correct grade calculation logic in the academic tracking system.
 
 **Planned changes:**
-- Create a new table component displaying raw-marks percentage for grades 9-12 across Term 1 and Term 2
-- Create a frequency-polygon chart visualizing combined percentage distribution from both terms
-- Integrate both new components into the AcademicModule as new tabs or sections in the Progress View
+- Display raw marks as actual numbers (e.g., 73) instead of percentages throughout the application
+- Enable filtering of grades by both section and term in grades view
+- Fix 9-scale grading system calculation to work properly
+- Calculate letter grades (A, B, C, etc.) based on percentage thresholds rather than grading system numbers
 
-**User-visible outcome:** Users can view a sortable table showing raw-marks percentages for each grade and term, and visualize the overall percentage distribution through a frequency-polygon chart with connected line segments showing performance trends.
+**User-visible outcome:** Users will see correct numerical marks instead of percentages, can filter grades by section and term, and view accurate 9-scale and letter grade calculations based on proper percentage thresholds.

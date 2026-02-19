@@ -1,52 +1,93 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-18T15:07:20.543Z",
+  "generatedAt": "2026-02-19T16:16:13.237Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 0,
+    "total": 4,
+    "implemented": 4,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Create a new table component that displays raw-marks percentage for every grade (9, 10, 11, 12) across both Term 1 and Term 2, with columns for Grade, Term 1 %, and Term 2 %",
-        "status": "missing",
+        "summary": "Display raw marks as actual numbers (e.g., 73) instead of percentages (e.g., 92%) throughout the application",
+        "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/RawMarksPercentageTable.tsx"
+          "frontend/src/components/ProgressView.tsx",
+          "frontend/src/components/SubjectAnalysisView.tsx",
+          "frontend/src/components/NineScaleGradesView.tsx",
+          "frontend/src/components/AddMarksForm.tsx"
         ],
-        "matchedFiles": []
+        "matchedFiles": [
+          "frontend/src/components/ProgressView.tsx",
+          "frontend/src/components/SubjectAnalysisView.tsx",
+          "frontend/src/components/NineScaleGradesView.tsx",
+          "frontend/src/components/AddMarksForm.tsx"
+        ]
       },
       {
         "id": "REQ-2",
-        "summary": "Create a frequency-polygon chart that visualizes the combined percentage distribution using Term 1 and Term 2 data, plotting percentage ranges on the x-axis and frequency counts on the y-axis with connected line segments",
-        "status": "missing",
+        "summary": "Enable filtering of grades by both section and term in the grades view",
+        "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/FrequencyPolygonChart.tsx"
+          "frontend/src/components/NineScaleGradesView.tsx",
+          "frontend/src/components/ProgressView.tsx",
+          "frontend/src/components/SubjectAnalysisView.tsx"
         ],
-        "matchedFiles": []
+        "matchedFiles": [
+          "frontend/src/components/NineScaleGradesView.tsx",
+          "frontend/src/components/ProgressView.tsx",
+          "frontend/src/components/SubjectAnalysisView.tsx"
+        ]
       },
       {
         "id": "REQ-3",
-        "summary": "Integrate the new raw-marks percentage table and frequency-polygon chart into the existing AcademicModule component, adding them as new tabs or sections in the Progress View",
-        "status": "missing",
+        "summary": "Fix 9-scale grading system calculation to work properly",
+        "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/AcademicModule.tsx"
+          "frontend/src/components/NineScaleGradesView.tsx",
+          "frontend/src/components/AddMarksForm.tsx",
+          "frontend/src/lib/gradeCalculation.ts"
         ],
-        "matchedFiles": []
+        "matchedFiles": [
+          "frontend/src/components/NineScaleGradesView.tsx",
+          "frontend/src/components/AddMarksForm.tsx",
+          "frontend/src/lib/gradeCalculation.ts"
+        ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Calculate letter grades (A, B, C, etc.) based on percentage thresholds (e.g., 85% = A grade) rather than using grading system numbers",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/lib/gradeCalculation.ts",
+          "frontend/src/components/AddMarksForm.tsx",
+          "frontend/src/components/ProgressView.tsx",
+          "frontend/src/components/SubjectAnalysisView.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/lib/gradeCalculation.ts",
+          "frontend/src/components/AddMarksForm.tsx",
+          "frontend/src/components/ProgressView.tsx",
+          "frontend/src/components/SubjectAnalysisView.tsx"
+        ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
-    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/components/AddMarksForm.tsx",
+    "frontend/src/components/NineScaleGradesView.tsx",
     "frontend/src/components/ProgressView.tsx",
-    "frontend/src/config.ts",
+    "frontend/src/components/SubjectAnalysisView.tsx",
+    "frontend/src/lib/gradeCalculation.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

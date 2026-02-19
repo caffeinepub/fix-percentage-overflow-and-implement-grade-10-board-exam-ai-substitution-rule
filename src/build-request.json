@@ -1,70 +1,90 @@
 {
   "kind": "build_request",
-  "title": "Add raw-marks percentage table and frequency-polygon chart",
-  "priority": "normal",
+  "title": "Fix marks display, filtering, and grade calculation",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Create a new table component that displays raw-marks percentage for every grade (9, 10, 11, 12) across both Term 1 and Term 2, with columns for Grade, Term 1 %, and Term 2 %",
+      "text": "Display raw marks as actual numbers (e.g., 73) instead of percentages (e.g., 92%) throughout the application",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-12"
+          "msg-recent"
         ],
         "quotes": [
-          "new table that shows raw‑marks percentage for every grade and for each term"
+          "No you should represent raw marks in numbers say 73 not percentage say 92%"
         ]
       },
       "acceptanceCriteria": [
-        "Table shows all grades (9, 10, 11, 12) with their respective Term 1 and Term 2 percentages",
-        "Percentages are calculated from raw marks divided by maximum possible marks for each grade and term",
-        "Table is sortable and displays formatted percentage values"
+        "All marks displays show actual numerical scores (e.g., 73 out of 100)",
+        "Percentage calculations are only shown where explicitly needed for grade determination",
+        "ProgressView, SubjectAnalysisView, and NineScaleGradesView show raw marks correctly"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Create a frequency-polygon chart that visualizes the combined percentage distribution using Term 1 and Term 2 data, plotting percentage ranges on the x-axis and frequency counts on the y-axis with connected line segments",
+      "text": "Enable filtering of grades by both section and term in the grades view",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-12"
+          "msg-recent"
         ],
         "quotes": [
-          "A frequency‑polygon chart that shows combined percentage using Term 1 and Term 2"
+          "should be present through filtering grades section and term"
         ]
       },
       "acceptanceCriteria": [
-        "Chart displays frequency-polygon (line chart with markers) showing distribution of combined percentages from Term 1 and Term 2",
-        "X-axis shows percentage ranges (e.g., 0-10%, 10-20%, etc.)",
-        "Y-axis shows frequency count of students/entries in each range",
-        "Line segments connect the frequency points to form a polygon shape"
+        "Users can filter academic entries by grade level, section, and term simultaneously",
+        "Filters work correctly in NineScaleGradesView and other relevant views",
+        "Filter state persists during user interaction within the same session"
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Integrate the new raw-marks percentage table and frequency-polygon chart into the existing AcademicModule component, adding them as new tabs or sections in the Progress View",
-      "target": "frontend",
+      "text": "Fix 9-scale grading system calculation to work properly",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-12"
+          "msg-recent"
+        ],
+        "quotes": [
+          "9 scale grading is not working"
         ]
       },
       "acceptanceCriteria": [
-        "Both new components are accessible from the Academic Module interface",
-        "Navigation between existing views and new views is seamless",
-        "Data flows correctly from existing academic entries to populate both visualizations"
+        "9-scale grades (1-9) are calculated correctly based on raw marks",
+        "Grades display properly in NineScaleGradesView with correct color coding",
+        "Grade calculations are consistent across all views"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Calculate letter grades (A, B, C, etc.) based on percentage thresholds (e.g., 85% = A grade) rather than using grading system numbers",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "you should calculate grade in such a way that by not using grading system numbers but percentage say 85% A grade"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Letter grades are derived from percentage calculations (marks/maxMarks * 100)",
+        "Grade thresholds are clearly defined (e.g., 90-100% = A+, 85-89% = A, etc.)",
+        "Grade display is consistent across AddMarksForm, ProgressView, and other components"
       ]
     }
   ],
   "constraints": [
-    "Use existing academic entry data structure from backend without schema changes",
-    "Maintain compatibility with current max marks calculation logic in frontend/src/lib/maxMarks.ts",
-    "Chart must use Recharts library consistent with existing ProgressView component"
+    "Preserve existing academic entry data structure in backend",
+    "Maintain compatibility with existing Score and Score9Scale types",
+    "Do not modify grade-level max marks configuration logic"
   ],
   "nonGoals": [
-    "Modifying backend data models or adding new backend endpoints",
-    "Changing existing Progress View or Subject Analysis functionality",
-    "Adding data filtering or date range selection for the new views"
+    "Changing the overall UI layout or navigation structure",
+    "Modifying authentication or user management features",
+    "Altering coding module functionality"
   ],
   "imageRequirements": {
     "required": [],
