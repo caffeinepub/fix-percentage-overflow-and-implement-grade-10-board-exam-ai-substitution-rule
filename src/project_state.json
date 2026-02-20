@@ -1,42 +1,43 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Student grading system application with customizable grade boundaries and subject-subgroup configuration",
-  "architectural_notes": [
-    "Grading scale: 90-100=A+, 80-89=A, 70-79=B+, 60-69=B, 50-59=C+, 40-49=C",
-    "PE is an elective subject for all subgroups",
-    "Mathematics is only for commerce subgroup"
-  ],
+  "summary": "Academic grading and subject analysis application with elective subject handling",
+  "architectural_notes": [],
   "known_issues": [],
-  "isFixRequest": true,
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-update-the-grading-system-thresholds-to-90-100-a-80-89-a-70-79-b-60-69-b-50-59-c-40-49-c-with-grades-below-40-continuing-the-pattern-d-d-e-e-f",
-      "title": "Update the grading system thresholds to: 90-100 = A+, 80-89 = A, 70-79 = B+, 60-69 = B, 50-59 = C+, 40-49 = C, with grades below 40 continuing the pattern (D+, D, E+, E, F)",
+      "id": "feature-display-average-percentage-alongside-average-raw-marks-in-the-subject-analysis-view-for-each-subject-calculated-using-the-subject-specific-max-marks",
+      "title": "Display average percentage alongside average raw marks in the Subject Analysis view for each subject, calculated using the subject-specific max marks",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-configure-pe-physical-education-as-an-elective-subject-available-for-all-subgroups-across-all-grades",
-      "title": "Configure PE (Physical Education) as an elective subject available for all subgroups across all grades",
+      "id": "feature-change-mathematics-from-compulsory-to-elective-subject-for-commerce-subgroup-ceba-and-ceba-cs-streams-in-the-marks-entry-form",
+      "title": "Change Mathematics from compulsory to elective subject for Commerce subgroup (CEBA and CEBA-CS streams) in the marks entry form",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
-    },
-    {
-      "id": "feature-restrict-mathematics-subject-to-only-the-commerce-subgroup-removing-it-from-science-and-humanities-subgroups",
-      "title": "Restrict Mathematics subject to only the Commerce subgroup, removing it from Science and Humanities subgroups",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
     }
   ],
-  "new_feature_requests": [],
-  "projectName": "Fix grading thresholds and update subject-subgroup rules",
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Add average percentage alongside raw marks in subject analysis",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Make maths elective (not compulsory) for commerce subgroup",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "projectName": "Add average percentage to subject analysis and fix mathematics elective status for commerce",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

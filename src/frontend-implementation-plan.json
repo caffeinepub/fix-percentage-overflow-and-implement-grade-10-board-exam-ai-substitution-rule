@@ -1,88 +1,38 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix grading thresholds and update subject-subgroup rules",
+  "title": "Add average percentage to subject analysis and fix mathematics elective status for commerce",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Update the grading system thresholds to use 10-point intervals: 90-100 = A+, 80-89 = A, 70-79 = B+, 60-69 = B, 50-59 = C+, 40-49 = C, continuing the pattern below 40",
+      "summary": "Display average percentage alongside average raw marks in the Subject Analysis view for each subject, calculated using the subject-specific max marks",
       "acceptanceCriteria": [
-        "Letter grade calculation uses the new 10-point interval thresholds",
-        "All progress views and grade displays show correct letter grades based on new thresholds",
-        "Grades below 40 follow the established pattern consistently"
+        "Subject Analysis table shows both average raw marks and average percentage for each subject",
+        "Percentage is calculated correctly using grade-appropriate max marks",
+        "Format maintains existing table layout and readability"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/lib/gradeCalculation.ts",
+          "path": "frontend/src/components/SubjectAnalysisView.tsx",
           "operation": "modify",
-          "description": "Update the getLetterGrade function to use 10-point interval thresholds: 90-100 = A+, 80-89 = A, 70-79 = B+, 60-69 = B, 50-59 = C+, 40-49 = C, 30-39 = D+, 20-29 = D, 10-19 = E+, 0-9 = E, with F reserved for extreme failures. Ensure all percentage-based grade calculations throughout the file use these new thresholds consistently."
-        },
-        {
-          "path": "frontend/src/components/ProgressView.tsx",
-          "operation": "modify",
-          "description": "Verify that letter grade displays in the progress table and any grade summary sections correctly use the updated gradeCalculation.ts getLetterGrade function. Ensure no hardcoded grade thresholds remain in this component."
-        },
-        {
-          "path": "frontend/src/components/AddMarksForm.tsx",
-          "operation": "modify",
-          "description": "Review and update any grade preview or calculation logic to ensure it uses the updated getLetterGrade function from gradeCalculation.ts. Remove any local grade threshold logic if present."
-        },
-        {
-          "path": "frontend/src/components/NineScaleGradesView.tsx",
-          "operation": "modify",
-          "description": "Verify that any letter grade displays in the 9-scale grades view correctly use the updated gradeCalculation.ts functions. Ensure consistency with the new 10-point interval thresholds."
+          "description": "Add average percentage column to the Subject Analysis table. Update the table headers to include 'Avg %' alongside 'Average Marks'. Use the existing calculatePercentage utility from frontend/src/lib/percent.ts to compute percentages based on average marks and grade-appropriate max marks from frontend/src/lib/maxMarks.ts. Ensure the percentage is formatted consistently (e.g., one decimal place) and displayed in the same table structure. Update the bar chart data to optionally show percentage values if needed for visualization."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Configure PE (Physical Education) as an elective subject available for all subgroups across all grades",
+      "summary": "Change Mathematics from compulsory to elective subject for Commerce subgroup (CEBA and CEBA-CS streams) in the marks entry form",
       "acceptanceCriteria": [
-        "PE appears as an available subject option for all subgroups when adding marks",
-        "PE is properly categorized as an elective subject in subject selection forms",
-        "PE marks are tracked and displayed correctly in all views"
+        "Mathematics appears in the elective subjects section for Commerce subgroups (CEBA, CEBA-CS)",
+        "Mathematics is not shown in the compulsory subjects section for Commerce subgroups",
+        "Other subgroups (Science, Humanities) remain unaffected",
+        "Subject configuration logic correctly handles Mathematics as elective for Commerce streams"
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/AddMarksForm.tsx",
           "operation": "modify",
-          "description": "Update the subject selection logic to include PE as an elective option available for all subgroups (Science, Commerce, Humanities) across all grades. Ensure PE appears in the subject dropdown/selection UI regardless of the selected subgroup. Add a visual indicator or category label showing PE as an elective subject."
-        },
-        {
-          "path": "frontend/src/components/SubjectAnalysisView.tsx",
-          "operation": "modify",
-          "description": "Ensure PE subject data is included in subject analysis calculations and charts when PE marks exist. Verify that PE appears in the subject statistics display with proper labeling as an elective."
-        },
-        {
-          "path": "frontend/src/components/ProgressView.tsx",
-          "operation": "modify",
-          "description": "Verify that PE marks are displayed correctly in the progress table and any subject breakdown views. Ensure PE entries are properly formatted and labeled as an elective subject."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Restrict Mathematics subject to only the Commerce subgroup, removing it from Science and Humanities subgroups",
-      "acceptanceCriteria": [
-        "Mathematics only appears as a subject option when Commerce subgroup is selected",
-        "Mathematics is not available in Science or Humanities subgroup subject lists",
-        "Existing Mathematics entries for non-Commerce subgroups remain visible but new entries cannot be added"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/AddMarksForm.tsx",
-          "operation": "modify",
-          "description": "Update the subject selection logic to restrict Mathematics to only appear when the Commerce subgroup is selected. Remove Mathematics from the available subjects list for Science and Humanities subgroups. Ensure the UI clearly shows Mathematics is only available for Commerce students."
-        },
-        {
-          "path": "frontend/src/components/ProgressView.tsx",
-          "operation": "modify",
-          "description": "Ensure existing Mathematics entries for non-Commerce subgroups remain visible in the progress table and historical data views. Do not filter out or hide these legacy entries, maintaining data integrity for previously saved marks."
-        },
-        {
-          "path": "frontend/src/components/SubjectAnalysisView.tsx",
-          "operation": "modify",
-          "description": "Ensure Mathematics data for all subgroups (including historical Science and Humanities entries) is included in subject analysis when it exists. Display Mathematics statistics for legacy entries while respecting the new restriction for future entries."
+          "description": "Update the subject configuration logic to move Mathematics from compulsory to elective for Commerce subgroups (CEBA and CEBA-CS). Modify the conditional logic that determines which subjects are compulsory vs elective based on the selected subgroup. For Commerce streams (CEBA, CEBA-CS), ensure Mathematics is included in the elective subjects array instead of the compulsory subjects array. Verify that Science and Humanities subgroups continue to treat Mathematics as compulsory. Ensure the dynamic subject rendering correctly reflects this change in both the compulsory and elective sections of the form."
         }
       ]
     }

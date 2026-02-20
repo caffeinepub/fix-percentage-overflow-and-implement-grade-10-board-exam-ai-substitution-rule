@@ -59,6 +59,10 @@ export default function AddMarksForm({ onSuccess }: { onSuccess?: () => void }) 
     return grade === 11 || grade === 12;
   }, [selectedGrade]);
 
+  const isCommerceSubgroup = useMemo(() => {
+    return selectedSubgroup === 'CEBA' || selectedSubgroup === 'CEBA-CS';
+  }, [selectedSubgroup]);
+
   const availableSubjects = useMemo(() => {
     const grade = parseInt(selectedGrade);
     if (!grade || grade < 1 || grade > 12) return [];
@@ -70,8 +74,9 @@ export default function AddMarksForm({ onSuccess }: { onSuccess?: () => void }) 
         PCMC: ['Physics', 'Chemistry', 'Math', 'Computer', 'English'],
         PCMB: ['Physics', 'Chemistry', 'Math', 'Biology', 'English'],
         PCME: ['Physics', 'Chemistry', 'Math', 'Economics', 'English'],
-        CEBA: ['Commerce', 'Economics', 'Business Studies', 'Accountancy', 'English', 'Math'],
-        'CEBA-CS': ['Commerce', 'Economics', 'Business Studies', 'Accountancy', 'Computer', 'English', 'Math'],
+        // For Commerce subgroups, Math is now an elective (not in compulsory list)
+        CEBA: ['Commerce', 'Economics', 'Business Studies', 'Accountancy', 'English'],
+        'CEBA-CS': ['Commerce', 'Economics', 'Business Studies', 'Accountancy', 'Computer', 'English'],
         HESP: ['History', 'Economics', 'Sociology', 'Psychology', 'English'],
         HEMP: ['History', 'Economics', 'Management', 'Psychology', 'English'],
       };
@@ -129,10 +134,10 @@ export default function AddMarksForm({ onSuccess }: { onSuccess?: () => void }) 
     setSubjects(initialSubjects);
   };
 
-  const addElectiveSubject = () => {
+  const addElectiveSubject = (subjectName: string) => {
     const config = getMaxMarksConfig(parseInt(selectedGrade), isBoardExam);
     const newSubject: SubjectInput = {
-      name: 'PE',
+      name: subjectName,
       marks: '',
       maxMarks: config.regularSubjectMax,
       isElective: true,
@@ -278,12 +283,18 @@ export default function AddMarksForm({ onSuccess }: { onSuccess?: () => void }) 
     };
   }, [subjects]);
 
+  // Check if PE is already added
+  const hasPE = subjects.some((s) => s.name === 'PE');
+  // Check if Math is already added (for Commerce subgroups)
+  const hasMath = subjects.some((s) => s.name === 'Math');
+
   return (
     <Card className="border-border/50 shadow-md">
       <CardHeader>
         <CardTitle>Add Academic Entry</CardTitle>
         <CardDescription>
           Enter raw marks for each subject (e.g., 73 out of 100). PE is available as an elective for all subgroups.
+          {isCommerceSubgroup && ' Mathematics is an elective subject for Commerce subgroups.'}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -384,16 +395,30 @@ export default function AddMarksForm({ onSuccess }: { onSuccess?: () => void }) 
               <div className="flex items-center justify-between">
                 <Label>Subject Marks (Raw Marks)</Label>
                 {selectedTerm && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addElectiveSubject}
-                    disabled={subjects.some((s) => s.isElective)}
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add PE (Elective)
-                  </Button>
+                  <div className="flex gap-2">
+                    {!hasPE && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => addElectiveSubject('PE')}
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add PE (Elective)
+                      </Button>
+                    )}
+                    {isCommerceSubgroup && !hasMath && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => addElectiveSubject('Math')}
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Math (Elective)
+                      </Button>
+                    )}
+                  </div>
                 )}
               </div>
               <div className="space-y-3">

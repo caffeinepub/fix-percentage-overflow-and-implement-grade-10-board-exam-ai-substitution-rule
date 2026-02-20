@@ -1,11 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Fix grading thresholds to use 10-point intervals and update subject-subgroup availability rules.
+**Goal:** Enhance Subject Analysis view with average percentages and correct Mathematics subject classification for Commerce streams.
 
 **Planned changes:**
-- Update grading system to use 10-point intervals: 90-100 = A+, 80-89 = A, 70-79 = B+, 60-69 = B, 50-59 = C+, 40-49 = C, continuing the pattern below 40
-- Configure PE (Physical Education) as an elective subject available for all subgroups across all grades
-- Restrict Mathematics subject to Commerce subgroup only, removing it from Science and Humanities subgroups
+- Add average percentage display alongside average raw marks in Subject Analysis table
+- Move Mathematics from compulsory to elective subjects for Commerce subgroups (CEBA and CEBA-CS)
 
-**User-visible outcome:** Letter grades will display correctly using the new 10-point threshold system, PE will be available as an elective for all students regardless of subgroup, and Mathematics will only appear as an option for Commerce students.
+**User-visible outcome:** Users can view both average marks and percentages per subject in the analysis view, and Mathematics will correctly appear as an elective option when entering marks for Commerce students.

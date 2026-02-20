@@ -1,51 +1,32 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-20T06:15:27.018Z",
+  "generatedAt": "2026-02-20T06:24:47.478Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 3,
+    "total": 2,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Update the grading system thresholds to: 90-100 = A+, 80-89 = A, 70-79 = B+, 60-69 = B, 50-59 = C+, 40-49 = C, with grades below 40 continuing the pattern (D+, D, E+, E, F)",
+        "summary": "Display average percentage alongside average raw marks in the Subject Analysis view for each subject, calculated using the subject-specific max marks",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/lib/gradeCalculation.ts",
-          "frontend/src/components/ProgressView.tsx",
-          "frontend/src/components/AddMarksForm.tsx",
-          "frontend/src/components/NineScaleGradesView.tsx"
+          "frontend/src/components/SubjectAnalysisView.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/lib/gradeCalculation.ts",
-          "frontend/src/components/AddMarksForm.tsx"
+          "frontend/src/components/SubjectAnalysisView.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Configure PE (Physical Education) as an elective subject available for all subgroups across all grades",
+        "summary": "Change Mathematics from compulsory to elective subject for Commerce subgroup (CEBA and CEBA-CS streams) in the marks entry form",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/AddMarksForm.tsx",
-          "frontend/src/components/SubjectAnalysisView.tsx",
-          "frontend/src/components/ProgressView.tsx"
-        ],
-        "matchedFiles": [
           "frontend/src/components/AddMarksForm.tsx"
-        ]
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Restrict Mathematics subject to only the Commerce subgroup, removing it from Science and Humanities subgroups",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/AddMarksForm.tsx",
-          "frontend/src/components/ProgressView.tsx",
-          "frontend/src/components/SubjectAnalysisView.tsx"
         ],
         "matchedFiles": [
           "frontend/src/components/AddMarksForm.tsx"
@@ -54,13 +35,12 @@
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/components/AddMarksForm.tsx",
-    "frontend/src/lib/gradeCalculation.ts",
+    "frontend/src/components/SubjectAnalysisView.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

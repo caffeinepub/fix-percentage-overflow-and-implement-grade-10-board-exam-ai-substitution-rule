@@ -13,6 +13,7 @@ import { clampTo100, formatPercent } from '@/lib/percent';
 interface SubjectStats {
   subjectName: string;
   averageMarks: string;
+  averagePercentage: string;
   highestMarks: string;
   lowestMarks: string;
   count: number;
@@ -148,12 +149,16 @@ export default function SubjectAnalysisView() {
       const avgMarks = marksArray.reduce((sum, m) => sum + m.marks, 0) / marksArray.length;
       const avgMaxMarks = marksArray.reduce((sum, m) => sum + m.maxMarks, 0) / marksArray.length;
       
+      // Calculate average percentage
+      const avgPercentage = avgMaxMarks > 0 ? clampTo100((avgMarks * 100) / avgMaxMarks) : 0;
+      
       const highestEntry = marksArray.reduce((max, m) => m.marks > max.marks ? m : max);
       const lowestEntry = marksArray.reduce((min, m) => m.marks < min.marks ? m : min);
 
       stats.push({
         subjectName: SUBJECT_DISPLAY_NAMES[key] || key,
         averageMarks: `${Math.round(avgMarks)}/${Math.round(avgMaxMarks)}`,
+        averagePercentage: `${formatPercent(avgPercentage)}%`,
         highestMarks: `${highestEntry.marks}/${highestEntry.maxMarks}`,
         lowestMarks: `${lowestEntry.marks}/${lowestEntry.maxMarks}`,
         count: marksArray.length,
@@ -312,7 +317,7 @@ export default function SubjectAnalysisView() {
             <CardHeader>
               <CardTitle>Subject Statistics</CardTitle>
               <CardDescription>
-                Raw marks analysis for {selectedGrade === 'all' ? 'all grades' : `Grade ${selectedGrade}`}
+                Raw marks and percentage analysis for {selectedGrade === 'all' ? 'all grades' : `Grade ${selectedGrade}`}
                 {filterSection !== 'all' && ` - ${filterSection}`}
                 {filterTerm !== 'all' && ` - Term ${filterTerm}`}
                 {' '}({filteredEntries.length} entries)
@@ -324,7 +329,8 @@ export default function SubjectAnalysisView() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Subject</TableHead>
-                      <TableHead className="text-right">Average</TableHead>
+                      <TableHead className="text-right">Average Marks</TableHead>
+                      <TableHead className="text-right">Avg %</TableHead>
                       <TableHead className="text-right">Highest</TableHead>
                       <TableHead className="text-right">Lowest</TableHead>
                       <TableHead className="text-right">Entries</TableHead>
@@ -336,6 +342,9 @@ export default function SubjectAnalysisView() {
                         <TableCell className="font-medium">{stat.subjectName}</TableCell>
                         <TableCell className="text-right font-mono text-sm">
                           {stat.averageMarks}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-sm font-semibold text-primary">
+                          {stat.averagePercentage}
                         </TableCell>
                         <TableCell className="text-right font-mono text-sm text-green-600 dark:text-green-400">
                           <div className="flex items-center justify-end gap-1">

@@ -2,11 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-grading-system-thresholds-to-90-100-a-80-89-a-70-79-b-60-69-b-50-59-c-40-49-c-with-grades-below-40-continuing-the-pattern-d-d-e-e-f",
-      "featureTitle": "Update the grading system thresholds to: 90-100 = A+, 80-89 = A, 70-79 = B+, 60-69 = B, 50-59 = C+, 40-49 = C, with grades below 40 continuing the pattern (D+, D, E+, E, F)",
+      "featureId": "feature-display-average-percentage-alongside-average-raw-marks-in-the-subject-analysis-view-for-each-subject-calculated-using-the-subject-specific-max-marks",
+      "featureTitle": "Display average percentage alongside average raw marks in the Subject Analysis view for each subject, calculated using the subject-specific max marks",
       "files": [
-        "frontend/src/components/AddMarksForm.tsx",
-        "frontend/src/lib/gradeCalculation.ts"
+        "frontend/src/components/SubjectAnalysisView.tsx"
       ],
       "components": [
         "authorization@3.0.0",
@@ -23,8 +22,8 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-configure-pe-physical-education-as-an-elective-subject-available-for-all-subgroups-across-all-grades",
-      "featureTitle": "Configure PE (Physical Education) as an elective subject available for all subgroups across all grades",
+      "featureId": "feature-change-mathematics-from-compulsory-to-elective-subject-for-commerce-subgroup-ceba-and-ceba-cs-streams-in-the-marks-entry-form",
+      "featureTitle": "Change Mathematics from compulsory to elective subject for Commerce subgroup (CEBA and CEBA-CS streams) in the marks entry form",
       "files": [
         "frontend/src/components/AddMarksForm.tsx"
       ],
@@ -39,26 +38,6 @@
       ],
       "testIds": [
         "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-restrict-mathematics-subject-to-only-the-commerce-subgroup-removing-it-from-science-and-humanities-subgroups",
-      "featureTitle": "Restrict Mathematics subject to only the Commerce subgroup, removing it from Science and Humanities subgroups",
-      "files": [
-        "frontend/src/components/AddMarksForm.tsx"
-      ],
-      "components": [
-        "authorization@3.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "blob-storage@4.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-3"
       ],
       "confidence": "high"
     }
