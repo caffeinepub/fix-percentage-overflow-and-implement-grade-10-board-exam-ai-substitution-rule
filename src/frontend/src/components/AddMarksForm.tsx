@@ -16,6 +16,7 @@ interface SubjectInput {
   name: string;
   marks: string;
   maxMarks: number;
+  isElective?: boolean;
 }
 
 const GRADE_SUBJECTS: Record<number, string[]> = {
@@ -69,8 +70,8 @@ export default function AddMarksForm({ onSuccess }: { onSuccess?: () => void }) 
         PCMC: ['Physics', 'Chemistry', 'Math', 'Computer', 'English'],
         PCMB: ['Physics', 'Chemistry', 'Math', 'Biology', 'English'],
         PCME: ['Physics', 'Chemistry', 'Math', 'Economics', 'English'],
-        CEBA: ['Commerce', 'Economics', 'Business Studies', 'Accountancy', 'English'],
-        'CEBA-CS': ['Commerce', 'Economics', 'Business Studies', 'Accountancy', 'Computer', 'English'],
+        CEBA: ['Commerce', 'Economics', 'Business Studies', 'Accountancy', 'English', 'Math'],
+        'CEBA-CS': ['Commerce', 'Economics', 'Business Studies', 'Accountancy', 'Computer', 'English', 'Math'],
         HESP: ['History', 'Economics', 'Sociology', 'Psychology', 'English'],
         HEMP: ['History', 'Economics', 'Management', 'Psychology', 'English'],
       };
@@ -121,10 +122,27 @@ export default function AddMarksForm({ onSuccess }: { onSuccess?: () => void }) 
         name: subject,
         marks: '',
         maxMarks,
+        isElective: false,
       };
     });
 
     setSubjects(initialSubjects);
+  };
+
+  const addElectiveSubject = () => {
+    const config = getMaxMarksConfig(parseInt(selectedGrade), isBoardExam);
+    const newSubject: SubjectInput = {
+      name: 'PE',
+      marks: '',
+      maxMarks: config.regularSubjectMax,
+      isElective: true,
+    };
+    setSubjects([...subjects, newSubject]);
+  };
+
+  const removeElectiveSubject = (index: number) => {
+    const newSubjects = subjects.filter((_, i) => i !== index);
+    setSubjects(newSubjects);
   };
 
   const handleMarksChange = (index: number, value: string) => {
@@ -265,7 +283,7 @@ export default function AddMarksForm({ onSuccess }: { onSuccess?: () => void }) 
       <CardHeader>
         <CardTitle>Add Academic Entry</CardTitle>
         <CardDescription>
-          Enter raw marks for each subject (e.g., 73 out of 100)
+          Enter raw marks for each subject (e.g., 73 out of 100). PE is available as an elective for all subgroups.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -363,12 +381,29 @@ export default function AddMarksForm({ onSuccess }: { onSuccess?: () => void }) 
           {/* Subject Marks Input */}
           {subjects.length > 0 && (
             <div className="space-y-4">
-              <Label>Subject Marks (Raw Marks)</Label>
+              <div className="flex items-center justify-between">
+                <Label>Subject Marks (Raw Marks)</Label>
+                {selectedTerm && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addElectiveSubject}
+                    disabled={subjects.some((s) => s.isElective)}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add PE (Elective)
+                  </Button>
+                )}
+              </div>
               <div className="space-y-3">
                 {subjects.map((subject, index) => (
-                  <div key={index} className="grid grid-cols-[1fr_2fr] gap-4 items-center">
+                  <div key={index} className="grid grid-cols-[1fr_2fr_auto] gap-4 items-center">
                     <Label htmlFor={`subject-${index}`} className="font-medium">
                       {subject.name}
+                      {subject.isElective && (
+                        <span className="ml-2 text-xs text-muted-foreground">(Elective)</span>
+                      )}
                     </Label>
                     <div className="flex items-center gap-2">
                       <Input
@@ -388,6 +423,16 @@ export default function AddMarksForm({ onSuccess }: { onSuccess?: () => void }) 
                         </span>
                       )}
                     </div>
+                    {subject.isElective && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeElectiveSubject(index)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    )}
                   </div>
                 ))}
               </div>

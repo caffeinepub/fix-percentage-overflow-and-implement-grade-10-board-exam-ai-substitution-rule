@@ -1,12 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Fix marks display format, add filtering capabilities, and correct grade calculation logic in the academic tracking system.
+**Goal:** Fix grading thresholds to use 10-point intervals and update subject-subgroup availability rules.
 
 **Planned changes:**
-- Display raw marks as actual numbers (e.g., 73) instead of percentages throughout the application
-- Enable filtering of grades by both section and term in grades view
-- Fix 9-scale grading system calculation to work properly
-- Calculate letter grades (A, B, C, etc.) based on percentage thresholds rather than grading system numbers
+- Update grading system to use 10-point intervals: 90-100 = A+, 80-89 = A, 70-79 = B+, 60-69 = B, 50-59 = C+, 40-49 = C, continuing the pattern below 40
+- Configure PE (Physical Education) as an elective subject available for all subgroups across all grades
+- Restrict Mathematics subject to Commerce subgroup only, removing it from Science and Humanities subgroups
 
-**User-visible outcome:** Users will see correct numerical marks instead of percentages, can filter grades by section and term, and view accurate 9-scale and letter grade calculations based on proper percentage thresholds.
+**User-visible outcome:** Letter grades will display correctly using the new 10-point threshold system, PE will be available as an elective for all students regardless of subgroup, and Mathematics will only appear as an option for Commerce students.

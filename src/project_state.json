@@ -1,51 +1,42 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
-  "architectural_notes": [],
-  "known_issues": [
-    "Raw marks display showing percentages instead of actual numbers (e.g., 92% instead of 73)",
-    "Grade filtering by section and term not working properly",
-    "9-point grading scale calculation broken",
-    "Grade calculation should use percentage thresholds (e.g., 85% = A) not grading system numbers"
+  "summary": "Student grading system application with customizable grade boundaries and subject-subgroup configuration",
+  "architectural_notes": [
+    "Grading scale: 90-100=A+, 80-89=A, 70-79=B+, 60-69=B, 50-59=C+, 40-49=C",
+    "PE is an elective subject for all subgroups",
+    "Mathematics is only for commerce subgroup"
   ],
+  "known_issues": [],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-display-raw-marks-as-actual-numbers-e-g-73-instead-of-percentages-e-g-92-throughout-the-application",
-      "title": "Display raw marks as actual numbers (e.g., 73) instead of percentages (e.g., 92%) throughout the application",
+      "id": "feature-update-the-grading-system-thresholds-to-90-100-a-80-89-a-70-79-b-60-69-b-50-59-c-40-49-c-with-grades-below-40-continuing-the-pattern-d-d-e-e-f",
+      "title": "Update the grading system thresholds to: 90-100 = A+, 80-89 = A, 70-79 = B+, 60-69 = B, 50-59 = C+, 40-49 = C, with grades below 40 continuing the pattern (D+, D, E+, E, F)",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-enable-filtering-of-grades-by-both-section-and-term-in-the-grades-view",
-      "title": "Enable filtering of grades by both section and term in the grades view",
+      "id": "feature-configure-pe-physical-education-as-an-elective-subject-available-for-all-subgroups-across-all-grades",
+      "title": "Configure PE (Physical Education) as an elective subject available for all subgroups across all grades",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-fix-9-scale-grading-system-calculation-to-work-properly",
-      "title": "Fix 9-scale grading system calculation to work properly",
+      "id": "feature-restrict-mathematics-subject-to-only-the-commerce-subgroup-removing-it-from-science-and-humanities-subgroups",
+      "title": "Restrict Mathematics subject to only the Commerce subgroup, removing it from Science and Humanities subgroups",
       "reqIds": [
         "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-calculate-letter-grades-a-b-c-etc-based-on-percentage-thresholds-e-g-85-a-grade-rather-than-using-grading-system-numbers",
-      "title": "Calculate letter grades (A, B, C, etc.) based on percentage thresholds (e.g., 85% = A grade) rather than using grading system numbers",
-      "reqIds": [
-        "REQ-4"
       ],
       "version": 1
     }
   ],
   "new_feature_requests": [],
-  "projectName": "Fix marks display, filtering, and grade calculation",
+  "projectName": "Fix grading thresholds and update subject-subgroup rules",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

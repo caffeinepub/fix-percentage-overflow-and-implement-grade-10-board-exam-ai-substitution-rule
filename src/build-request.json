@@ -1,90 +1,71 @@
 {
   "kind": "build_request",
-  "title": "Fix marks display, filtering, and grade calculation",
+  "title": "Fix grading thresholds and update subject-subgroup rules",
   "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Display raw marks as actual numbers (e.g., 73) instead of percentages (e.g., 92%) throughout the application",
+      "text": "Update the grading system thresholds to: 90-100 = A+, 80-89 = A, 70-79 = B+, 60-69 = B, 50-59 = C+, 40-49 = C, with grades below 40 continuing the pattern (D+, D, E+, E, F)",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-recent"
+          "msg-7"
         ],
         "quotes": [
-          "No you should represent raw marks in numbers say 73 not percentage say 92%"
+          "90-100 is A+ 80-89 is A 70-79 is B+  60-69 is B 50-59 is C+ 40-49 is C so on"
         ]
       },
       "acceptanceCriteria": [
-        "All marks displays show actual numerical scores (e.g., 73 out of 100)",
-        "Percentage calculations are only shown where explicitly needed for grade determination",
-        "ProgressView, SubjectAnalysisView, and NineScaleGradesView show raw marks correctly"
+        "Letter grade calculation uses the new 10-point interval thresholds",
+        "All progress views and grade displays show correct letter grades based on new thresholds",
+        "Grades below 40 follow the established pattern consistently"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Enable filtering of grades by both section and term in the grades view",
-      "target": "frontend",
+      "text": "Configure PE (Physical Education) as an elective subject available for all subgroups across all grades",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-recent"
+          "msg-7"
         ],
         "quotes": [
-          "should be present through filtering grades section and term"
+          "PE is elective subject for all subgroups"
         ]
       },
       "acceptanceCriteria": [
-        "Users can filter academic entries by grade level, section, and term simultaneously",
-        "Filters work correctly in NineScaleGradesView and other relevant views",
-        "Filter state persists during user interaction within the same session"
+        "PE appears as an available subject option for all subgroups when adding marks",
+        "PE is properly categorized as an elective subject in subject selection forms",
+        "PE marks are tracked and displayed correctly in all views"
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Fix 9-scale grading system calculation to work properly",
+      "text": "Restrict Mathematics subject to only the Commerce subgroup, removing it from Science and Humanities subgroups",
       "target": "both",
       "source": {
         "messageIds": [
-          "msg-recent"
+          "msg-7"
         ],
         "quotes": [
-          "9 scale grading is not working"
+          "maths is for commenrce subgroup only"
         ]
       },
       "acceptanceCriteria": [
-        "9-scale grades (1-9) are calculated correctly based on raw marks",
-        "Grades display properly in NineScaleGradesView with correct color coding",
-        "Grade calculations are consistent across all views"
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Calculate letter grades (A, B, C, etc.) based on percentage thresholds (e.g., 85% = A grade) rather than using grading system numbers",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-recent"
-        ],
-        "quotes": [
-          "you should calculate grade in such a way that by not using grading system numbers but percentage say 85% A grade"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Letter grades are derived from percentage calculations (marks/maxMarks * 100)",
-        "Grade thresholds are clearly defined (e.g., 90-100% = A+, 85-89% = A, etc.)",
-        "Grade display is consistent across AddMarksForm, ProgressView, and other components"
+        "Mathematics only appears as a subject option when Commerce subgroup is selected",
+        "Mathematics is not available in Science or Humanities subgroup subject lists",
+        "Existing Mathematics entries for non-Commerce subgroups remain visible but new entries cannot be added"
       ]
     }
   ],
   "constraints": [
-    "Preserve existing academic entry data structure in backend",
-    "Maintain compatibility with existing Score and Score9Scale types",
-    "Do not modify grade-level max marks configuration logic"
+    "Preserve all existing academic entries and their data integrity",
+    "Maintain backward compatibility with previously saved marks and grades"
   ],
   "nonGoals": [
-    "Changing the overall UI layout or navigation structure",
-    "Modifying authentication or user management features",
-    "Altering coding module functionality"
+    "Retroactively recalculating grades for existing entries",
+    "Modifying the 9-scale grading system",
+    "Changing maximum marks rules"
   ],
   "imageRequirements": {
     "required": [],

@@ -4,10 +4,10 @@
  */
 
 /**
- * Calculate letter grade from percentage
+ * Calculate letter grade from percentage using 10-point intervals
  * @param marks Raw marks scored
  * @param maxMarks Maximum marks possible
- * @returns Letter grade (A+, A, B+, B, C, D, E, F)
+ * @returns Letter grade (A+, A, B+, B, C+, C, D+, D, E+, E, F)
  */
 export function calculateLetterGrade(marks: number, maxMarks: number): string {
   if (maxMarks === 0) return 'N/A';
@@ -15,12 +15,15 @@ export function calculateLetterGrade(marks: number, maxMarks: number): string {
   const percentage = (marks * 100) / maxMarks;
   
   if (percentage >= 90) return 'A+';
-  if (percentage >= 85) return 'A';
-  if (percentage >= 80) return 'B+';
-  if (percentage >= 70) return 'B';
-  if (percentage >= 60) return 'C';
-  if (percentage >= 50) return 'D';
-  if (percentage >= 40) return 'E';
+  if (percentage >= 80) return 'A';
+  if (percentage >= 70) return 'B+';
+  if (percentage >= 60) return 'B';
+  if (percentage >= 50) return 'C+';
+  if (percentage >= 40) return 'C';
+  if (percentage >= 30) return 'D+';
+  if (percentage >= 20) return 'D';
+  if (percentage >= 10) return 'E+';
+  if (percentage >= 0) return 'E';
   return 'F';
 }
 

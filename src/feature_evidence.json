@@ -2,13 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-display-raw-marks-as-actual-numbers-e-g-73-instead-of-percentages-e-g-92-throughout-the-application",
-      "featureTitle": "Display raw marks as actual numbers (e.g., 73) instead of percentages (e.g., 92%) throughout the application",
+      "featureId": "feature-update-the-grading-system-thresholds-to-90-100-a-80-89-a-70-79-b-60-69-b-50-59-c-40-49-c-with-grades-below-40-continuing-the-pattern-d-d-e-e-f",
+      "featureTitle": "Update the grading system thresholds to: 90-100 = A+, 80-89 = A, 70-79 = B+, 60-69 = B, 50-59 = C+, 40-49 = C, with grades below 40 continuing the pattern (D+, D, E+, E, F)",
       "files": [
         "frontend/src/components/AddMarksForm.tsx",
-        "frontend/src/components/NineScaleGradesView.tsx",
-        "frontend/src/components/ProgressView.tsx",
-        "frontend/src/components/SubjectAnalysisView.tsx"
+        "frontend/src/lib/gradeCalculation.ts"
       ],
       "components": [
         "authorization@3.0.0",
@@ -25,12 +23,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-enable-filtering-of-grades-by-both-section-and-term-in-the-grades-view",
-      "featureTitle": "Enable filtering of grades by both section and term in the grades view",
+      "featureId": "feature-configure-pe-physical-education-as-an-elective-subject-available-for-all-subgroups-across-all-grades",
+      "featureTitle": "Configure PE (Physical Education) as an elective subject available for all subgroups across all grades",
       "files": [
-        "frontend/src/components/NineScaleGradesView.tsx",
-        "frontend/src/components/ProgressView.tsx",
-        "frontend/src/components/SubjectAnalysisView.tsx"
+        "frontend/src/components/AddMarksForm.tsx"
       ],
       "components": [
         "authorization@3.0.0",
@@ -47,12 +43,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-fix-9-scale-grading-system-calculation-to-work-properly",
-      "featureTitle": "Fix 9-scale grading system calculation to work properly",
+      "featureId": "feature-restrict-mathematics-subject-to-only-the-commerce-subgroup-removing-it-from-science-and-humanities-subgroups",
+      "featureTitle": "Restrict Mathematics subject to only the Commerce subgroup, removing it from Science and Humanities subgroups",
       "files": [
-        "frontend/src/components/AddMarksForm.tsx",
-        "frontend/src/components/NineScaleGradesView.tsx",
-        "frontend/src/lib/gradeCalculation.ts"
+        "frontend/src/components/AddMarksForm.tsx"
       ],
       "components": [
         "authorization@3.0.0",
@@ -65,29 +59,6 @@
       ],
       "testIds": [
         "REQ-3"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-calculate-letter-grades-a-b-c-etc-based-on-percentage-thresholds-e-g-85-a-grade-rather-than-using-grading-system-numbers",
-      "featureTitle": "Calculate letter grades (A, B, C, etc.) based on percentage thresholds (e.g., 85% = A grade) rather than using grading system numbers",
-      "files": [
-        "frontend/src/components/AddMarksForm.tsx",
-        "frontend/src/components/ProgressView.tsx",
-        "frontend/src/components/SubjectAnalysisView.tsx",
-        "frontend/src/lib/gradeCalculation.ts"
-      ],
-      "components": [
-        "authorization@3.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "blob-storage@4.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-4"
       ],
       "confidence": "high"
     }
