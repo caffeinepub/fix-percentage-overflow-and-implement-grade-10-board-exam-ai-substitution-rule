@@ -1,0 +1,100 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 3,
+  "summary": "Educational progress tracking app with grade/subject/term management, board exam setup, and analytics features including frequency polygons, subject analysis, grading systems, and combined percentage calculations.",
+  "architectural_notes": [],
+  "known_issues": [],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-in-the-view-progress-tab-add-a-frequency-polygon-chart-that-plots-the-distribution-of-original-percentage-scores-the-chart-must-be-rendered-per-term-and-per-grade-i-e-one-frequency-polygon-per-grade-term-combination-visible-after-filtering-use-class-intervals-e-g-0-10-10-20-90-100-on-the-x-axis-and-frequency-number-of-students-entries-on-the-y-axis-with-connected-line-points",
+      "title": "In the View Progress tab, add a frequency polygon chart that plots the distribution of original percentage scores. The chart must be rendered per term and per grade (i.e., one frequency polygon per grade-term combination visible after filtering). Use class intervals (e.g., 0-10, 10-20, …, 90-100) on the X-axis and frequency (number of students/entries) on the Y-axis, with connected line points.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-the-view-progress-tab-display-the-average-percentage-for-each-grade-as-a-summary-statistic-this-should-appear-as-a-clearly-labeled-figure-e-g-grade-5-average-78-4-either-in-the-existing-table-chart-area-or-as-summary-cards-above-or-below-the-chart",
+      "title": "In the View Progress tab, display the average percentage for each grade as a summary statistic. This should appear as a clearly labeled figure (e.g., 'Grade 5 Average: 78.4%') either in the existing table/chart area or as summary cards above or below the chart.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-the-subject-analysis-tab-display-the-average-raw-marks-e-g-73-for-each-subject-across-all-grades-alongside-the-existing-average-percentage-the-raw-mark-average-must-be-computed-from-actual-stored-marks-divided-by-the-number-of-entries-for-that-subject-and-shown-as-a-numeric-value-e-g-avg-marks-73",
+      "title": "In the Subject Analysis tab, display the average raw marks (e.g., '73') for each subject across all grades alongside the existing average percentage. The raw mark average must be computed from actual stored marks divided by the number of entries for that subject, and shown as a numeric value (e.g., 'Avg Marks: 73').",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-the-subject-analysis-tab-display-the-highest-and-lowest-raw-marks-and-the-highest-and-lowest-percentage-for-each-subject-with-the-ability-to-filter-by-grade-and-term-the-stats-highest-mark-lowest-mark-highest-lowest-must-be-shown-per-subject-for-the-selected-grade-and-term-combination",
+      "title": "In the Subject Analysis tab, display the highest and lowest raw marks and the highest and lowest percentage for each subject, with the ability to filter by grade and term. The stats (highest mark, lowest mark, highest %, lowest %) must be shown per subject for the selected grade and term combination.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-the-nine-grading-system-9-scale-grades-tab-display-the-computed-9-scale-grade-1-9-for-each-subject-for-each-term-of-each-grade-the-grading-scale-must-be-90-100-9-80-89-8-70-79-7-60-69-6-50-59-5-40-49-4-30-39-3-20-29-2-0-19-1-each-subject-cell-must-show-the-grade-number-e-g-8-computed-from-the-subject-s-percentage-for-that-entry-s-term",
+      "title": "In the Nine Grading System (9-Scale Grades) tab, display the computed 9-scale grade (1–9) for each subject for each term of each grade. The grading scale must be: 90–100 = 9, 80–89 = 8, 70–79 = 7, 60–69 = 6, 50–59 = 5, 40–49 = 4, 30–39 = 3, 20–29 = 2, 0–19 = 1. Each subject cell must show the grade number (e.g., '8') computed from the subject's percentage for that entry's term.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-the-combined-percentage-tab-replace-the-current-fixed-formula-with-a-dynamic-calculation-that-averages-the-calculated-adjusted-percentages-of-all-available-terms-for-a-student-entry-group-if-only-term-1-and-term-2-exist-divide-the-sum-by-2-if-term-3-also-exists-divide-the-sum-by-3-the-result-is-the-overall-combined-percentage-update-the-display-and-the-calculation-logic-in-both-the-utility-functions-percent-ts-or-equivalent-and-the-combinedpercentageview-component",
+      "title": "In the Combined Percentage tab, replace the current fixed formula with a dynamic calculation that averages the calculated (adjusted) percentages of all available terms for a student/entry group. If only Term 1 and Term 2 exist, divide the sum by 2. If Term 3 also exists, divide the sum by 3. The result is the overall combined percentage. Update the display and the calculation logic in both the utility functions (percent.ts or equivalent) and the CombinedPercentageView component.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "View Progress: Add frequency polygon charts for original percentage for each term of each grade",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "View Progress: Show average percentage for each grade",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Subject Analysis: Show average raw marks (e.g. 73) for each subject across all grades alongside average percentage",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Subject Analysis: Show highest and lowest raw marks and highest/lowest percentage for each subject per grade, with filter by grade and term",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Nine Grading System: Show grade (1-9 scale, e.g. 90-100=9, 80-89=8) for each subject per term per grade",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Combined Percentage: Calculate overall percentage by averaging calculated percentages of all terms (divide by 2 for 2 terms, divide by 3 if term 3 exists)",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "School Report Card",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

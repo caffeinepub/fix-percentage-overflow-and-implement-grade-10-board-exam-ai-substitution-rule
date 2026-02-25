@@ -1,0 +1,133 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Enhanced analytics: frequency polygons, subject stats, nine-scale grading, and corrected combined percentage",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Add frequency polygon chart for original percentage distribution in View Progress tab, rendered per grade-term combination with class intervals on X-axis and frequency counts on Y-axis",
+      "acceptanceCriteria": [
+        "A frequency polygon (line chart with data points) is displayed in the View Progress tab for each grade-term combination.",
+        "X-axis represents percentage intervals, Y-axis represents frequency counts.",
+        "The chart updates when the user filters by grade or term.",
+        "The chart uses the original (unadjusted) percentage values."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ProgressView.tsx",
+          "operation": "modify",
+          "description": "Add a frequency polygon chart (line chart with connected points) below the existing bar chart that displays the distribution of original percentage scores using class intervals (0-10, 10-20, ..., 90-100) on the X-axis and frequency counts on the Y-axis. Use Recharts LineChart with dots enabled. Compute frequency data by grouping filtered entries into percentage buckets. The chart must update based on the current grade/stream/term filters."
+        },
+        {
+          "path": "frontend/src/lib/frequencyPolygon.ts",
+          "operation": "create",
+          "description": "Create a utility module that exports a function to compute frequency distribution from an array of academic entries. The function should accept entries and return an array of objects with interval (e.g., '0-10') and frequency (count) properties. Use 10-point class intervals from 0-100 based on the original percentage field (termPercentage)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Display average percentage for each grade as a summary statistic in View Progress tab, shown as labeled figures that update with filters",
+      "acceptanceCriteria": [
+        "Average percentage is computed and displayed for each grade present in the filtered data.",
+        "The label clearly identifies the grade.",
+        "Average updates correctly when term or grade filters are changed."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ProgressView.tsx",
+          "operation": "modify",
+          "description": "Add a summary card section above or below the existing chart area that displays the average percentage for each grade present in the filtered data. Compute the average from the original termPercentage field of filtered entries grouped by grade. Display as clearly labeled text (e.g., 'Grade 5 Average: 78.4%'). Ensure the summary updates whenever grade, stream, or term filters change."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Display average raw marks (numeric value) for each subject alongside average percentage in Subject Analysis tab, computed from actual stored marks",
+      "acceptanceCriteria": [
+        "Each subject row/bar in Subject Analysis shows both average raw marks and average percentage.",
+        "Average raw marks are displayed as a rounded numeric value.",
+        "The value is computed from actual stored raw marks, not derived from percentage."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/lib/subjectAnalysis.ts",
+          "operation": "modify",
+          "description": "Extend the computeSubjectStatistics function to include average raw marks for each subject. Add a new field 'averageMarks' that computes the mean of actual stored raw marks (from the subjects field of entries) for each subject. Return this alongside the existing averagePercentage field. Use rounded numeric values."
+        },
+        {
+          "path": "frontend/src/components/SubjectAnalysisView.tsx",
+          "operation": "modify",
+          "description": "Update the SubjectAnalysisView component to display the new averageMarks field alongside the existing averagePercentage for each subject. Show it as a clearly labeled numeric value (e.g., 'Avg Marks: 73') in the chart tooltip or as an additional data series or label in the bar chart."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Display highest and lowest raw marks and percentages for each subject in Subject Analysis tab, with grade and term filters",
+      "acceptanceCriteria": [
+        "Subject Analysis tab has grade and term filter controls.",
+        "For each subject, the UI displays: highest raw marks, lowest raw marks, highest percentage, lowest percentage.",
+        "All four stats update correctly when grade or term filter changes.",
+        "Stats are computed only from entries matching the selected grade and term."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/lib/subjectAnalysis.ts",
+          "operation": "modify",
+          "description": "Extend the computeSubjectStatistics function to include four new fields per subject: highestMarks, lowestMarks, highestPercentage, and lowestPercentage. Compute these from the filtered entries (by grade and term). Use the raw marks from the subjects field for marks stats and computed percentages for percentage stats."
+        },
+        {
+          "path": "frontend/src/components/SubjectAnalysisView.tsx",
+          "operation": "modify",
+          "description": "Add grade and term filter controls (dropdowns or select elements) to the SubjectAnalysisView if not already present. Update the component to display the four new stats (highest marks, lowest marks, highest %, lowest %) for each subject in a table or expanded view alongside the bar chart. Ensure the stats update when filters change."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Display computed 9-scale grade (1-9) for each subject per term per grade in Nine Grading System tab, using the scale: 90-100=9, 80-89=8, 70-79=7, 60-69=6, 50-59=5, 40-49=4, 30-39=3, 20-29=2, 0-19=1",
+      "acceptanceCriteria": [
+        "The nine-point grading scale is: 90-100=9, 80-89=8, 70-79=7, 60-69=6, 50-59=5, 40-49=4, 30-39=3, 20-29=2, 0-19=1.",
+        "Each subject for each entry (per term, per grade) shows its 9-scale grade.",
+        "Grades are visible per term and per grade, with filter controls to narrow by grade and term.",
+        "The gradeCalculation utility is updated or extended to use the new 9-point boundaries."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/lib/gradeCalculation.ts",
+          "operation": "modify",
+          "description": "Add or update a function to compute 9-scale grades using the new boundaries: 90-100=9, 80-89=8, 70-79=7, 60-69=6, 50-59=5, 40-49=4, 30-39=3, 20-29=2, 0-19=1. Accept a percentage value and return a number 1-9. Ensure this function is exported and can be used by the NineScaleGradesView component."
+        },
+        {
+          "path": "frontend/src/components/NineScaleGradesView.tsx",
+          "operation": "modify",
+          "description": "Update the NineScaleGradesView component to use the updated 9-scale grade calculation function from gradeCalculation.ts. For each subject in each entry, compute the percentage from raw marks and max marks, then apply the 9-scale function. Display the resulting 1-9 grade per subject with color-coded badges. Ensure grade and term filters work correctly to narrow the displayed entries."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Replace fixed combined percentage formula with dynamic calculation that averages calculated percentages of all available terms (divide by 2 or 3 based on term count) in Combined Percentage tab",
+      "acceptanceCriteria": [
+        "Combined percentage is computed by summing calculated percentages of all terms present and dividing by the count of distinct terms (2 or 3).",
+        "If Term 3 data exists for a student, the divisor is 3; otherwise it is 2.",
+        "The CombinedPercentageView table shows the correctly recalculated combined percentage.",
+        "The percent.ts utility is updated to support this dynamic term-count division.",
+        "Old hardcoded formula (original + 94) / 2 is replaced or clearly separated from the new combined percentage logic."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/lib/percent.ts",
+          "operation": "modify",
+          "description": "Add or update a function to compute combined percentage dynamically. The function should accept an array of calculated (adjusted) percentages from all available terms for a student/entry group and divide the sum by the count of distinct terms (2 or 3). Retain the old (original + 94) / 2 formula as a separate function if still needed elsewhere, but clearly document the new dynamic combined percentage calculation."
+        },
+        {
+          "path": "frontend/src/components/CombinedPercentageView.tsx",
+          "operation": "modify",
+          "description": "Update the CombinedPercentageView component to use the new dynamic combined percentage calculation from percent.ts. Group entries by student/grade, identify distinct terms present (1, 2, 3), compute the calculated percentage for each term, sum them, and divide by the term count. Display the result in the table. Ensure the old formula is no longer used for combined percentage display unless specifically required for a different metric."
+        }
+      ]
+    }
+  ]
+}
