@@ -1,119 +1,92 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix application error in live/production deployment",
+  "title": "Enhance Combined %, Nine Grading, Subject Analysis, and Certificate features",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Diagnose and fix the application error that occurs when the app is accessed in the live/production environment by ensuring proper error boundaries, loading states, and actor initialization handling throughout the frontend",
+      "summary": "Update Combined Percentage view to compute overall percentage per grade by averaging adjusted percentages across all available terms, dividing by 2 for two terms or 3 for three terms",
       "acceptanceCriteria": [
-        "The live/production app loads without any error screen or blank page for anonymous users",
-        "The live/production app loads without any error screen or blank page for authenticated users",
-        "Internet Identity login flow completes successfully in production",
-        "Academic module, Coding module, Data Management, and User Management tabs all render correctly in production",
-        "No console errors related to actor initialization, canister calls, or missing state on first load"
+        "When data for two terms exists for a grade, the overall percentage equals (Term1 adjusted % + Term2 adjusted %) / 2.",
+        "When data for three terms exists for a grade, the overall percentage equals (Term1 + Term2 + Term3 adjusted %) / 3.",
+        "Overall percentage is displayed per grade in the Combined Percentage view.",
+        "The division denominator is determined dynamically by the number of distinct terms present in the data for that grade."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/src/components/CombinedPercentageView.tsx",
           "operation": "modify",
-          "description": "Wrap the main app content with a React ErrorBoundary component to catch and display user-friendly error messages instead of blank screens. Add a fallback UI that shows a clear error message with retry functionality. Ensure the error boundary catches actor initialization failures, canister call errors, and any runtime exceptions. Add defensive checks for actor readiness before rendering module components. Display a loading spinner while the actor is initializing (actorFetching is true). Ensure the profile setup modal only shows when actor is ready and profile fetch is complete to prevent flashing or premature rendering."
+          "description": "Update the Combined Percentage view to compute and display an 'Overall %' column per grade. For each grade grouping, calculate the overall percentage by summing all adjusted term percentages and dividing by the count of distinct terms (2 or 3). The denominator must be dynamically determined based on how many terms are present for that grade. Display the result prominently as a single overall percentage value per grade row or card."
         },
         {
-          "path": "frontend/src/components/AcademicModule.tsx",
+          "path": "frontend/src/lib/percent.ts",
           "operation": "modify",
-          "description": "Add error boundary wrapping around the Academic module tab content. Implement graceful error handling for failed academic data fetches with retry buttons. Show a loading state while academic entries are being fetched. Add null/undefined checks for all data before rendering charts or tables to prevent runtime errors when backend returns unexpected data shapes."
-        },
+          "description": "Add a helper function to compute overall percentage per grade by accepting an array of adjusted term percentages and returning their average: sum all provided percentages and divide by the array length (which will be 2 or 3). This function should handle dynamic term counts without hardcoding divisors."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Update Nine Scale Grades view to display a 9-point scale grade for each subject, for each term, for each grade level using the scale 90–100→9, 80–89→8, 70–79→7, 60–69→6, 50–59→5, 40–49→4, 30–39→3, 20–29→2, 0–19→1",
+      "acceptanceCriteria": [
+        "Each row or card in the Nine Scale view shows the student's grade level, term, and the 9-point scale grade for every subject.",
+        "Grade boundaries are: 90–100=9, 80–89=8, 70–79=7, 60–69=6, 50–59=5, 40–49=4, 30–39=3, 20–29=2, 0–19=1.",
+        "Data is grouped or filterable by grade level and term.",
+        "Every subject present for that grade/term combination shows a distinct 9-point scale badge."
+      ],
+      "file_operations": [
         {
-          "path": "frontend/src/components/CodingModule.tsx",
+          "path": "frontend/src/components/NineScaleGradesView.tsx",
           "operation": "modify",
-          "description": "Add error boundary wrapping around the Coding module tab content. Implement graceful error handling for failed coding challenge fetches with retry buttons. Show a loading state while challenges are being loaded. Handle cases where the Pyodide runtime fails to load by displaying a clear error message to the user."
+          "description": "Update the Nine Scale Grades view to display a 9-point scale grade (1–9) for every subject in every term of every grade level. For each academic entry, compute the 9-scale grade for each subject using its raw marks and the grading scale: 90–100=9, 80–89=8, 70–79=7, 60–69=6, 50–59=5, 40–49=4, 30–39=3, 20–29=2, 0–19=1. Display each subject's 9-scale grade as a distinct badge. Ensure the view supports filtering by grade level and term, and that data is organized so users can see per-subject grades for each grade/term combination."
         },
         {
-          "path": "frontend/src/components/DataManagement.tsx",
+          "path": "frontend/src/lib/gradeCalculation.ts",
           "operation": "modify",
-          "description": "Add error boundary wrapping around Data Management. Add defensive checks before calling export/import functions to ensure the actor is ready. Show a loading state during data export/import operations. Handle authorization errors gracefully with user-friendly messages instead of letting them propagate as uncaught exceptions."
-        },
-        {
-          "path": "frontend/src/components/UserManagement.tsx",
-          "operation": "modify",
-          "description": "Add error boundary wrapping around User Management. Add defensive checks before calling role assignment functions to ensure the actor is ready. Show a loading state during role operations. Handle authorization errors and invalid principal errors gracefully with clear user feedback."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Review all React Query hooks to ensure they properly handle cases where the actor is null or undefined. Add enabled flags to prevent queries from running before the actor is ready. Set appropriate retry policies (retry: false or retry: 1) to avoid infinite retry loops on persistent errors. Add proper error handling with typed catch blocks. Ensure all hooks return isLoading states that account for both actor initialization and query execution. Add staleTime and cacheTime configurations to prevent unnecessary refetches that could trigger errors during migration periods."
-        },
-        {
-          "path": "frontend/src/components/ErrorBoundary.tsx",
-          "operation": "create",
-          "description": "Create a reusable ErrorBoundary component using React.Component class with componentDidCatch and getDerivedStateFromError lifecycle methods. The boundary should catch JavaScript errors, display a user-friendly error UI with the error message, and provide a 'Retry' button that resets the error state and attempts to re-render the children. Include props for custom fallback UI and error logging callbacks. Export both a class component ErrorBoundary and a higher-order component withErrorBoundary for wrapping functional components."
-        },
-        {
-          "path": "frontend/src/components/LoadingState.tsx",
-          "operation": "create",
-          "description": "Create a reusable LoadingState component that displays a centered spinner with an optional loading message. Use Tailwind CSS for styling and ensure it matches the app's design system. Accept props for custom messages and spinner size. This component will be used throughout the app to show loading states while the backend actor initializes or data is being fetched."
-        },
-        {
-          "path": "frontend/src/components/ErrorMessage.tsx",
-          "operation": "create",
-          "description": "Create a reusable ErrorMessage component that displays user-friendly error messages with optional retry functionality. Accept props for the error message, retry callback, and custom styling. Use Tailwind CSS and shadcn/ui Alert components for consistent styling. Include different variants for different error severities (warning, error, info). This component will be used throughout the app to display backend errors, authorization failures, and network issues in a consistent way."
+          "description": "Add or update a function to convert a raw percentage (0–100) into a 9-point scale grade using the exact boundaries: 90–100→9, 80–89→8, 70–79→7, 60–69→6, 50–59→5, 40–49→4, 30–39→3, 20–29→2, 0–19→1. This function should accept a numeric percentage and return an integer between 1 and 9. Use this helper in the NineScaleGradesView to compute per-subject grades from raw marks."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Ensure the frontend handles cases where the backend actor is not yet ready or returns an error during initialization, displaying a user-friendly loading or error state instead of a blank/broken screen",
+      "summary": "Enhance Subject Analysis view to show average raw marks, average percentage, highest raw marks with percentage, and lowest raw marks with percentage for each subject, with grade and term filter controls",
       "acceptanceCriteria": [
-        "A loading indicator is shown while the backend actor is initializing",
-        "A clear, user-friendly error message is shown if the backend cannot be reached",
-        "The app does not show a blank white screen under any initialization failure scenario"
+        "Each subject card/row displays: average raw marks (numeric), average percentage, highest raw marks with its percentage, and lowest raw marks with its percentage.",
+        "A grade filter dropdown narrows analysis to entries for the selected grade.",
+        "A term filter dropdown narrows analysis to entries for the selected term.",
+        "Both filters can be applied simultaneously.",
+        "Statistics update reactively when filters change.",
+        "When no filter is applied, statistics are computed across all grades and all terms."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Implement a top-level loading screen that displays while the actor is initializing (when actorFetching is true from useActor hook). Show the LoadingState component with a message like 'Connecting to backend...'. If actor initialization fails (actor is null after actorFetching becomes false), display the ErrorMessage component with a clear message like 'Failed to connect to backend. Please refresh the page or try again later.' and a retry button that triggers a query client invalidation. Ensure no child components render until the actor is successfully initialized or an error state is shown."
-        },
-        {
-          "path": "frontend/src/components/ProgressView.tsx",
-          "operation": "modify",
-          "description": "Add loading and error states for all data fetching operations. Show the LoadingState component while academic entries are being loaded. If fetching fails, show the ErrorMessage component with retry functionality. Add null checks before accessing data properties to prevent runtime errors when data shape is unexpected. Ensure charts only render after data is successfully loaded and validated."
-        },
-        {
-          "path": "frontend/src/components/AddMarksForm.tsx",
-          "operation": "modify",
-          "description": "Add error handling for the addAcademicEntry mutation. Display the ErrorMessage component if the submission fails with a clear message about what went wrong. Disable the submit button while the actor is not ready or while a submission is in progress. Show a loading spinner on the submit button during submission. Handle validation errors gracefully and display them inline in the form."
-        },
-        {
-          "path": "frontend/src/components/CodingEditor.tsx",
-          "operation": "modify",
-          "description": "Add error handling for Pyodide initialization failures. Display the ErrorMessage component if Pyodide fails to load with a message like 'Failed to load Python runtime. Please refresh the page.' Add error handling for the saveCodingAttempt mutation. Show loading states during code execution and attempt saving. Handle cases where the actor is not ready by disabling submission and showing an appropriate message."
-        },
-        {
           "path": "frontend/src/components/SubjectAnalysisView.tsx",
           "operation": "modify",
-          "description": "Add loading and error states for academic entries data fetching. Show the LoadingState component while data is loading. Display the ErrorMessage component with retry if fetching fails. Add null/undefined checks before computing subject statistics to prevent runtime errors. Ensure the chart only renders after successful data validation."
+          "description": "Enhance the Subject Analysis view to display four statistics per subject: (1) average raw marks (numeric), (2) average percentage, (3) highest raw marks with its corresponding percentage, and (4) lowest raw marks with its corresponding percentage. Add two filter dropdowns: one for grade and one for term. When filters are applied, recompute statistics only for entries matching the selected grade and/or term. When no filters are applied, compute statistics across all grades and all terms. Ensure that both filters can be applied simultaneously and that statistics update reactively when filters change."
         },
         {
-          "path": "frontend/src/components/NineScaleGradesView.tsx",
+          "path": "frontend/src/lib/subjectAnalysis.ts",
           "operation": "modify",
-          "description": "Add loading and error states for academic entries fetching. Show the LoadingState component while loading. Display the ErrorMessage component if fetching fails. Add defensive checks before converting grades to prevent errors when data is malformed or missing expected fields. Ensure all numeric conversions handle null/undefined gracefully."
-        },
-        {
-          "path": "frontend/src/components/CombinedPercentageView.tsx",
-          "operation": "modify",
-          "description": "Add loading and error states for grade aggregates fetching. Show the LoadingState component while data loads. Display the ErrorMessage component with retry if fetching fails. Add null checks before computing combined percentages to handle missing term data gracefully. Ensure the component renders an empty state message when no data is available instead of breaking."
-        },
+          "description": "Update the subject analysis computation logic to support optional grade and term filters. Modify existing functions to accept optional grade and term parameters and filter the academic entries before computing statistics. Ensure that for each subject, the library computes: average raw marks (numeric mean), average percentage, highest raw marks with its percentage, and lowest raw marks with its percentage. When no filters are provided, compute across all entries."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Add or update Certificate section to generate a certificate for each grade and term, showing a computed percentage of (original term percentage + 94) / 2, with grade and term filter controls",
+      "acceptanceCriteria": [
+        "A certificate is generated for every grade–term combination that has data.",
+        "The percentage shown on the certificate equals (original term percentage + 94) / 2.",
+        "A grade filter dropdown limits displayed certificates to the selected grade.",
+        "A term filter dropdown limits displayed certificates to the selected term.",
+        "Both filters can be applied simultaneously.",
+        "The certificate displays the student's grade level, term, and the computed certificate percentage clearly."
+      ],
+      "file_operations": [
         {
           "path": "frontend/src/components/CertificateView.tsx",
           "operation": "modify",
-          "description": "Add loading and error states for academic entries fetching. Show the LoadingState component while loading. Display the ErrorMessage component if fetching fails. Add defensive checks before calculating achievement tiers to prevent errors when entries are missing required fields. Ensure certificate images (frontend/public/assets/generated/certificate-platinum.dim_400x250.png, certificate-gold.dim_400x250.png, certificate-silver.dim_400x250.png, certificate-bronze.dim_400x250.png) load correctly and handle image load errors with fallback UI."
-        },
-        {
-          "path": "frontend/src/components/CodingHistory.tsx",
-          "operation": "modify",
-          "description": "Add loading and error states for coding attempts fetching. Show the LoadingState component while attempts are loading. Display the ErrorMessage component with retry if fetching fails. Add defensive checks before rendering attempt details to handle missing or malformed data gracefully. Show an empty state message when no attempts exist instead of rendering nothing."
+          "description": "Update the Certificate view to generate a certificate for every grade–term combination present in the academic data. For each certificate, compute the displayed percentage using the formula: (original term percentage + 94) / 2. Add two filter dropdowns: one for grade and one for term. When filters are applied, display only certificates matching the selected grade and/or term. Both filters can be applied simultaneously. Ensure each certificate clearly displays the student's grade level, term, and the computed certificate percentage. Wire the generated certificate images from frontend/public/assets/generated/ (certificate-platinum.dim_400x250.png, certificate-gold.dim_400x250.png, certificate-silver.dim_400x250.png, certificate-bronze.dim_400x250.png) into the UI as static assets, selecting the appropriate tier based on the computed certificate percentage."
         }
       ]
     }

@@ -1,155 +1,82 @@
-import type { AcademicEntry, Subjects } from '../backend';
-import { clampTo100 } from './percent';
+import { AcademicEntry } from '../backend';
 import { getExpectedMaxMarksForSubjectKey } from './maxMarks';
 
+export type SubjectKey = keyof NonNullable<AcademicEntry['subjects']>;
+
 export interface SubjectStatistics {
-  subjectKey: string;
-  averagePercentage: number;
-  highestPercentage: number;
-  lowestPercentage: number;
-  averageMarks: number;
-  highestMarks: number;
-  lowestMarks: number;
-  averageMarksDisplay: string;
+  subjectKey: SubjectKey;
   count: number;
+  averageRawMarks: number;
+  averagePercentage: number;
+  highestRawMarks: number;
+  highestPercentage: number;
+  lowestRawMarks: number;
+  lowestPercentage: number;
 }
 
 /**
- * Calculate percentage for a subject using the same max marks logic as ProgressView
+ * Compute per-subject statistics from academic entries.
+ * Optionally filter by grade and/or term.
  */
-function getSubjectPercentage(entry: AcademicEntry, subjectKey: keyof Subjects): number {
-  const marks = entry.subjects[subjectKey];
-  if (marks === undefined || marks === null) return 0;
-
-  const grade = Number(entry.grade);
-  const term = Number(entry.term);
-  const termMaxMarks = Number(entry.termMaxMarks);
-  let maxMarks: number;
-
-  if (subjectKey === 'computer') {
-    maxMarks = Number(entry.computerMaxMarks);
-  } else if (subjectKey === 'ai') {
-    maxMarks = Number(entry.aiMaxMarks);
-  } else {
-    maxMarks = Number(entry.maxMarksPerSubject);
+export function computeSubjectStatistics(
+  entries: AcademicEntry[],
+  filterGrade?: number | null,
+  filterTerm?: number | null
+): SubjectStatistics[] {
+  // Apply filters
+  let filtered = entries;
+  if (filterGrade != null) {
+    filtered = filtered.filter((e) => Number(e.grade) === filterGrade);
+  }
+  if (filterTerm != null) {
+    filtered = filtered.filter((e) => Number(e.term) === filterTerm);
   }
 
-  if (maxMarks === 0 || maxMarks === termMaxMarks || maxMarks > 150) {
-    maxMarks = getExpectedMaxMarksForSubjectKey(subjectKey as string, grade, term);
-  }
+  const subjectKeys: SubjectKey[] = [
+    'math', 'english', 'hindi', 'evs', 'computer', 'kannada',
+    'science', 'ssc', 'ai', 'physics', 'chemistry', 'biology',
+    'economics', 'businessStudies', 'accountancy', 'statistics',
+    'management', 'psychology', 'pe', 'appliedMaths', 'maths',
+  ];
 
-  if (maxMarks === 0) return 0;
+  const results: SubjectStatistics[] = [];
 
-  const percentage = (Number(marks) * 100) / maxMarks;
-  return clampTo100(percentage);
-}
+  for (const key of subjectKeys) {
+    const dataPoints: { raw: number; pct: number }[] = [];
 
-/**
- * Get raw marks and max marks for display
- */
-function getSubjectMarksData(
-  entry: AcademicEntry,
-  subjectKey: keyof Subjects
-): { marks: number; maxMarks: number } | null {
-  const marks = entry.subjects[subjectKey];
-  if (marks === undefined || marks === null) return null;
+    for (const entry of filtered) {
+      const rawVal = entry.subjects[key];
+      if (rawVal == null) continue;
+      const raw = Number(rawVal);
+      const grade = Number(entry.grade);
+      const term = Number(entry.term);
 
-  const grade = Number(entry.grade);
-  const term = Number(entry.term);
-  const termMaxMarks = Number(entry.termMaxMarks);
-  let maxMarks: number;
-
-  if (subjectKey === 'computer') {
-    maxMarks = Number(entry.computerMaxMarks);
-  } else if (subjectKey === 'ai') {
-    maxMarks = Number(entry.aiMaxMarks);
-  } else {
-    maxMarks = Number(entry.maxMarksPerSubject);
-  }
-
-  if (maxMarks === 0 || maxMarks === termMaxMarks || maxMarks > 150) {
-    maxMarks = getExpectedMaxMarksForSubjectKey(subjectKey as string, grade, term);
-  }
-
-  if (maxMarks === 0) return null;
-
-  return { marks: Number(marks), maxMarks };
-}
-
-/**
- * Compute subject-wise statistics from academic entries.
- * Includes average, highest, and lowest raw marks and percentages.
- */
-export function computeSubjectStatistics(entries: AcademicEntry[]): SubjectStatistics[] {
-  if (entries.length === 0) return [];
-
-  const subjectData = new Map<string, {
-    percentages: number[];
-    rawMarks: number[];
-    marksData: Array<{ marks: number; maxMarks: number }>;
-  }>();
-
-  for (const entry of entries) {
-    const subjects = entry.subjects;
-
-    for (const [key, value] of Object.entries(subjects)) {
-      if (value !== undefined && value !== null) {
-        const percentage = getSubjectPercentage(entry, key as keyof Subjects);
-        const marksData = getSubjectMarksData(entry, key as keyof Subjects);
-
-        if (!subjectData.has(key)) {
-          subjectData.set(key, { percentages: [], rawMarks: [], marksData: [] });
-        }
-
-        const data = subjectData.get(key)!;
-        data.percentages.push(percentage);
-        if (marksData) {
-          data.rawMarks.push(marksData.marks);
-          data.marksData.push(marksData);
-        }
-      }
-    }
-  }
-
-  const stats: SubjectStatistics[] = [];
-
-  for (const [key, data] of subjectData.entries()) {
-    const { percentages, rawMarks, marksData } = data;
-    if (percentages.length === 0) continue;
-
-    const pctSum = percentages.reduce((a, b) => a + b, 0);
-    const avgPct = pctSum / percentages.length;
-    const highestPct = Math.max(...percentages);
-    const lowestPct = Math.min(...percentages);
-
-    let averageMarks = 0;
-    let highestMarks = 0;
-    let lowestMarks = 0;
-    let averageMarksDisplay = '-';
-
-    if (rawMarks.length > 0) {
-      const marksSum = rawMarks.reduce((a, b) => a + b, 0);
-      averageMarks = Math.round(marksSum / rawMarks.length);
-      highestMarks = Math.max(...rawMarks);
-      lowestMarks = Math.min(...rawMarks);
-      const maxMarks = marksData[0].maxMarks;
-      averageMarksDisplay = `${averageMarks}/${maxMarks}`;
+      // Use the correct 3-argument signature: (subjectKey, grade, term)
+      const maxMarks = getExpectedMaxMarksForSubjectKey(key, grade, term);
+      const pct = maxMarks > 0 ? Math.min(100, Math.round((raw / maxMarks) * 100)) : 0;
+      dataPoints.push({ raw, pct });
     }
 
-    stats.push({
+    if (dataPoints.length === 0) continue;
+
+    const avgRaw = dataPoints.reduce((s, d) => s + d.raw, 0) / dataPoints.length;
+    const avgPct = dataPoints.reduce((s, d) => s + d.pct, 0) / dataPoints.length;
+    const maxRaw = Math.max(...dataPoints.map((d) => d.raw));
+    const minRaw = Math.min(...dataPoints.map((d) => d.raw));
+    const maxPct = Math.max(...dataPoints.map((d) => d.pct));
+    const minPct = Math.min(...dataPoints.map((d) => d.pct));
+
+    results.push({
       subjectKey: key,
-      averagePercentage: clampTo100(avgPct),
-      highestPercentage: clampTo100(highestPct),
-      lowestPercentage: clampTo100(lowestPct),
-      averageMarks,
-      highestMarks,
-      lowestMarks,
-      averageMarksDisplay,
-      count: percentages.length,
+      count: dataPoints.length,
+      averageRawMarks: Math.round(avgRaw * 10) / 10,
+      averagePercentage: Math.round(avgPct * 10) / 10,
+      highestRawMarks: maxRaw,
+      highestPercentage: maxPct,
+      lowestRawMarks: minRaw,
+      lowestPercentage: minPct,
     });
   }
 
-  stats.sort((a, b) => a.subjectKey.localeCompare(b.subjectKey));
-
-  return stats;
+  return results;
 }

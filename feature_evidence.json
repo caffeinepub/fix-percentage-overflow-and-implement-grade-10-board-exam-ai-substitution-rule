@@ -2,18 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-diagnose-and-fix-the-application-error-that-occurs-when-the-app-is-accessed-in-the-live-production-environment-the-app-must-load-without-any-runtime-or-initialization-errors-for-all-users-authenticated-and-anonymous",
-      "featureTitle": "Diagnose and fix the application error that occurs when the app is accessed in the live/production environment. The app must load without any runtime or initialization errors for all users (authenticated and anonymous).",
+      "featureId": "feature-update-the-combined-percentage-view-to-compute-an-overall-percentage-per-grade-by-averaging-the-adjusted-percentages-across-all-available-terms-divide-the-sum-of-adjusted-term-percentages-by-2-when-only-two-terms-exist-or-by-3-when-a-third-term-is-present-display-the-result-as-a-single-overall-column-row-per-grade",
+      "featureTitle": "Update the Combined Percentage view to compute an overall percentage per grade by averaging the adjusted percentages across all available terms: divide the sum of adjusted term percentages by 2 when only two terms exist, or by 3 when a third term is present. Display the result as a single 'Overall %' column/row per grade.",
       "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/AcademicModule.tsx",
-        "frontend/src/components/CodingModule.tsx",
-        "frontend/src/components/DataManagement.tsx",
-        "frontend/src/components/ErrorBoundary.tsx",
-        "frontend/src/components/ErrorMessage.tsx",
-        "frontend/src/components/LoadingState.tsx",
-        "frontend/src/components/UserManagement.tsx",
-        "frontend/src/hooks/useQueries.ts"
+        "frontend/src/components/CombinedPercentageView.tsx",
+        "frontend/src/lib/percent.ts"
       ],
       "components": [
         "authorization@3.0.0",
@@ -30,18 +23,32 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-ensure-the-frontend-handles-cases-where-the-backend-actor-is-not-yet-ready-or-returns-an-error-during-initialization-displaying-a-user-friendly-loading-or-error-state-instead-of-a-blank-broken-screen",
-      "featureTitle": "Ensure the frontend handles cases where the backend actor is not yet ready or returns an error during initialization, displaying a user-friendly loading or error state instead of a blank/broken screen.",
+      "featureId": "feature-update-the-nine-scale-grades-view-to-display-a-grade-1-9-for-each-subject-for-each-term-for-each-grade-level-apply-the-grading-scale-90-100-9-80-89-8-70-79-7-60-69-6-50-59-5-40-49-4-30-39-3-20-29-2-0-19-1-grades-must-be-shown-per-subject-per-term-per-grade-not-aggregated",
+      "featureTitle": "Update the Nine Scale Grades view to display a grade (1–9) for each subject, for each term, for each grade level. Apply the grading scale: 90–100 → 9, 80–89 → 8, 70–79 → 7, 60–69 → 6, 50–59 → 5, 40–49 → 4, 30–39 → 3, 20–29 → 2, 0–19 → 1. Grades must be shown per subject per term per grade, not aggregated.",
       "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/AddMarksForm.tsx",
-        "frontend/src/components/CertificateView.tsx",
-        "frontend/src/components/CodingEditor.tsx",
-        "frontend/src/components/CodingHistory.tsx",
-        "frontend/src/components/CombinedPercentageView.tsx",
         "frontend/src/components/NineScaleGradesView.tsx",
-        "frontend/src/components/ProgressView.tsx",
-        "frontend/src/components/SubjectAnalysisView.tsx"
+        "frontend/src/lib/gradeCalculation.ts"
+      ],
+      "components": [
+        "authorization@3.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "blob-storage@4.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-enhance-the-subject-analysis-view-to-show-for-each-subject-across-all-grades-1-average-raw-marks-e-g-73-2-average-percentage-3-highest-raw-marks-and-corresponding-percentage-4-lowest-raw-marks-and-corresponding-percentage-add-filter-controls-for-grade-and-term-so-the-user-can-narrow-results-to-a-specific-grade-and-or-term",
+      "featureTitle": "Enhance the Subject Analysis view to show, for each subject across all grades: (1) average raw marks (e.g. 73), (2) average percentage, (3) highest raw marks and corresponding percentage, (4) lowest raw marks and corresponding percentage. Add filter controls for grade and term so the user can narrow results to a specific grade and/or term.",
+      "files": [
+        "frontend/src/components/SubjectAnalysisView.tsx",
+        "frontend/src/lib/subjectAnalysis.ts"
       ],
       "components": [
         "authorization@3.0.0",
@@ -54,6 +61,26 @@
       ],
       "testIds": [
         "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-certificate-section-or-update-the-existing-certificateview-that-generates-a-certificate-for-each-grade-and-term-the-certificate-percentage-is-calculated-as-original-term-percentage-94-2-display-the-certificate-with-that-computed-percentage-provide-grade-and-term-filter-controls-so-the-user-can-view-certificates-for-a-specific-grade-and-term",
+      "featureTitle": "Add a Certificate section (or update the existing CertificateView) that generates a certificate for each grade and term. The certificate percentage is calculated as: (original term percentage + 94) / 2. Display the certificate with that computed percentage. Provide grade and term filter controls so the user can view certificates for a specific grade and term.",
+      "files": [
+        "frontend/src/components/CertificateView.tsx"
+      ],
+      "components": [
+        "authorization@3.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "blob-storage@4.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
       ],
       "confidence": "high"
     }

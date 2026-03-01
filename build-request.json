@@ -1,74 +1,101 @@
 {
   "kind": "build_request",
-  "title": "Fix application error in live/production deployment",
-  "priority": "high",
+  "title": "Enhance Combined %, Nine Grading, Subject Analysis, and Certificate features",
+  "projectName": "Academic Progress Tracker",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Diagnose and fix the application error that occurs when the app is accessed in the live/production environment. The app must load without any runtime or initialization errors for all users (authenticated and anonymous).",
-      "target": "both",
+      "text": "Update the Combined Percentage view to compute an overall percentage per grade by averaging the adjusted percentages across all available terms: divide the sum of adjusted term percentages by 2 when only two terms exist, or by 3 when a third term is present. Display the result as a single 'Overall %' column/row per grade.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-last"
         ],
         "quotes": [
-          "I am getting application error in live itself"
+          "in combined percentage it should combine all adjusted percentage of each grade and give overall percentage of each grade by dividing it by 2 for 2 terms or divided it by three if third term is mentioned"
         ]
       },
       "acceptanceCriteria": [
-        "The live/production app loads without any error screen or blank page for anonymous users",
-        "The live/production app loads without any error screen or blank page for authenticated users",
-        "Internet Identity login flow completes successfully in production",
-        "Academic module, Coding module, Data Management, and User Management tabs all render correctly in production",
-        "No console errors related to actor initialization, canister calls, or missing state on first load"
+        "When data for two terms exists for a grade, the overall percentage equals (Term1 adjusted % + Term2 adjusted %) / 2.",
+        "When data for three terms exists for a grade, the overall percentage equals (Term1 + Term2 + Term3 adjusted %) / 3.",
+        "Overall percentage is displayed per grade in the Combined Percentage view.",
+        "The division denominator is determined dynamically by the number of distinct terms present in the data for that grade."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Ensure the backend migration module (migration.mo) is correctly applied on canister upgrade so that existing state (including the old single `subgroup` field) is properly transformed to the new `scienceSubgroup` and `commerceSubgroup` fields without causing a trap or error during post-upgrade.",
-      "target": "backend",
+      "text": "Update the Nine Scale Grades view to display a grade (1–9) for each subject, for each term, for each grade level. Apply the grading scale: 90–100 → 9, 80–89 → 8, 70–79 → 7, 60–69 → 6, 50–59 → 5, 40–49 → 4, 30–39 → 3, 20–29 → 2, 0–19 → 1. Grades must be shown per subject per term per grade, not aggregated.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-last"
         ],
         "quotes": [
-          "application error in live itself"
+          "for nine grading system there should be grading for each subject of each term of each grade like 90-100 is 9 80-89 is 8 so on"
         ]
       },
       "acceptanceCriteria": [
-        "Canister upgrade completes without trapping",
-        "All previously saved academic entries are accessible after upgrade",
-        "Entries with old `subgroup` field are correctly migrated to `scienceSubgroup` / `commerceSubgroup`",
-        "No data loss occurs during migration"
+        "Each row or card in the Nine Scale view shows the student's grade level, term, and the 9-point scale grade for every subject.",
+        "Grade boundaries are: 90–100=9, 80–89=8, 70–79=7, 60–69=6, 50–59=5, 40–49=4, 30–39=3, 20–29=2, 0–19=1.",
+        "Data is grouped or filterable by grade level and term.",
+        "Every subject present for that grade/term combination shows a distinct 9-point scale badge."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Ensure the frontend handles cases where the backend actor is not yet ready or returns an error during initialization, displaying a user-friendly loading or error state instead of a blank/broken screen.",
+      "text": "Enhance the Subject Analysis view to show, for each subject across all grades: (1) average raw marks (e.g. 73), (2) average percentage, (3) highest raw marks and corresponding percentage, (4) lowest raw marks and corresponding percentage. Add filter controls for grade and term so the user can narrow results to a specific grade and/or term.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-last"
         ],
         "quotes": [
-          "application error in live itself"
+          "for subject analysis there must be average raw marks like 73 of each subject of all grades alongside average percentage and also highest and lowest of each subject alongside lowest and highest percentage of each grade and should be filter through grade and term"
         ]
       },
       "acceptanceCriteria": [
-        "A loading indicator is shown while the backend actor is initializing",
-        "A clear, user-friendly error message is shown if the backend cannot be reached",
-        "The app does not show a blank white screen under any initialization failure scenario"
+        "Each subject card/row displays: average raw marks (numeric), average percentage, highest raw marks with its percentage, and lowest raw marks with its percentage.",
+        "A grade filter dropdown narrows analysis to entries for the selected grade.",
+        "A term filter dropdown narrows analysis to entries for the selected term.",
+        "Both filters can be applied simultaneously.",
+        "Statistics update reactively when filters change.",
+        "When no filter is applied, statistics are computed across all grades and all terms."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Add a Certificate section (or update the existing CertificateView) that generates a certificate for each grade and term. The certificate percentage is calculated as: (original term percentage + 94) / 2. Display the certificate with that computed percentage. Provide grade and term filter controls so the user can view certificates for a specific grade and term.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ],
+        "quotes": [
+          "there should be certificate present for each term of percentage calculated after adding original percentage to 94 and divided by two and filter according to grade and term"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A certificate is generated for every grade–term combination that has data.",
+        "The percentage shown on the certificate equals (original term percentage + 94) / 2.",
+        "A grade filter dropdown limits displayed certificates to the selected grade.",
+        "A term filter dropdown limits displayed certificates to the selected term.",
+        "Both filters can be applied simultaneously.",
+        "The certificate displays the student's grade level, term, and the computed certificate percentage clearly."
       ]
     }
   ],
   "constraints": [
-    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui",
-    "Preserve all existing features from Version 67 including Science subgroups (PCM-Psych, PCMCs, PCMB) and Commerce subgroups (CEBA, SEBA)"
+    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui.",
+    "All grading scale boundaries must exactly follow: 90–100=9, 80–89=8, 70–79=7, 60–69=6, 50–59=5, 40–49=4, 30–39=3, 20–29=2, 0–19=1.",
+    "Certificate percentage formula must be exactly: (originalTermPercentage + 94) / 2.",
+    "Combined percentage divisor must be dynamically determined by the count of distinct terms present for that grade (2 or 3), not hardcoded."
   ],
   "nonGoals": [
-    "Adding new features beyond what was present in Version 67",
-    "Changing the data schema beyond what is already defined in migration.mo",
-    "Modifying the authentication flow"
+    "Adding new backend data models or API endpoints unless strictly required for the new calculations.",
+    "Changing the overall app navigation structure or module layout beyond the Academic module tabs.",
+    "Modifying the Coding or Data Management modules.",
+    "Changing authentication or user profile logic."
   ],
   "imageRequirements": {
     "required": [],
