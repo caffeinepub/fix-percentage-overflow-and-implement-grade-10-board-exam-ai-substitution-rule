@@ -1,110 +1,160 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { ThemeProvider } from 'next-themes';
+import { useInternetIdentity } from './hooks/useInternetIdentity';
+import { useActor } from './hooks/useActor';
+import Header from './components/Header';
+import Footer from './components/Footer';
+import AcademicModule from './components/AcademicModule';
+import CodingModule from './components/CodingModule';
+import DataManagement from './components/DataManagement';
+import UserManagement from './components/UserManagement';
+import ProfileSetup from './components/ProfileSetup';
+import { LoadingState } from './components/LoadingState';
+import { ErrorMessage } from './components/ErrorMessage';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { useGetCallerUserProfile, useIsCallerAdmin } from './hooks/useQueries';
 import { Toaster } from '@/components/ui/sonner';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import AcademicModule from '@/components/AcademicModule';
-import CodingModule from '@/components/CodingModule';
-import UserManagement from '@/components/UserManagement';
-import DataManagement from '@/components/DataManagement';
-import ProfileSetup from '@/components/ProfileSetup';
-import { useInternetIdentity } from '@/hooks/useInternetIdentity';
-import { useGetCallerUserProfile, useIsCallerAdmin } from '@/hooks/useQueries';
-import { Loader2 } from 'lucide-react';
 
-export default function App() {
-  const [activeModule, setActiveModule] = useState<'academic' | 'coding' | 'users' | 'data'>('academic');
-  const { identity, isInitializing } = useInternetIdentity();
+type ActiveModule = 'academic' | 'coding' | 'data' | 'users';
+
+function AppContent() {
+  const { identity, loginStatus } = useInternetIdentity();
+  const { actor, isFetching: actorFetching } = useActor();
+  const queryClient = useQueryClient();
+  const [activeModule, setActiveModule] = useState<ActiveModule>('academic');
+
   const isAuthenticated = !!identity;
+  const isLoggingIn = loginStatus === 'logging-in';
 
-  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
-  const { data: isAdmin, isLoading: adminLoading } = useIsCallerAdmin();
+  const {
+    data: userProfile,
+    isLoading: profileLoading,
+    isFetched: profileFetched,
+    error: profileError,
+    refetch: refetchProfile,
+  } = useGetCallerUserProfile();
 
-  const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
+  const {
+    data: isAdmin,
+    isLoading: adminLoading,
+  } = useIsCallerAdmin();
 
-  if (isInitializing) {
+  // Show loading while actor is initializing
+  if (actorFetching) {
     return (
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-accent/5">
-          <div className="text-center space-y-4">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
-            <p className="text-muted-foreground">Loading...</p>
+      <div className="min-h-screen flex flex-col bg-background">
+        <LoadingState
+          fullScreen
+          message="Connecting to backend..."
+          size="lg"
+        />
+      </div>
+    );
+  }
+
+  // Show error if actor failed to initialize (only when authenticated)
+  if (!actor && !actorFetching && isAuthenticated) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <div className="flex-1 flex items-center justify-center p-6">
+          <div className="max-w-md w-full">
+            <ErrorMessage
+              title="Connection Failed"
+              message="Failed to connect to the backend. Please refresh the page or try again later."
+              onRetry={() => {
+                queryClient.invalidateQueries();
+                window.location.reload();
+              }}
+              retryLabel="Refresh Page"
+            />
           </div>
         </div>
-        <Toaster />
-      </ThemeProvider>
+      </div>
     );
   }
 
-  if (!isAuthenticated) {
-    return (
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-background to-accent/5">
-          <Header activeModule={activeModule} setActiveModule={setActiveModule} isAdmin={false} />
-          <main className="flex-1 flex items-center justify-center container mx-auto px-4 py-8">
-            <div className="text-center space-y-6 max-w-md">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center mx-auto">
-                <svg
-                  className="w-10 h-10 text-primary-foreground"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                  />
-                </svg>
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold mb-2">Welcome to Academic Progress</h2>
-                <p className="text-muted-foreground">
-                  Please log in to access your academic tracking and coding practice modules
-                </p>
-              </div>
-            </div>
-          </main>
-          <Footer />
-          <Toaster />
-        </div>
-      </ThemeProvider>
-    );
-  }
-
-  if (showProfileSetup) {
-    return (
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-background to-accent/5">
-          <Header activeModule={activeModule} setActiveModule={setActiveModule} isAdmin={false} />
-          <main className="flex-1 flex items-center justify-center container mx-auto px-4 py-8">
-            <ProfileSetup />
-          </main>
-          <Footer />
-          <Toaster />
-        </div>
-      </ThemeProvider>
-    );
-  }
+  // Show profile setup for authenticated users without a profile
+  const showProfileSetup =
+    isAuthenticated &&
+    !actorFetching &&
+    !profileLoading &&
+    profileFetched &&
+    userProfile === null &&
+    !profileError;
 
   return (
+    <div className="min-h-screen flex flex-col bg-background">
+      <Header
+        activeModule={activeModule}
+        setActiveModule={setActiveModule}
+        isAdmin={!!isAdmin}
+      />
+
+      <main className="flex-1 container mx-auto px-4 py-6 max-w-7xl">
+        {!isAuthenticated ? (
+          <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+            <div className="max-w-md space-y-4">
+              <div className="rounded-full bg-primary/10 p-6 w-24 h-24 mx-auto flex items-center justify-center">
+                <span className="text-4xl">📚</span>
+              </div>
+              <h2 className="text-2xl font-bold text-foreground">Welcome to Academic Tracker</h2>
+              <p className="text-muted-foreground">
+                Please log in to access your academic records, coding challenges, and more.
+              </p>
+              {isLoggingIn && (
+                <LoadingState message="Logging in..." size="sm" className="min-h-0 py-2" />
+              )}
+            </div>
+          </div>
+        ) : showProfileSetup ? (
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <ProfileSetup />
+          </div>
+        ) : profileLoading || adminLoading ? (
+          <LoadingState message="Loading your profile..." size="md" />
+        ) : (
+          <ErrorBoundary>
+            {activeModule === 'academic' && <AcademicModule />}
+            {activeModule === 'coding' && <CodingModule />}
+            {activeModule === 'data' && <DataManagement />}
+            {activeModule === 'users' && isAdmin && <UserManagement />}
+          </ErrorBoundary>
+        )}
+      </main>
+
+      <Footer />
+      <Toaster />
+    </div>
+  );
+}
+
+export default function App() {
+  return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-background to-accent/5">
-        <Header
-          activeModule={activeModule}
-          setActiveModule={setActiveModule}
-          isAdmin={isAdmin || false}
-        />
-        <main className="flex-1 container mx-auto px-4 py-8">
-          {activeModule === 'academic' && <AcademicModule />}
-          {activeModule === 'coding' && <CodingModule />}
-          {activeModule === 'data' && <DataManagement />}
-          {activeModule === 'users' && isAdmin && <UserManagement />}
-        </main>
-        <Footer />
-        <Toaster />
-      </div>
+      <ErrorBoundary
+        fallback={
+          <div className="min-h-screen flex items-center justify-center bg-background p-6">
+            <div className="max-w-md w-full text-center space-y-4">
+              <div className="rounded-full bg-destructive/10 p-4 w-16 h-16 mx-auto flex items-center justify-center">
+                <span className="text-2xl">⚠️</span>
+              </div>
+              <h2 className="text-xl font-bold text-foreground">Application Error</h2>
+              <p className="text-muted-foreground">
+                Something went wrong. Please refresh the page to try again.
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+              >
+                Refresh Page
+              </button>
+            </div>
+          </div>
+        }
+      >
+        <AppContent />
+      </ErrorBoundary>
     </ThemeProvider>
   );
 }

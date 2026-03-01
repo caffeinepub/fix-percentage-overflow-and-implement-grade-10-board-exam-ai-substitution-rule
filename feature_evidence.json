@@ -2,11 +2,18 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-in-the-view-progress-tab-add-a-frequency-polygon-chart-that-plots-the-distribution-of-original-percentage-scores-the-chart-must-be-rendered-per-term-and-per-grade-i-e-one-frequency-polygon-per-grade-term-combination-visible-after-filtering-use-class-intervals-e-g-0-10-10-20-90-100-on-the-x-axis-and-frequency-number-of-students-entries-on-the-y-axis-with-connected-line-points",
-      "featureTitle": "In the View Progress tab, add a frequency polygon chart that plots the distribution of original percentage scores. The chart must be rendered per term and per grade (i.e., one frequency polygon per grade-term combination visible after filtering). Use class intervals (e.g., 0-10, 10-20, …, 90-100) on the X-axis and frequency (number of students/entries) on the Y-axis, with connected line points.",
+      "featureId": "feature-diagnose-and-fix-the-application-error-that-occurs-when-the-app-is-accessed-in-the-live-production-environment-the-app-must-load-without-any-runtime-or-initialization-errors-for-all-users-authenticated-and-anonymous",
+      "featureTitle": "Diagnose and fix the application error that occurs when the app is accessed in the live/production environment. The app must load without any runtime or initialization errors for all users (authenticated and anonymous).",
       "files": [
-        "frontend/src/components/ProgressView.tsx",
-        "frontend/src/lib/frequencyPolygon.ts"
+        "frontend/src/App.tsx",
+        "frontend/src/components/AcademicModule.tsx",
+        "frontend/src/components/CodingModule.tsx",
+        "frontend/src/components/DataManagement.tsx",
+        "frontend/src/components/ErrorBoundary.tsx",
+        "frontend/src/components/ErrorMessage.tsx",
+        "frontend/src/components/LoadingState.tsx",
+        "frontend/src/components/UserManagement.tsx",
+        "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
         "authorization@3.0.0",
@@ -23,31 +30,18 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-in-the-view-progress-tab-display-the-average-percentage-for-each-grade-as-a-summary-statistic-this-should-appear-as-a-clearly-labeled-figure-e-g-grade-5-average-78-4-either-in-the-existing-table-chart-area-or-as-summary-cards-above-or-below-the-chart",
-      "featureTitle": "In the View Progress tab, display the average percentage for each grade as a summary statistic. This should appear as a clearly labeled figure (e.g., 'Grade 5 Average: 78.4%') either in the existing table/chart area or as summary cards above or below the chart.",
+      "featureId": "feature-ensure-the-frontend-handles-cases-where-the-backend-actor-is-not-yet-ready-or-returns-an-error-during-initialization-displaying-a-user-friendly-loading-or-error-state-instead-of-a-blank-broken-screen",
+      "featureTitle": "Ensure the frontend handles cases where the backend actor is not yet ready or returns an error during initialization, displaying a user-friendly loading or error state instead of a blank/broken screen.",
       "files": [
-        "frontend/src/components/ProgressView.tsx"
-      ],
-      "components": [
-        "authorization@3.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "blob-storage@4.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-in-the-subject-analysis-tab-display-the-average-raw-marks-e-g-73-for-each-subject-across-all-grades-alongside-the-existing-average-percentage-the-raw-mark-average-must-be-computed-from-actual-stored-marks-divided-by-the-number-of-entries-for-that-subject-and-shown-as-a-numeric-value-e-g-avg-marks-73",
-      "featureTitle": "In the Subject Analysis tab, display the average raw marks (e.g., '73') for each subject across all grades alongside the existing average percentage. The raw mark average must be computed from actual stored marks divided by the number of entries for that subject, and shown as a numeric value (e.g., 'Avg Marks: 73').",
-      "files": [
-        "frontend/src/components/SubjectAnalysisView.tsx",
-        "frontend/src/lib/subjectAnalysis.ts"
+        "frontend/src/App.tsx",
+        "frontend/src/components/AddMarksForm.tsx",
+        "frontend/src/components/CertificateView.tsx",
+        "frontend/src/components/CodingEditor.tsx",
+        "frontend/src/components/CodingHistory.tsx",
+        "frontend/src/components/CombinedPercentageView.tsx",
+        "frontend/src/components/NineScaleGradesView.tsx",
+        "frontend/src/components/ProgressView.tsx",
+        "frontend/src/components/SubjectAnalysisView.tsx"
       ],
       "components": [
         "authorization@3.0.0",
@@ -60,69 +54,6 @@
       ],
       "testIds": [
         "REQ-3"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-in-the-subject-analysis-tab-display-the-highest-and-lowest-raw-marks-and-the-highest-and-lowest-percentage-for-each-subject-with-the-ability-to-filter-by-grade-and-term-the-stats-highest-mark-lowest-mark-highest-lowest-must-be-shown-per-subject-for-the-selected-grade-and-term-combination",
-      "featureTitle": "In the Subject Analysis tab, display the highest and lowest raw marks and the highest and lowest percentage for each subject, with the ability to filter by grade and term. The stats (highest mark, lowest mark, highest %, lowest %) must be shown per subject for the selected grade and term combination.",
-      "files": [
-        "frontend/src/components/SubjectAnalysisView.tsx",
-        "frontend/src/lib/subjectAnalysis.ts"
-      ],
-      "components": [
-        "authorization@3.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "blob-storage@4.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-4"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-in-the-nine-grading-system-9-scale-grades-tab-display-the-computed-9-scale-grade-1-9-for-each-subject-for-each-term-of-each-grade-the-grading-scale-must-be-90-100-9-80-89-8-70-79-7-60-69-6-50-59-5-40-49-4-30-39-3-20-29-2-0-19-1-each-subject-cell-must-show-the-grade-number-e-g-8-computed-from-the-subject-s-percentage-for-that-entry-s-term",
-      "featureTitle": "In the Nine Grading System (9-Scale Grades) tab, display the computed 9-scale grade (1–9) for each subject for each term of each grade. The grading scale must be: 90–100 = 9, 80–89 = 8, 70–79 = 7, 60–69 = 6, 50–59 = 5, 40–49 = 4, 30–39 = 3, 20–29 = 2, 0–19 = 1. Each subject cell must show the grade number (e.g., '8') computed from the subject's percentage for that entry's term.",
-      "files": [
-        "frontend/src/components/NineScaleGradesView.tsx",
-        "frontend/src/lib/gradeCalculation.ts"
-      ],
-      "components": [
-        "authorization@3.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "blob-storage@4.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-5"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-in-the-combined-percentage-tab-replace-the-current-fixed-formula-with-a-dynamic-calculation-that-averages-the-calculated-adjusted-percentages-of-all-available-terms-for-a-student-entry-group-if-only-term-1-and-term-2-exist-divide-the-sum-by-2-if-term-3-also-exists-divide-the-sum-by-3-the-result-is-the-overall-combined-percentage-update-the-display-and-the-calculation-logic-in-both-the-utility-functions-percent-ts-or-equivalent-and-the-combinedpercentageview-component",
-      "featureTitle": "In the Combined Percentage tab, replace the current fixed formula with a dynamic calculation that averages the calculated (adjusted) percentages of all available terms for a student/entry group. If only Term 1 and Term 2 exist, divide the sum by 2. If Term 3 also exists, divide the sum by 3. The result is the overall combined percentage. Update the display and the calculation logic in both the utility functions (percent.ts or equivalent) and the CombinedPercentageView component.",
-      "files": [
-        "frontend/src/components/CombinedPercentageView.tsx",
-        "frontend/src/lib/percent.ts"
-      ],
-      "components": [
-        "authorization@3.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "blob-storage@4.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-6"
       ],
       "confidence": "high"
     }

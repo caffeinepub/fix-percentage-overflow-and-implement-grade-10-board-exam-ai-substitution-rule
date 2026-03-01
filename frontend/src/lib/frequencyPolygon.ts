@@ -33,3 +33,38 @@ export function computeFrequencyDistribution(entries: AcademicEntry[]): Frequenc
 
   return intervals;
 }
+
+/**
+ * Compute frequency distribution for a specific grade and optional term.
+ * @param entries All academic entries
+ * @param grade Grade number to filter by
+ * @param term Optional term number; if undefined, includes all terms for the grade
+ */
+export function computeFrequencyDistributionByGradeTerm(
+  entries: AcademicEntry[],
+  grade: number,
+  term?: number
+): FrequencyInterval[] {
+  const filtered = entries.filter(e => {
+    const gradeMatch = Number(e.grade) === grade;
+    const termMatch = term === undefined || Number(e.term) === term;
+    return gradeMatch && termMatch;
+  });
+  return computeFrequencyDistribution(filtered);
+}
+
+/**
+ * Get all unique grades present in entries
+ */
+export function getUniqueGrades(entries: AcademicEntry[]): number[] {
+  return Array.from(new Set(entries.map(e => Number(e.grade)))).sort((a, b) => a - b);
+}
+
+/**
+ * Get all unique terms for a specific grade
+ */
+export function getUniqueTermsForGrade(entries: AcademicEntry[], grade: number): number[] {
+  return Array.from(
+    new Set(entries.filter(e => Number(e.grade) === grade).map(e => Number(e.term)))
+  ).sort((a, b) => a - b);
+}

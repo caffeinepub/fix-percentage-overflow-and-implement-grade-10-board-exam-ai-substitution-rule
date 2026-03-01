@@ -9,9 +9,6 @@ import MixinStorage "blob-storage/Mixin";
 import Text "mo:core/Text";
 import Time "mo:core/Time";
 
-
-// Apply migration with with clause
-
 actor {
   include MixinStorage();
 
@@ -35,6 +32,8 @@ actor {
     management : ?Nat;
     psychology : ?Nat;
     pe : ?Nat;
+    appliedMaths : ?Nat;
+    maths : ?Nat;
   };
 
   public type Score9Scale = {
@@ -57,6 +56,8 @@ actor {
     management : ?Nat8;
     psychology : ?Nat8;
     pe : ?Nat8;
+    appliedMaths : ?Nat8;
+    maths : ?Nat8;
   };
 
   public type BoardExamResults = {
@@ -69,7 +70,8 @@ actor {
     grade : Nat;
     term : Nat;
     stream : ?Text;
-    subgroup : ?Text;
+    scienceSubgroup : ?Text;
+    commerceSubgroup : ?Text;
     subjects : Subjects;
     subjects9 : ?Score9Scale;
     termTotalMarks : Nat;
@@ -83,6 +85,8 @@ actor {
     maxMarksPerSubject : Nat;
     computerMaxMarks : Nat;
     aiMaxMarks : Nat;
+    mathsMaxMarks : Nat;
+    appliedMathsMaxMarks : Nat;
   };
 
   public type CodingAttempt = {
@@ -109,9 +113,12 @@ actor {
     marks9 : ?Score9Scale;
     termMaxMarks : Nat;
     stream : ?Text;
-    subgroup : ?Text;
+    scienceSubgroup : ?Text;
+    commerceSubgroup : ?Text;
     computerMaxMarks : Nat;
     aiMaxMarks : Nat;
+    mathsMaxMarks : Nat;
+    appliedMathsMaxMarks : Nat;
   };
 
   public type AcademicEntriesExport = {
@@ -205,7 +212,7 @@ actor {
     userProfiles.add(caller, profile);
   };
 
-  func computeOverallMaxMarks(grade : Nat, termMaxMarks : Nat, _subjects : Subjects, _stream : ?Text, _subgroup : ?Text) : Nat {
+  func computeOverallMaxMarks(grade : Nat, termMaxMarks : Nat, _subjects : Subjects, _stream : ?Text, _scienceSubgroup : ?Text, _commerceSubgroup : ?Text) : Nat {
     if (grade < 9 and termMaxMarks > 0) {
       termMaxMarks;
     } else if (grade == 9 and termMaxMarks > 0) {
@@ -351,7 +358,14 @@ actor {
       let termTotalMarks = calculateTermMarks(subjects);
       let termPercentage = calculateTermPercentage(termTotalMarks, input.termMaxMarks);
       let finalMarks = calculateFinalMarks(subjects, term);
-      let overallMaxMarks = computeOverallMaxMarks(grade, input.termMaxMarks, subjects, input.stream, input.subgroup);
+      let overallMaxMarks = computeOverallMaxMarks(
+        grade,
+        input.termMaxMarks,
+        subjects,
+        input.stream,
+        input.scienceSubgroup,
+        input.commerceSubgroup,
+      );
       let overallPercentage = if (overallMaxMarks > 0) {
         calculateTermPercentage(finalMarks, overallMaxMarks);
       } else { 0 };
@@ -441,13 +455,22 @@ actor {
           case (?marks) { ?calculate9ScaleScore(marks) };
           case (null) { null };
         };
+        maths = switch (subjects.maths) {
+          case (?marks) { ?calculate9ScaleScore(marks) };
+          case (null) { null };
+        };
+        appliedMaths = switch (subjects.appliedMaths) {
+          case (?marks) { ?calculate9ScaleScore(marks) };
+          case (null) { null };
+        };
       };
 
       let entry : AcademicEntry = {
         grade;
         term;
         stream = input.stream;
-        subgroup = input.subgroup;
+        scienceSubgroup = input.scienceSubgroup;
+        commerceSubgroup = input.commerceSubgroup;
         subjects;
         subjects9 = ?calculatedScore9Scale;
         termTotalMarks;
@@ -461,6 +484,9 @@ actor {
         maxMarksPerSubject = input.termMaxMarks;
         computerMaxMarks;
         aiMaxMarks;
+
+        mathsMaxMarks = input.mathsMaxMarks;
+        appliedMathsMaxMarks = input.appliedMathsMaxMarks;
       };
 
       academicEntriesList.add(entry);

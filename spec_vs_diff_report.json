@@ -1,21 +1,40 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-25T11:57:24.726Z",
-  "summary": "The diff implements all six requested requirements. REQ-1 (frequency polygon) is covered by the new frequencyPolygon.ts utility and its integration into ProgressView.tsx. REQ-2 (per-grade average percentage cards) is reflected in ProgressView.tsx changes. REQ-3 and REQ-4 (subject analysis with avg/high/low marks and percentages, plus grade/term filters) are covered by the new subjectAnalysis.ts library and SubjectAnalysisView.tsx updates. REQ-5 (9-scale grading) is covered by gradeCalculation.ts additions and NineScaleGradesView.tsx. REQ-6 (dynamic combined percentage) is covered by percent.ts additions and CombinedPercentageView.tsx updates. All implementations appear consistent with the acceptance criteria based on available evidence.",
-  "missing_requirements": [],
+  "generatedAt": "2026-02-28T08:45:12.974Z",
+  "summary": "The diff implements REQ-1 (frontend loading fixes, error boundaries, actor initialization guards) and REQ-3 (loading indicators, error messages, no blank screen) comprehensively. REQ-2 (backend migration.mo for subgroup field transformation) is referenced in the build request but no evidence of a migration.mo file being added or modified appears in the diff — the backend/main.mo is modified but no migration logic for transforming old `subgroup` to `scienceSubgroup`/`commerceSubgroup` is visible in the truncated diff.",
+  "missing_requirements": [
+    {
+      "id": "REQ-2",
+      "requirement": "Ensure the backend migration module (migration.mo) is correctly applied on canister upgrade so that existing state (including the old single `subgroup` field) is properly transformed to the new `scienceSubgroup` and `commerceSubgroup` fields without causing a trap or error during post-upgrade.",
+      "reason": "No migration.mo file was added or modified in the diff. The backend/main.mo is modified but the truncated content shows no post-upgrade migration logic that transforms old `subgroup` field entries to `scienceSubgroup`/`commerceSubgroup`. The diff summary lists no file named migration.mo among added or modified files.",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    }
+  ],
   "hallucinated_features": [],
-  "confidence": 0.82,
+  "confidence": 0.72,
   "changed_files": [
+    "backend/main.mo",
     "frontend-file-summaries.txt",
+    "frontend/src/App.tsx",
+    "frontend/src/components/AcademicModule.tsx",
+    "frontend/src/components/AddMarksForm.tsx",
+    "frontend/src/components/CertificateView.tsx",
+    "frontend/src/components/CodingEditor.tsx",
+    "frontend/src/components/CodingHistory.tsx",
+    "frontend/src/components/CodingModule.tsx",
     "frontend/src/components/CombinedPercentageView.tsx",
+    "frontend/src/components/DataManagement.tsx",
+    "frontend/src/components/ErrorBoundary.tsx",
+    "frontend/src/components/ErrorMessage.tsx",
+    "frontend/src/components/LoadingState.tsx",
     "frontend/src/components/NineScaleGradesView.tsx",
     "frontend/src/components/ProgressView.tsx",
     "frontend/src/components/SubjectAnalysisView.tsx",
-    "frontend/src/lib/frequencyPolygon.ts",
-    "frontend/src/lib/gradeCalculation.ts",
-    "frontend/src/lib/percent.ts",
-    "frontend/src/lib/subjectAnalysis.ts",
+    "frontend/src/components/UserManagement.tsx",
+    "frontend/src/hooks/useQueries.ts",
     "project_state.json"
   ]
 }

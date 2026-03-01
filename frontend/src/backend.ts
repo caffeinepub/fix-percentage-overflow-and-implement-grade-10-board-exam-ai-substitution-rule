@@ -114,12 +114,15 @@ export interface _CaffeineStorageCreateCertificateResult {
 }
 export interface AcademicEntry {
     totalFinalMarks: bigint;
+    scienceSubgroup?: string;
     stream?: string;
     subjects: Subjects;
     term: bigint;
+    mathsMaxMarks: bigint;
     gradeText: string;
+    commerceSubgroup?: string;
     overallPercentage: bigint;
-    subgroup?: string;
+    appliedMathsMaxMarks: bigint;
     maxMarksPerSubject: bigint;
     overallMaxMarks: bigint;
     grade: bigint;
@@ -141,6 +144,7 @@ export interface Score9Scale {
     pe?: number;
     evs?: number;
     ssc?: number;
+    maths?: number;
     biology?: number;
     hindi?: number;
     math?: number;
@@ -153,15 +157,19 @@ export interface Score9Scale {
     management?: number;
     psychology?: number;
     kannada?: number;
+    appliedMaths?: number;
     english?: number;
     statistics?: number;
     science?: number;
 }
 export interface SaveAcademicInput {
     marks: Subjects;
+    scienceSubgroup?: string;
     stream?: string;
     term: bigint;
-    subgroup?: string;
+    mathsMaxMarks: bigint;
+    commerceSubgroup?: string;
+    appliedMathsMaxMarks: bigint;
     termMaxMarks: bigint;
     marks9?: Score9Scale;
     computerMaxMarks: bigint;
@@ -207,6 +215,7 @@ export interface Subjects {
     pe?: bigint;
     evs?: bigint;
     ssc?: bigint;
+    maths?: bigint;
     biology?: bigint;
     hindi?: bigint;
     math?: bigint;
@@ -219,6 +228,7 @@ export interface Subjects {
     management?: bigint;
     psychology?: bigint;
     kannada?: bigint;
+    appliedMaths?: bigint;
     english?: bigint;
     statistics?: bigint;
     science?: bigint;
@@ -758,12 +768,15 @@ function from_candid_opt_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Ar
 }
 function from_candid_record_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     totalFinalMarks: bigint;
+    scienceSubgroup: [] | [string];
     stream: [] | [string];
     subjects: _Subjects;
     term: bigint;
+    mathsMaxMarks: bigint;
     gradeText: string;
+    commerceSubgroup: [] | [string];
     overallPercentage: bigint;
-    subgroup: [] | [string];
+    appliedMathsMaxMarks: bigint;
     maxMarksPerSubject: bigint;
     overallMaxMarks: bigint;
     grade: bigint;
@@ -776,12 +789,15 @@ function from_candid_record_n18(_uploadFile: (file: ExternalBlob) => Promise<Uin
     aiMaxMarks: bigint;
 }): {
     totalFinalMarks: bigint;
+    scienceSubgroup?: string;
     stream?: string;
     subjects: Subjects;
     term: bigint;
+    mathsMaxMarks: bigint;
     gradeText: string;
+    commerceSubgroup?: string;
     overallPercentage: bigint;
-    subgroup?: string;
+    appliedMathsMaxMarks: bigint;
     maxMarksPerSubject: bigint;
     overallMaxMarks: bigint;
     grade: bigint;
@@ -795,12 +811,15 @@ function from_candid_record_n18(_uploadFile: (file: ExternalBlob) => Promise<Uin
 } {
     return {
         totalFinalMarks: value.totalFinalMarks,
+        scienceSubgroup: record_opt_to_undefined(from_candid_opt_n19(_uploadFile, _downloadFile, value.scienceSubgroup)),
         stream: record_opt_to_undefined(from_candid_opt_n19(_uploadFile, _downloadFile, value.stream)),
         subjects: from_candid_Subjects_n20(_uploadFile, _downloadFile, value.subjects),
         term: value.term,
+        mathsMaxMarks: value.mathsMaxMarks,
         gradeText: value.gradeText,
+        commerceSubgroup: record_opt_to_undefined(from_candid_opt_n19(_uploadFile, _downloadFile, value.commerceSubgroup)),
         overallPercentage: value.overallPercentage,
-        subgroup: record_opt_to_undefined(from_candid_opt_n19(_uploadFile, _downloadFile, value.subgroup)),
+        appliedMathsMaxMarks: value.appliedMathsMaxMarks,
         maxMarksPerSubject: value.maxMarksPerSubject,
         overallMaxMarks: value.overallMaxMarks,
         grade: value.grade,
@@ -818,6 +837,7 @@ function from_candid_record_n21(_uploadFile: (file: ExternalBlob) => Promise<Uin
     pe: [] | [bigint];
     evs: [] | [bigint];
     ssc: [] | [bigint];
+    maths: [] | [bigint];
     biology: [] | [bigint];
     hindi: [] | [bigint];
     math: [] | [bigint];
@@ -830,6 +850,7 @@ function from_candid_record_n21(_uploadFile: (file: ExternalBlob) => Promise<Uin
     management: [] | [bigint];
     psychology: [] | [bigint];
     kannada: [] | [bigint];
+    appliedMaths: [] | [bigint];
     english: [] | [bigint];
     statistics: [] | [bigint];
     science: [] | [bigint];
@@ -838,6 +859,7 @@ function from_candid_record_n21(_uploadFile: (file: ExternalBlob) => Promise<Uin
     pe?: bigint;
     evs?: bigint;
     ssc?: bigint;
+    maths?: bigint;
     biology?: bigint;
     hindi?: bigint;
     math?: bigint;
@@ -850,6 +872,7 @@ function from_candid_record_n21(_uploadFile: (file: ExternalBlob) => Promise<Uin
     management?: bigint;
     psychology?: bigint;
     kannada?: bigint;
+    appliedMaths?: bigint;
     english?: bigint;
     statistics?: bigint;
     science?: bigint;
@@ -859,6 +882,7 @@ function from_candid_record_n21(_uploadFile: (file: ExternalBlob) => Promise<Uin
         pe: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.pe)),
         evs: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.evs)),
         ssc: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.ssc)),
+        maths: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.maths)),
         biology: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.biology)),
         hindi: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.hindi)),
         math: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.math)),
@@ -871,6 +895,7 @@ function from_candid_record_n21(_uploadFile: (file: ExternalBlob) => Promise<Uin
         management: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.management)),
         psychology: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.psychology)),
         kannada: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.kannada)),
+        appliedMaths: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.appliedMaths)),
         english: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.english)),
         statistics: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.statistics)),
         science: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.science))
@@ -881,6 +906,7 @@ function from_candid_record_n24(_uploadFile: (file: ExternalBlob) => Promise<Uin
     pe: [] | [number];
     evs: [] | [number];
     ssc: [] | [number];
+    maths: [] | [number];
     biology: [] | [number];
     hindi: [] | [number];
     math: [] | [number];
@@ -893,6 +919,7 @@ function from_candid_record_n24(_uploadFile: (file: ExternalBlob) => Promise<Uin
     management: [] | [number];
     psychology: [] | [number];
     kannada: [] | [number];
+    appliedMaths: [] | [number];
     english: [] | [number];
     statistics: [] | [number];
     science: [] | [number];
@@ -901,6 +928,7 @@ function from_candid_record_n24(_uploadFile: (file: ExternalBlob) => Promise<Uin
     pe?: number;
     evs?: number;
     ssc?: number;
+    maths?: number;
     biology?: number;
     hindi?: number;
     math?: number;
@@ -913,6 +941,7 @@ function from_candid_record_n24(_uploadFile: (file: ExternalBlob) => Promise<Uin
     management?: number;
     psychology?: number;
     kannada?: number;
+    appliedMaths?: number;
     english?: number;
     statistics?: number;
     science?: number;
@@ -922,6 +951,7 @@ function from_candid_record_n24(_uploadFile: (file: ExternalBlob) => Promise<Uin
         pe: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.pe)),
         evs: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.evs)),
         ssc: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.ssc)),
+        maths: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.maths)),
         biology: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.biology)),
         hindi: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.hindi)),
         math: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.math)),
@@ -934,6 +964,7 @@ function from_candid_record_n24(_uploadFile: (file: ExternalBlob) => Promise<Uin
         management: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.management)),
         psychology: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.psychology)),
         kannada: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.kannada)),
+        appliedMaths: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.appliedMaths)),
         english: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.english)),
         statistics: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.statistics)),
         science: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.science))
@@ -1130,18 +1161,24 @@ function to_candid_opt_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Arr
 }
 function to_candid_record_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     marks: Subjects;
+    scienceSubgroup?: string;
     stream?: string;
     term: bigint;
-    subgroup?: string;
+    mathsMaxMarks: bigint;
+    commerceSubgroup?: string;
+    appliedMathsMaxMarks: bigint;
     termMaxMarks: bigint;
     marks9?: Score9Scale;
     computerMaxMarks: bigint;
     aiMaxMarks: bigint;
 }): {
     marks: _Subjects;
+    scienceSubgroup: [] | [string];
     stream: [] | [string];
     term: bigint;
-    subgroup: [] | [string];
+    mathsMaxMarks: bigint;
+    commerceSubgroup: [] | [string];
+    appliedMathsMaxMarks: bigint;
     termMaxMarks: bigint;
     marks9: [] | [_Score9Scale];
     computerMaxMarks: bigint;
@@ -1149,9 +1186,12 @@ function to_candid_record_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8
 } {
     return {
         marks: to_candid_Subjects_n11(_uploadFile, _downloadFile, value.marks),
+        scienceSubgroup: value.scienceSubgroup ? candid_some(value.scienceSubgroup) : candid_none(),
         stream: value.stream ? candid_some(value.stream) : candid_none(),
         term: value.term,
-        subgroup: value.subgroup ? candid_some(value.subgroup) : candid_none(),
+        mathsMaxMarks: value.mathsMaxMarks,
+        commerceSubgroup: value.commerceSubgroup ? candid_some(value.commerceSubgroup) : candid_none(),
+        appliedMathsMaxMarks: value.appliedMathsMaxMarks,
         termMaxMarks: value.termMaxMarks,
         marks9: value.marks9 ? candid_some(to_candid_Score9Scale_n13(_uploadFile, _downloadFile, value.marks9)) : candid_none(),
         computerMaxMarks: value.computerMaxMarks,
@@ -1163,6 +1203,7 @@ function to_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     pe?: bigint;
     evs?: bigint;
     ssc?: bigint;
+    maths?: bigint;
     biology?: bigint;
     hindi?: bigint;
     math?: bigint;
@@ -1175,6 +1216,7 @@ function to_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     management?: bigint;
     psychology?: bigint;
     kannada?: bigint;
+    appliedMaths?: bigint;
     english?: bigint;
     statistics?: bigint;
     science?: bigint;
@@ -1183,6 +1225,7 @@ function to_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     pe: [] | [bigint];
     evs: [] | [bigint];
     ssc: [] | [bigint];
+    maths: [] | [bigint];
     biology: [] | [bigint];
     hindi: [] | [bigint];
     math: [] | [bigint];
@@ -1195,6 +1238,7 @@ function to_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     management: [] | [bigint];
     psychology: [] | [bigint];
     kannada: [] | [bigint];
+    appliedMaths: [] | [bigint];
     english: [] | [bigint];
     statistics: [] | [bigint];
     science: [] | [bigint];
@@ -1204,6 +1248,7 @@ function to_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8
         pe: value.pe ? candid_some(value.pe) : candid_none(),
         evs: value.evs ? candid_some(value.evs) : candid_none(),
         ssc: value.ssc ? candid_some(value.ssc) : candid_none(),
+        maths: value.maths ? candid_some(value.maths) : candid_none(),
         biology: value.biology ? candid_some(value.biology) : candid_none(),
         hindi: value.hindi ? candid_some(value.hindi) : candid_none(),
         math: value.math ? candid_some(value.math) : candid_none(),
@@ -1216,6 +1261,7 @@ function to_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8
         management: value.management ? candid_some(value.management) : candid_none(),
         psychology: value.psychology ? candid_some(value.psychology) : candid_none(),
         kannada: value.kannada ? candid_some(value.kannada) : candid_none(),
+        appliedMaths: value.appliedMaths ? candid_some(value.appliedMaths) : candid_none(),
         english: value.english ? candid_some(value.english) : candid_none(),
         statistics: value.statistics ? candid_some(value.statistics) : candid_none(),
         science: value.science ? candid_some(value.science) : candid_none()
@@ -1226,6 +1272,7 @@ function to_candid_record_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     pe?: number;
     evs?: number;
     ssc?: number;
+    maths?: number;
     biology?: number;
     hindi?: number;
     math?: number;
@@ -1238,6 +1285,7 @@ function to_candid_record_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     management?: number;
     psychology?: number;
     kannada?: number;
+    appliedMaths?: number;
     english?: number;
     statistics?: number;
     science?: number;
@@ -1246,6 +1294,7 @@ function to_candid_record_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     pe: [] | [number];
     evs: [] | [number];
     ssc: [] | [number];
+    maths: [] | [number];
     biology: [] | [number];
     hindi: [] | [number];
     math: [] | [number];
@@ -1258,6 +1307,7 @@ function to_candid_record_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     management: [] | [number];
     psychology: [] | [number];
     kannada: [] | [number];
+    appliedMaths: [] | [number];
     english: [] | [number];
     statistics: [] | [number];
     science: [] | [number];
@@ -1267,6 +1317,7 @@ function to_candid_record_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8
         pe: value.pe ? candid_some(value.pe) : candid_none(),
         evs: value.evs ? candid_some(value.evs) : candid_none(),
         ssc: value.ssc ? candid_some(value.ssc) : candid_none(),
+        maths: value.maths ? candid_some(value.maths) : candid_none(),
         biology: value.biology ? candid_some(value.biology) : candid_none(),
         hindi: value.hindi ? candid_some(value.hindi) : candid_none(),
         math: value.math ? candid_some(value.math) : candid_none(),
@@ -1279,6 +1330,7 @@ function to_candid_record_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8
         management: value.management ? candid_some(value.management) : candid_none(),
         psychology: value.psychology ? candid_some(value.psychology) : candid_none(),
         kannada: value.kannada ? candid_some(value.kannada) : candid_none(),
+        appliedMaths: value.appliedMaths ? candid_some(value.appliedMaths) : candid_none(),
         english: value.english ? candid_some(value.english) : candid_none(),
         statistics: value.statistics ? candid_some(value.statistics) : candid_none(),
         science: value.science ? candid_some(value.science) : candid_none()
@@ -1319,12 +1371,15 @@ function to_candid_record_n45(_uploadFile: (file: ExternalBlob) => Promise<Uint8
 }
 function to_candid_record_n50(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     totalFinalMarks: bigint;
+    scienceSubgroup?: string;
     stream?: string;
     subjects: Subjects;
     term: bigint;
+    mathsMaxMarks: bigint;
     gradeText: string;
+    commerceSubgroup?: string;
     overallPercentage: bigint;
-    subgroup?: string;
+    appliedMathsMaxMarks: bigint;
     maxMarksPerSubject: bigint;
     overallMaxMarks: bigint;
     grade: bigint;
@@ -1337,12 +1392,15 @@ function to_candid_record_n50(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     aiMaxMarks: bigint;
 }): {
     totalFinalMarks: bigint;
+    scienceSubgroup: [] | [string];
     stream: [] | [string];
     subjects: _Subjects;
     term: bigint;
+    mathsMaxMarks: bigint;
     gradeText: string;
+    commerceSubgroup: [] | [string];
     overallPercentage: bigint;
-    subgroup: [] | [string];
+    appliedMathsMaxMarks: bigint;
     maxMarksPerSubject: bigint;
     overallMaxMarks: bigint;
     grade: bigint;
@@ -1356,12 +1414,15 @@ function to_candid_record_n50(_uploadFile: (file: ExternalBlob) => Promise<Uint8
 } {
     return {
         totalFinalMarks: value.totalFinalMarks,
+        scienceSubgroup: value.scienceSubgroup ? candid_some(value.scienceSubgroup) : candid_none(),
         stream: value.stream ? candid_some(value.stream) : candid_none(),
         subjects: to_candid_Subjects_n11(_uploadFile, _downloadFile, value.subjects),
         term: value.term,
+        mathsMaxMarks: value.mathsMaxMarks,
         gradeText: value.gradeText,
+        commerceSubgroup: value.commerceSubgroup ? candid_some(value.commerceSubgroup) : candid_none(),
         overallPercentage: value.overallPercentage,
-        subgroup: value.subgroup ? candid_some(value.subgroup) : candid_none(),
+        appliedMathsMaxMarks: value.appliedMathsMaxMarks,
         maxMarksPerSubject: value.maxMarksPerSubject,
         overallMaxMarks: value.overallMaxMarks,
         grade: value.grade,

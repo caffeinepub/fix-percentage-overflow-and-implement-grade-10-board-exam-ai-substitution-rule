@@ -21,12 +21,15 @@ export interface AcademicEntriesExport {
 }
 export interface AcademicEntry {
     totalFinalMarks: bigint;
+    scienceSubgroup?: string;
     stream?: string;
     subjects: Subjects;
     term: bigint;
+    mathsMaxMarks: bigint;
     gradeText: string;
+    commerceSubgroup?: string;
     overallPercentage: bigint;
-    subgroup?: string;
+    appliedMathsMaxMarks: bigint;
     maxMarksPerSubject: bigint;
     overallMaxMarks: bigint;
     grade: bigint;
@@ -48,6 +51,7 @@ export interface Score9Scale {
     pe?: number;
     evs?: number;
     ssc?: number;
+    maths?: number;
     biology?: number;
     hindi?: number;
     math?: number;
@@ -60,15 +64,19 @@ export interface Score9Scale {
     management?: number;
     psychology?: number;
     kannada?: number;
+    appliedMaths?: number;
     english?: number;
     statistics?: number;
     science?: number;
 }
 export interface SaveAcademicInput {
     marks: Subjects;
+    scienceSubgroup?: string;
     stream?: string;
     term: bigint;
-    subgroup?: string;
+    mathsMaxMarks: bigint;
+    commerceSubgroup?: string;
+    appliedMathsMaxMarks: bigint;
     termMaxMarks: bigint;
     marks9?: Score9Scale;
     computerMaxMarks: bigint;
@@ -114,6 +122,7 @@ export interface Subjects {
     pe?: bigint;
     evs?: bigint;
     ssc?: bigint;
+    maths?: bigint;
     biology?: bigint;
     hindi?: bigint;
     math?: bigint;
@@ -126,6 +135,7 @@ export interface Subjects {
     management?: bigint;
     psychology?: bigint;
     kannada?: bigint;
+    appliedMaths?: bigint;
     english?: bigint;
     statistics?: bigint;
     science?: bigint;

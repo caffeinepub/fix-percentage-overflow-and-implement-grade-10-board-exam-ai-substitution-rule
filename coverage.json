@@ -1,106 +1,101 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-25T11:57:24.729Z",
+  "generatedAt": "2026-02-28T08:45:12.977Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 6,
-    "implemented": 6,
+    "total": 3,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "In the View Progress tab, add a frequency polygon chart that plots the distribution of original percentage scores. The chart must be rendered per term and per grade (i.e., one frequency polygon per grade-term combination visible after filtering). Use class intervals (e.g., 0-10, 10-20, …, 90-100) on the X-axis and frequency (number of students/entries) on the Y-axis, with connected line points.",
+        "summary": "Diagnose and fix the application error that occurs when the app is accessed in the live/production environment. The app must load without any runtime or initialization errors for all users (authenticated and anonymous).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/ProgressView.tsx",
-          "frontend/src/lib/frequencyPolygon.ts"
+          "frontend/src/App.tsx",
+          "frontend/src/components/AcademicModule.tsx",
+          "frontend/src/components/CodingModule.tsx",
+          "frontend/src/components/DataManagement.tsx",
+          "frontend/src/components/UserManagement.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/ErrorBoundary.tsx",
+          "frontend/src/components/LoadingState.tsx",
+          "frontend/src/components/ErrorMessage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/ProgressView.tsx",
-          "frontend/src/lib/frequencyPolygon.ts"
+          "frontend/src/App.tsx",
+          "frontend/src/components/AcademicModule.tsx",
+          "frontend/src/components/CodingModule.tsx",
+          "frontend/src/components/DataManagement.tsx",
+          "frontend/src/components/UserManagement.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/ErrorBoundary.tsx",
+          "frontend/src/components/LoadingState.tsx",
+          "frontend/src/components/ErrorMessage.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "In the View Progress tab, display the average percentage for each grade as a summary statistic. This should appear as a clearly labeled figure (e.g., 'Grade 5 Average: 78.4%') either in the existing table/chart area or as summary cards above or below the chart.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/ProgressView.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/ProgressView.tsx"
-        ]
+        "summary": "Ensure the backend migration module (migration.mo) is correctly applied on canister upgrade so that existing state (including the old single `subgroup` field) is properly transformed to the new `scienceSubgroup` and `commerceSubgroup` fields without causing a trap or error during post-upgrade.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
         "id": "REQ-3",
-        "summary": "In the Subject Analysis tab, display the average raw marks (e.g., '73') for each subject across all grades alongside the existing average percentage. The raw mark average must be computed from actual stored marks divided by the number of entries for that subject, and shown as a numeric value (e.g., 'Avg Marks: 73').",
+        "summary": "Ensure the frontend handles cases where the backend actor is not yet ready or returns an error during initialization, displaying a user-friendly loading or error state instead of a blank/broken screen.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/lib/subjectAnalysis.ts",
-          "frontend/src/components/SubjectAnalysisView.tsx"
+          "frontend/src/App.tsx",
+          "frontend/src/components/ProgressView.tsx",
+          "frontend/src/components/AddMarksForm.tsx",
+          "frontend/src/components/CodingEditor.tsx",
+          "frontend/src/components/SubjectAnalysisView.tsx",
+          "frontend/src/components/NineScaleGradesView.tsx",
+          "frontend/src/components/CombinedPercentageView.tsx",
+          "frontend/src/components/CertificateView.tsx",
+          "frontend/src/components/CodingHistory.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/lib/subjectAnalysis.ts",
-          "frontend/src/components/SubjectAnalysisView.tsx"
-        ]
-      },
-      {
-        "id": "REQ-4",
-        "summary": "In the Subject Analysis tab, display the highest and lowest raw marks and the highest and lowest percentage for each subject, with the ability to filter by grade and term. The stats (highest mark, lowest mark, highest %, lowest %) must be shown per subject for the selected grade and term combination.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/lib/subjectAnalysis.ts",
-          "frontend/src/components/SubjectAnalysisView.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/lib/subjectAnalysis.ts",
-          "frontend/src/components/SubjectAnalysisView.tsx"
-        ]
-      },
-      {
-        "id": "REQ-5",
-        "summary": "In the Nine Grading System (9-Scale Grades) tab, display the computed 9-scale grade (1–9) for each subject for each term of each grade. The grading scale must be: 90–100 = 9, 80–89 = 8, 70–79 = 7, 60–69 = 6, 50–59 = 5, 40–49 = 4, 30–39 = 3, 20–29 = 2, 0–19 = 1. Each subject cell must show the grade number (e.g., '8') computed from the subject's percentage for that entry's term.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/lib/gradeCalculation.ts",
-          "frontend/src/components/NineScaleGradesView.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/lib/gradeCalculation.ts",
-          "frontend/src/components/NineScaleGradesView.tsx"
-        ]
-      },
-      {
-        "id": "REQ-6",
-        "summary": "In the Combined Percentage tab, replace the current fixed formula with a dynamic calculation that averages the calculated (adjusted) percentages of all available terms for a student/entry group. If only Term 1 and Term 2 exist, divide the sum by 2. If Term 3 also exists, divide the sum by 3. The result is the overall combined percentage. Update the display and the calculation logic in both the utility functions (percent.ts or equivalent) and the CombinedPercentageView component.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/lib/percent.ts",
-          "frontend/src/components/CombinedPercentageView.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/lib/percent.ts",
-          "frontend/src/components/CombinedPercentageView.tsx"
+          "frontend/src/App.tsx",
+          "frontend/src/components/ProgressView.tsx",
+          "frontend/src/components/AddMarksForm.tsx",
+          "frontend/src/components/CodingEditor.tsx",
+          "frontend/src/components/SubjectAnalysisView.tsx",
+          "frontend/src/components/NineScaleGradesView.tsx",
+          "frontend/src/components/CombinedPercentageView.tsx",
+          "frontend/src/components/CertificateView.tsx",
+          "frontend/src/components/CodingHistory.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/App.tsx",
+    "frontend/src/components/AcademicModule.tsx",
+    "frontend/src/components/AddMarksForm.tsx",
+    "frontend/src/components/CertificateView.tsx",
+    "frontend/src/components/CodingEditor.tsx",
+    "frontend/src/components/CodingHistory.tsx",
+    "frontend/src/components/CodingModule.tsx",
     "frontend/src/components/CombinedPercentageView.tsx",
+    "frontend/src/components/DataManagement.tsx",
+    "frontend/src/components/ErrorBoundary.tsx",
+    "frontend/src/components/ErrorMessage.tsx",
+    "frontend/src/components/LoadingState.tsx",
     "frontend/src/components/NineScaleGradesView.tsx",
     "frontend/src/components/ProgressView.tsx",
     "frontend/src/components/SubjectAnalysisView.tsx",
-    "frontend/src/lib/frequencyPolygon.ts",
-    "frontend/src/lib/gradeCalculation.ts",
-    "frontend/src/lib/percent.ts",
-    "frontend/src/lib/subjectAnalysis.ts",
+    "frontend/src/components/UserManagement.tsx",
+    "frontend/src/hooks/useQueries.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

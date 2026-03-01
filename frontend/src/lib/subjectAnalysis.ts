@@ -47,7 +47,10 @@ function getSubjectPercentage(entry: AcademicEntry, subjectKey: keyof Subjects):
 /**
  * Get raw marks and max marks for display
  */
-function getSubjectMarksData(entry: AcademicEntry, subjectKey: keyof Subjects): { marks: number; maxMarks: number } | null {
+function getSubjectMarksData(
+  entry: AcademicEntry,
+  subjectKey: keyof Subjects
+): { marks: number; maxMarks: number } | null {
   const marks = entry.subjects[subjectKey];
   if (marks === undefined || marks === null) return null;
 
@@ -88,16 +91,16 @@ export function computeSubjectStatistics(entries: AcademicEntry[]): SubjectStati
 
   for (const entry of entries) {
     const subjects = entry.subjects;
-    
+
     for (const [key, value] of Object.entries(subjects)) {
       if (value !== undefined && value !== null) {
         const percentage = getSubjectPercentage(entry, key as keyof Subjects);
         const marksData = getSubjectMarksData(entry, key as keyof Subjects);
-        
+
         if (!subjectData.has(key)) {
           subjectData.set(key, { percentages: [], rawMarks: [], marksData: [] });
         }
-        
+
         const data = subjectData.get(key)!;
         data.percentages.push(percentage);
         if (marksData) {
@@ -109,11 +112,11 @@ export function computeSubjectStatistics(entries: AcademicEntry[]): SubjectStati
   }
 
   const stats: SubjectStatistics[] = [];
-  
+
   for (const [key, data] of subjectData.entries()) {
     const { percentages, rawMarks, marksData } = data;
     if (percentages.length === 0) continue;
-    
+
     const pctSum = percentages.reduce((a, b) => a + b, 0);
     const avgPct = pctSum / percentages.length;
     const highestPct = Math.max(...percentages);
@@ -132,7 +135,7 @@ export function computeSubjectStatistics(entries: AcademicEntry[]): SubjectStati
       const maxMarks = marksData[0].maxMarks;
       averageMarksDisplay = `${averageMarks}/${maxMarks}`;
     }
-    
+
     stats.push({
       subjectKey: key,
       averagePercentage: clampTo100(avgPct),
@@ -147,6 +150,6 @@ export function computeSubjectStatistics(entries: AcademicEntry[]): SubjectStati
   }
 
   stats.sort((a, b) => a.subjectKey.localeCompare(b.subjectKey));
-  
+
   return stats;
 }

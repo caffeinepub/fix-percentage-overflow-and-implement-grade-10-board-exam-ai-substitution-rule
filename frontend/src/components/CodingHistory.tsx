@@ -1,106 +1,126 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useGetCodingAttempts, useGetCodingChallenges } from '@/hooks/useQueries';
-import { Skeleton } from '@/components/ui/skeleton';
+import React from 'react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { Code2, Calendar, Award } from 'lucide-react';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Card, CardContent } from '@/components/ui/card';
+import { useGetCodingAttempts, useGetAllCodingChallenges } from '../hooks/useQueries';
+import { LoadingState } from './LoadingState';
+import { ErrorMessage } from './ErrorMessage';
+
+function formatTimestamp(ts: bigint): string {
+  try {
+    const ms = Number(ts) / 1_000_000;
+    return new Date(ms).toLocaleString();
+  } catch {
+    return 'Unknown time';
+  }
+}
 
 export default function CodingHistory() {
-  const { data: attempts, isLoading: attemptsLoading } = useGetCodingAttempts();
-  const { data: challenges, isLoading: challengesLoading } = useGetCodingChallenges();
+  const {
+    data: attempts = [],
+    isLoading: attemptsLoading,
+    error: attemptsError,
+    refetch: refetchAttempts,
+  } = useGetCodingAttempts();
 
-  if (attemptsLoading || challengesLoading) {
+  const {
+    data: challenges = [],
+    isLoading: challengesLoading,
+  } = useGetAllCodingChallenges();
+
+  const isLoading = attemptsLoading || challengesLoading;
+
+  if (isLoading) {
+    return <LoadingState message="Loading coding history..." />;
+  }
+
+  if (attemptsError) {
     return (
-      <Card>
-        <CardHeader>
-          <Skeleton className="h-6 w-48" />
-          <Skeleton className="h-4 w-64" />
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-24 w-full" />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <ErrorMessage
+        message="Failed to load coding history. Please try again."
+        onRetry={() => refetchAttempts()}
+      />
     );
   }
 
   if (!attempts || attempts.length === 0) {
     return (
-      <Card className="border-border/50">
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <Code2 className="w-16 h-16 text-muted-foreground/50 mb-4" />
-          <p className="text-lg font-medium text-muted-foreground">No coding attempts yet</p>
-          <p className="text-sm text-muted-foreground/70">Start coding to build your practice history</p>
-        </CardContent>
-      </Card>
+      <div className="text-center py-12 text-muted-foreground">
+        <p className="text-lg">No coding attempts yet.</p>
+        <p className="text-sm mt-1">Complete coding challenges to see your history here.</p>
+      </div>
     );
   }
 
-  const getChallengeTitle = (challengeId: bigint) => {
-    const challenge = challenges?.find((c) => c.id === challengeId);
-    return challenge?.title || `Challenge #${challengeId}`;
-  };
+  const challengeMap = new Map(challenges.map((c) => [Number(c.id), c]));
 
   return (
-    <Card className="border-border/50">
-      <CardHeader>
-        <CardTitle>Coding History</CardTitle>
-        <CardDescription>All your saved coding attempts and solutions</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Accordion type="single" collapsible className="w-full">
-          {attempts.map((attempt, index) => (
-            <AccordionItem key={index} value={`item-${index}`}>
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        {attempts.length} attempt{attempts.length !== 1 ? 's' : ''} recorded
+      </p>
+      <Accordion type="multiple" className="space-y-2">
+        {attempts.map((attempt, idx) => {
+          const challenge = challengeMap.get(Number(attempt.challengeId));
+          const challengeTitle = challenge?.title ?? `Challenge #${Number(attempt.challengeId)}`;
+          const score = attempt.score !== undefined && attempt.score !== null
+            ? Number(attempt.score)
+            : null;
+
+          return (
+            <AccordionItem
+              key={idx}
+              value={`attempt-${idx}`}
+              className="border rounded-lg px-4"
+            >
               <AccordionTrigger className="hover:no-underline">
-                <div className="flex items-center justify-between w-full pr-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Code2 className="w-5 h-5 text-primary" />
-                    </div>
-                    <div className="text-left">
-                      <div className="font-semibold">{getChallengeTitle(attempt.challengeId)}</div>
-                      <div className="text-xs text-muted-foreground flex items-center gap-2">
-                        <Calendar className="w-3 h-3" />
-                        {new Date(Number(attempt.timestamp) / 1000000).toLocaleString()}
-                      </div>
-                    </div>
-                  </div>
-                  {attempt.score !== undefined && (
-                    <Badge variant="secondary" className="gap-1">
-                      <Award className="w-3 h-3" />
-                      {Number(attempt.score)}/100
+                <div className="flex flex-wrap items-center gap-2 text-left">
+                  <span className="font-medium text-sm">{challengeTitle}</span>
+                  {score !== null && (
+                    <Badge variant={score >= 70 ? 'default' : 'secondary'}>
+                      Score: {score}
                     </Badge>
                   )}
+                  <span className="text-xs text-muted-foreground">
+                    {formatTimestamp(attempt.timestamp)}
+                  </span>
                 </div>
               </AccordionTrigger>
               <AccordionContent>
-                <div className="space-y-4 pt-2">
+                <div className="space-y-3 pt-2">
                   <div>
-                    <h4 className="font-semibold text-sm mb-2">Code</h4>
-                    <ScrollArea className="h-[200px] w-full rounded-md border border-border/50">
-                      <pre className="bg-muted p-4 text-xs font-mono">{attempt.code}</pre>
-                    </ScrollArea>
+                    <p className="text-xs font-semibold text-muted-foreground mb-1">CODE</p>
+                    <Card>
+                      <CardContent className="p-3">
+                        <pre className="text-xs overflow-x-auto whitespace-pre-wrap font-mono">
+                          {attempt.code || '(empty)'}
+                        </pre>
+                      </CardContent>
+                    </Card>
                   </div>
-                  <Separator />
-                  <div>
-                    <h4 className="font-semibold text-sm mb-2">Output</h4>
-                    <ScrollArea className="h-[150px] w-full rounded-md border border-border/50">
-                      <pre className="bg-muted p-4 text-xs font-mono whitespace-pre-wrap">
-                        {attempt.result || 'No output recorded'}
-                      </pre>
-                    </ScrollArea>
-                  </div>
+                  {attempt.result && (
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground mb-1">OUTPUT</p>
+                      <Card>
+                        <CardContent className="p-3">
+                          <pre className="text-xs overflow-x-auto whitespace-pre-wrap font-mono">
+                            {attempt.result}
+                          </pre>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
                 </div>
               </AccordionContent>
             </AccordionItem>
-          ))}
-        </Accordion>
-      </CardContent>
-    </Card>
+          );
+        })}
+      </Accordion>
+    </div>
   );
 }
