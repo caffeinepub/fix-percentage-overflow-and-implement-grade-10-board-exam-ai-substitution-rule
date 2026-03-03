@@ -62,6 +62,13 @@ export interface CodingExport {
   'attempts' : Array<[Principal, Array<CodingAttempt>]>,
   'challenges' : Array<CodingChallenge>,
 }
+export interface CombinedPercentage {
+  'overallPercentage' : bigint,
+  'grade' : bigint,
+}
+export interface CombinedPercentages {
+  'percentages' : Array<CombinedPercentage>,
+}
 export interface ExportTypes {
   'academicEntries' : AcademicEntriesExport,
   'coding' : CodingExport,
@@ -188,6 +195,7 @@ export interface _SERVICE {
     CodingChallenge
   >,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'calculateCombinedPercentages' : ActorMethod<[], CombinedPercentages>,
   'calculateWeightedPercentages' : ActorMethod<
     [],
     GradeAggregatesWithWeighting

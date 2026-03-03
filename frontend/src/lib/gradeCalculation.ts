@@ -1,21 +1,8 @@
-// Grade calculation utilities
-
-export function getLetterGrade(percentage: number): string {
-  if (percentage >= 90) return 'A+';
-  if (percentage >= 80) return 'A';
-  if (percentage >= 70) return 'B+';
-  if (percentage >= 60) return 'B';
-  if (percentage >= 50) return 'C';
-  return 'D';
-}
-
-// Alias for backward compatibility
-export const calculateLetterGrade = getLetterGrade;
+// Grade calculation utilities - nine-point scale ONLY
 
 /**
- * Convert a raw percentage (0–100) into a 9-point scale grade.
- * Exact boundaries: 90–100=9, 80–89=8, 70–79=7, 60–69=6, 50–59=5,
- *                   40–49=4, 30–39=3, 20–29=2, 0–19=1
+ * Convert a percentage to a nine-point scale score (1-9).
+ * Uses exact boundaries as per the nine-scale grading system.
  */
 export function calculateNineScaleFromPercentage(percentage: number): number {
   if (percentage >= 90) return 9;
@@ -24,24 +11,32 @@ export function calculateNineScaleFromPercentage(percentage: number): number {
   if (percentage >= 60) return 6;
   if (percentage >= 50) return 5;
   if (percentage >= 40) return 4;
-  if (percentage >= 30) return 3;
-  if (percentage >= 20) return 2;
-  return 1;
+  if (percentage >= 33) return 3;
+  if (percentage >= 21) return 2;
+  if (percentage >= 10) return 1;
+  return 0;
 }
 
-export function getNineScaleGradeColor(grade: number): string {
-  if (grade === 9) return 'bg-emerald-500 text-white';
-  if (grade === 8) return 'bg-green-500 text-white';
-  if (grade === 7) return 'bg-lime-500 text-white';
-  if (grade === 6) return 'bg-yellow-500 text-white';
-  if (grade === 5) return 'bg-orange-400 text-white';
-  if (grade === 4) return 'bg-orange-500 text-white';
-  if (grade === 3) return 'bg-red-400 text-white';
-  if (grade === 2) return 'bg-red-500 text-white';
-  return 'bg-red-700 text-white';
+/**
+ * Get a Tailwind color class for a nine-point scale score.
+ */
+export function getNineScaleGradeColor(score: number): string {
+  if (score >= 9) return 'bg-emerald-500 text-white';
+  if (score >= 8) return 'bg-green-500 text-white';
+  if (score >= 7) return 'bg-lime-500 text-white';
+  if (score >= 6) return 'bg-yellow-500 text-white';
+  if (score >= 5) return 'bg-amber-500 text-white';
+  if (score >= 4) return 'bg-orange-500 text-white';
+  if (score >= 3) return 'bg-red-400 text-white';
+  if (score >= 2) return 'bg-red-600 text-white';
+  if (score >= 1) return 'bg-red-800 text-white';
+  return 'bg-gray-400 text-white';
 }
 
+/**
+ * Calculate percentage from raw marks and max marks.
+ */
 export function calculatePercentage(marks: number, maxMarks: number): number {
   if (maxMarks <= 0) return 0;
-  return Math.min(100, Math.round((marks / maxMarks) * 100));
+  return Math.min(100, (marks / maxMarks) * 100);
 }

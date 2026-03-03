@@ -32,8 +32,8 @@ actor {
     management : ?Nat;
     psychology : ?Nat;
     pe : ?Nat;
-    appliedMaths : ?Nat;
     maths : ?Nat;
+    appliedMaths : ?Nat;
   };
 
   public type Score9Scale = {
@@ -56,8 +56,8 @@ actor {
     management : ?Nat8;
     psychology : ?Nat8;
     pe : ?Nat8;
-    appliedMaths : ?Nat8;
     maths : ?Nat8;
+    appliedMaths : ?Nat8;
   };
 
   public type BoardExamResults = {
@@ -167,6 +167,17 @@ actor {
     entries : [(Nat, GradePercentages)];
   };
 
+  public type CombinedPercentage = {
+    grade : Nat;
+    overallPercentage : Nat;
+  };
+
+  public type CombinedPercentages = {
+    percentages : [CombinedPercentage];
+  };
+
+  public type MaxMarksConfig = Map.Map<Nat, Map.Map<Nat, Nat>>;
+
   var accessControlState = AccessControl.initState();
   var nextChallengeId = 0;
   var academicEntries = Map.empty<Principal, List.List<AcademicEntry>>();
@@ -174,43 +185,7 @@ actor {
   var codingAttempts = Map.empty<Principal, List.List<CodingAttempt>>();
   var codingChallenges = List.empty<CodingChallenge>();
   var userProfiles = Map.empty<Principal, UserProfile>();
-
-  public shared ({ caller }) func initializeAccessControl() : async () {
-    AccessControl.initialize(accessControlState, caller);
-  };
-
-  public query ({ caller }) func getCallerUserRole() : async AccessControl.UserRole {
-    AccessControl.getUserRole(accessControlState, caller);
-  };
-
-  public shared ({ caller }) func assignCallerUserRole(user : Principal, role : AccessControl.UserRole) : async () {
-    AccessControl.assignRole(accessControlState, caller, user, role);
-  };
-
-  public query ({ caller }) func isCallerAdmin() : async Bool {
-    AccessControl.isAdmin(accessControlState, caller);
-  };
-
-  public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can access profiles");
-    };
-    userProfiles.get(caller);
-  };
-
-  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
-    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Can only view your own profile");
-    };
-    userProfiles.get(user);
-  };
-
-  public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can save profiles");
-    };
-    userProfiles.add(caller, profile);
-  };
+  var maxMarksConfig = Map.empty<Nat, Map.Map<Nat, Nat>>();
 
   func computeOverallMaxMarks(grade : Nat, termMaxMarks : Nat, _subjects : Subjects, _stream : ?Text, _scienceSubgroup : ?Text, _commerceSubgroup : ?Text) : Nat {
     if (grade < 9 and termMaxMarks > 0) {
@@ -290,8 +265,13 @@ actor {
 
   func calculateTermPercentage(termTotalMarks : Nat, termMaxMarks : Nat) : Nat {
     if (termMaxMarks > 0 and termTotalMarks > 0) {
-      let percentage = (termTotalMarks * 100) / termMaxMarks;
-      if (percentage > 100) { 100 } else { percentage };
+      var adjustedMaxMarks = termMaxMarks;
+      if (adjustedMaxMarks > 1000) {
+        adjustedMaxMarks := 1000;
+      };
+      if (termTotalMarks > adjustedMaxMarks) { 100 } else {
+        (termTotalMarks * 100) / adjustedMaxMarks;
+      };
     } else { 0 };
   };
 
@@ -338,6 +318,43 @@ actor {
         };
       };
     };
+  };
+
+  public shared ({ caller }) func initializeAccessControl() : async () {
+    AccessControl.initialize(accessControlState, caller);
+  };
+
+  public query ({ caller }) func getCallerUserRole() : async AccessControl.UserRole {
+    AccessControl.getUserRole(accessControlState, caller);
+  };
+
+  public shared ({ caller }) func assignCallerUserRole(user : Principal, role : AccessControl.UserRole) : async () {
+    AccessControl.assignRole(accessControlState, caller, user, role);
+  };
+
+  public query ({ caller }) func isCallerAdmin() : async Bool {
+    AccessControl.isAdmin(accessControlState, caller);
+  };
+
+  public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can access profiles");
+    };
+    userProfiles.get(caller);
+  };
+
+  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
+    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Can only view your own profile");
+    };
+    userProfiles.get(user);
+  };
+
+  public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can save profiles");
+    };
+    userProfiles.add(caller, profile);
   };
 
   public shared ({ caller }) func addAcademicEntry(grade : Nat, academicInputs : [SaveAcademicInput], _finalMarks : ?Nat) : async [AcademicEntry] {
@@ -484,7 +501,6 @@ actor {
         maxMarksPerSubject = input.termMaxMarks;
         computerMaxMarks;
         aiMaxMarks;
-
         mathsMaxMarks = input.mathsMaxMarks;
         appliedMathsMaxMarks = input.appliedMathsMaxMarks;
       };
@@ -516,7 +532,7 @@ actor {
     };
     switch (academicEntries.get(caller)) {
       case (null) { [] };
-      case (?entries) { entries.reverse().values().toArray() };
+      case (?entries) { entries.values().toArray() };
     };
   };
 
@@ -537,7 +553,7 @@ actor {
     switch (academicEntries.get(caller)) {
       case (null) { [] };
       case (?entries) {
-        let filteredEntries = entries.reverse().values().filter(
+        let filteredEntries = entries.values().filter(
           func(entry) { entry.grade == grade and entry.term == term }
         ).toArray();
         filteredEntries;
@@ -552,7 +568,7 @@ actor {
     switch (academicEntries.get(caller)) {
       case (null) { [] };
       case (?entries) {
-        let filteredEntries = entries.reverse().values().filter(
+        let filteredEntries = entries.values().filter(
           func(entry) { entry.grade == grade }
         ).toArray();
         filteredEntries;
@@ -641,13 +657,12 @@ actor {
             case (?entry) { entry.termPercentage };
           };
 
-          // Calculate combinedAverage as the average of term1 and term2 (if both exist)
           let combinedAverage = if (term1Percentage > 0 and term2Percentage > 0) {
             (term1Percentage + term2Percentage) / 2;
           } else if (term1Percentage > 0) {
-            term1Percentage; // Only term 1 exists
+            term1Percentage;
           } else {
-            term2Percentage; // Only term 2 exists or 0 if both are missing
+            term2Percentage;
           };
 
           if (term1Percentage > 0 or term2Percentage > 0) {
@@ -772,6 +787,44 @@ actor {
     };
   };
 
+  public query ({ caller }) func calculateCombinedPercentages() : async CombinedPercentages {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view combined percentages");
+    };
+
+    switch (academicEntries.get(caller)) {
+      case (null) { { percentages = [] } };
+      case (?entries) {
+        let combinedPercentagesList = List.empty<CombinedPercentage>();
+
+        for (grade in Nat.range(1, 13)) {
+          let termEntries = entries.values().filter(
+            func(entry) { entry.grade == grade }
+          ).toArray();
+
+          let termsCount = termEntries.size();
+
+          let adjustedPercentages = termEntries.map(
+            func(entry) { (94 + entry.termPercentage) / 2 }
+          );
+
+          let totalAdjusted = adjustedPercentages.foldLeft(0, func(acc, p) { acc + p });
+
+          let averagePercentage = if (termsCount > 0) {
+            totalAdjusted / termsCount;
+          } else { 0 };
+
+          combinedPercentagesList.add({
+            grade = grade;
+            overallPercentage = averagePercentage;
+          });
+        };
+
+        { percentages = combinedPercentagesList.toArray() };
+      };
+    };
+  };
+
   public shared ({ caller }) func saveCodingAttempt(challengeId : Nat, code : Text, result : Text, score : ?Nat) : async CodingAttempt {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can save coding attempts");
@@ -800,7 +853,7 @@ actor {
     };
     switch (codingAttempts.get(caller)) {
       case (null) { [] };
-      case (?attempts) { attempts.reverse().values().toArray() };
+      case (?attempts) { attempts.values().toArray() };
     };
   };
 

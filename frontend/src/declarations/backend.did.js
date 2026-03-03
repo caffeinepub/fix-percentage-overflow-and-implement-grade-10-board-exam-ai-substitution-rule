@@ -113,6 +113,13 @@ export const UserRole = IDL.Variant({
   'user' : IDL.Null,
   'guest' : IDL.Null,
 });
+export const CombinedPercentage = IDL.Record({
+  'overallPercentage' : IDL.Nat,
+  'grade' : IDL.Nat,
+});
+export const CombinedPercentages = IDL.Record({
+  'percentages' : IDL.Vec(CombinedPercentage),
+});
 export const GradeAggregateWithWeighting = IDL.Record({
   'term2Percentage' : IDL.Nat,
   'combinedOverallPercentage' : IDL.Nat,
@@ -202,6 +209,11 @@ export const idlService = IDL.Service({
       [],
     ),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'calculateCombinedPercentages' : IDL.Func(
+      [],
+      [CombinedPercentages],
+      ['query'],
+    ),
   'calculateWeightedPercentages' : IDL.Func(
       [],
       [GradeAggregatesWithWeighting],
@@ -368,6 +380,13 @@ export const idlFactory = ({ IDL }) => {
     'user' : IDL.Null,
     'guest' : IDL.Null,
   });
+  const CombinedPercentage = IDL.Record({
+    'overallPercentage' : IDL.Nat,
+    'grade' : IDL.Nat,
+  });
+  const CombinedPercentages = IDL.Record({
+    'percentages' : IDL.Vec(CombinedPercentage),
+  });
   const GradeAggregateWithWeighting = IDL.Record({
     'term2Percentage' : IDL.Nat,
     'combinedOverallPercentage' : IDL.Nat,
@@ -459,6 +478,11 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'calculateCombinedPercentages' : IDL.Func(
+        [],
+        [CombinedPercentages],
+        ['query'],
+      ),
     'calculateWeightedPercentages' : IDL.Func(
         [],
         [GradeAggregatesWithWeighting],

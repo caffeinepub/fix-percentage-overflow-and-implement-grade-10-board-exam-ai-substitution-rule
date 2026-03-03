@@ -2,11 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-combined-percentage-view-to-compute-an-overall-percentage-per-grade-by-averaging-the-adjusted-percentages-across-all-available-terms-divide-the-sum-of-adjusted-term-percentages-by-2-when-only-two-terms-exist-or-by-3-when-a-third-term-is-present-display-the-result-as-a-single-overall-column-row-per-grade",
-      "featureTitle": "Update the Combined Percentage view to compute an overall percentage per grade by averaging the adjusted percentages across all available terms: divide the sum of adjusted term percentages by 2 when only two terms exist, or by 3 when a third term is present. Display the result as a single 'Overall %' column/row per grade.",
+      "featureId": "feature-in-subject-analysis-for-each-grade-calculate-and-display-the-average-percentage-of-each-subject-across-all-terms-of-that-grade-not-just-the-currently-selected-term-this-per-grade-subject-average-should-be-visible-alongside-or-below-the-per-term-breakdown",
+      "featureTitle": "In Subject Analysis, for each grade, calculate and display the average percentage of each subject across ALL terms of that grade (not just the currently selected term). This per-grade subject average should be visible alongside or below the per-term breakdown.",
       "files": [
-        "frontend/src/components/CombinedPercentageView.tsx",
-        "frontend/src/lib/percent.ts"
+        "frontend/src/components/SubjectAnalysisView.tsx",
+        "frontend/src/lib/subjectAnalysis.ts"
       ],
       "components": [
         "authorization@3.0.0",
@@ -23,29 +23,8 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-the-nine-scale-grades-view-to-display-a-grade-1-9-for-each-subject-for-each-term-for-each-grade-level-apply-the-grading-scale-90-100-9-80-89-8-70-79-7-60-69-6-50-59-5-40-49-4-30-39-3-20-29-2-0-19-1-grades-must-be-shown-per-subject-per-term-per-grade-not-aggregated",
-      "featureTitle": "Update the Nine Scale Grades view to display a grade (1–9) for each subject, for each term, for each grade level. Apply the grading scale: 90–100 → 9, 80–89 → 8, 70–79 → 7, 60–69 → 6, 50–59 → 5, 40–49 → 4, 30–39 → 3, 20–29 → 2, 0–19 → 1. Grades must be shown per subject per term per grade, not aggregated.",
-      "files": [
-        "frontend/src/components/NineScaleGradesView.tsx",
-        "frontend/src/lib/gradeCalculation.ts"
-      ],
-      "components": [
-        "authorization@3.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "blob-storage@4.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-enhance-the-subject-analysis-view-to-show-for-each-subject-across-all-grades-1-average-raw-marks-e-g-73-2-average-percentage-3-highest-raw-marks-and-corresponding-percentage-4-lowest-raw-marks-and-corresponding-percentage-add-filter-controls-for-grade-and-term-so-the-user-can-narrow-results-to-a-specific-grade-and-or-term",
-      "featureTitle": "Enhance the Subject Analysis view to show, for each subject across all grades: (1) average raw marks (e.g. 73), (2) average percentage, (3) highest raw marks and corresponding percentage, (4) lowest raw marks and corresponding percentage. Add filter controls for grade and term so the user can narrow results to a specific grade and/or term.",
+      "featureId": "feature-in-subject-analysis-also-calculate-and-display-the-overall-average-percentage-of-each-subject-across-all-grades-not-filtered-by-any-single-grade-this-cross-grade-subject-average-should-be-shown-as-a-summary-row-or-section",
+      "featureTitle": "In Subject Analysis, also calculate and display the overall average percentage of each subject across ALL grades (not filtered by any single grade). This cross-grade subject average should be shown as a summary row or section.",
       "files": [
         "frontend/src/components/SubjectAnalysisView.tsx",
         "frontend/src/lib/subjectAnalysis.ts"
@@ -60,27 +39,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-3"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-certificate-section-or-update-the-existing-certificateview-that-generates-a-certificate-for-each-grade-and-term-the-certificate-percentage-is-calculated-as-original-term-percentage-94-2-display-the-certificate-with-that-computed-percentage-provide-grade-and-term-filter-controls-so-the-user-can-view-certificates-for-a-specific-grade-and-term",
-      "featureTitle": "Add a Certificate section (or update the existing CertificateView) that generates a certificate for each grade and term. The certificate percentage is calculated as: (original term percentage + 94) / 2. Display the certificate with that computed percentage. Provide grade and term filter controls so the user can view certificates for a specific grade and term.",
-      "files": [
-        "frontend/src/components/CertificateView.tsx"
-      ],
-      "components": [
-        "authorization@3.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "blob-storage@4.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-4"
+        "REQ-2"
       ],
       "confidence": "high"
     }

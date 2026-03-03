@@ -1,64 +1,50 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-03-01T09:07:04.313Z",
+  "generatedAt": "2026-03-03T12:05:37.123Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 4,
+    "total": 3,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Update the Combined Percentage view to compute an overall percentage per grade by averaging the adjusted percentages across all available terms: divide the sum of adjusted term percentages by 2 when only two terms exist, or by 3 when a third term is present. Display the result as a single 'Overall %' column/row per grade.",
+        "summary": "In Subject Analysis, for each grade, calculate and display the average percentage of each subject across ALL terms of that grade (not just the currently selected term). This per-grade subject average should be visible alongside or below the per-term breakdown.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/CombinedPercentageView.tsx",
-          "frontend/src/lib/percent.ts"
+          "frontend/src/lib/subjectAnalysis.ts",
+          "frontend/src/components/SubjectAnalysisView.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/CombinedPercentageView.tsx",
-          "frontend/src/lib/percent.ts"
+          "frontend/src/lib/subjectAnalysis.ts",
+          "frontend/src/components/SubjectAnalysisView.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Update the Nine Scale Grades view to display a grade (1–9) for each subject, for each term, for each grade level. Apply the grading scale: 90–100 → 9, 80–89 → 8, 70–79 → 7, 60–69 → 6, 50–59 → 5, 40–49 → 4, 30–39 → 3, 20–29 → 2, 0–19 → 1. Grades must be shown per subject per term per grade, not aggregated.",
+        "summary": "In Subject Analysis, also calculate and display the overall average percentage of each subject across ALL grades (not filtered by any single grade). This cross-grade subject average should be shown as a summary row or section.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/NineScaleGradesView.tsx",
-          "frontend/src/lib/gradeCalculation.ts"
+          "frontend/src/lib/subjectAnalysis.ts",
+          "frontend/src/components/SubjectAnalysisView.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/NineScaleGradesView.tsx",
-          "frontend/src/lib/gradeCalculation.ts"
+          "frontend/src/lib/subjectAnalysis.ts",
+          "frontend/src/components/SubjectAnalysisView.tsx"
         ]
       },
       {
         "id": "REQ-3",
-        "summary": "Enhance the Subject Analysis view to show, for each subject across all grades: (1) average raw marks (e.g. 73), (2) average percentage, (3) highest raw marks and corresponding percentage, (4) lowest raw marks and corresponding percentage. Add filter controls for grade and term so the user can narrow results to a specific grade and/or term.",
-        "status": "implemented",
+        "summary": "Update the Computer Science total marks configuration so that: for Grades 1 through 7, Computer Science carries a total of 20 marks; for Grade 8, Computer Science carries a total of 30 marks. This must be reflected in all percentage calculations (Subject Analysis, Progress, Combined %, etc.) that use max marks for Computer Science.",
+        "status": "missing",
         "plannedFiles": [
-          "frontend/src/components/SubjectAnalysisView.tsx",
-          "frontend/src/lib/subjectAnalysis.ts"
+          "frontend/src/lib/maxMarks.ts",
+          "frontend/src/components/AddMarksForm.tsx"
         ],
-        "matchedFiles": [
-          "frontend/src/components/SubjectAnalysisView.tsx",
-          "frontend/src/lib/subjectAnalysis.ts"
-        ]
-      },
-      {
-        "id": "REQ-4",
-        "summary": "Add a Certificate section (or update the existing CertificateView) that generates a certificate for each grade and term. The certificate percentage is calculated as: (original term percentage + 94) / 2. Display the certificate with that computed percentage. Provide grade and term filter controls so the user can view certificates for a specific grade and term.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/CertificateView.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/CertificateView.tsx"
-        ]
+        "matchedFiles": []
       }
     ]
   },
@@ -67,12 +53,7 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/CertificateView.tsx",
-    "frontend/src/components/CombinedPercentageView.tsx",
-    "frontend/src/components/NineScaleGradesView.tsx",
     "frontend/src/components/SubjectAnalysisView.tsx",
-    "frontend/src/lib/gradeCalculation.ts",
-    "frontend/src/lib/percent.ts",
     "frontend/src/lib/subjectAnalysis.ts",
     "project_state.json",
     "scratch/component-selection.json",

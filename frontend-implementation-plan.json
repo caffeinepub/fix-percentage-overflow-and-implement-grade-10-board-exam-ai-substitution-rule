@@ -1,92 +1,70 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Enhance Combined %, Nine Grading, Subject Analysis, and Certificate features",
+  "title": "Subject Analysis: Cross-Term/Grade Averages & Computer Science Marks Fix",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Update Combined Percentage view to compute overall percentage per grade by averaging adjusted percentages across all available terms, dividing by 2 for two terms or 3 for three terms",
+      "summary": "Calculate and display per-grade subject averages across all terms in Subject Analysis",
       "acceptanceCriteria": [
-        "When data for two terms exists for a grade, the overall percentage equals (Term1 adjusted % + Term2 adjusted %) / 2.",
-        "When data for three terms exists for a grade, the overall percentage equals (Term1 + Term2 + Term3 adjusted %) / 3.",
-        "Overall percentage is displayed per grade in the Combined Percentage view.",
-        "The division denominator is determined dynamically by the number of distinct terms present in the data for that grade."
+        "For each grade, each subject shows an average percentage computed over all terms that have data for that subject in that grade.",
+        "The per-grade average is clearly labeled (e.g., 'Grade Average across all terms').",
+        "The average updates correctly when new marks entries are added."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/CombinedPercentageView.tsx",
+          "path": "frontend/src/lib/subjectAnalysis.ts",
           "operation": "modify",
-          "description": "Update the Combined Percentage view to compute and display an 'Overall %' column per grade. For each grade grouping, calculate the overall percentage by summing all adjusted term percentages and dividing by the count of distinct terms (2 or 3). The denominator must be dynamically determined based on how many terms are present for that grade. Display the result prominently as a single overall percentage value per grade row or card."
+          "description": "Add a new function `calculatePerGradeSubjectAverages` that accepts all academic entries and computes per-grade subject averages across all terms. The function should group entries by grade, then for each grade compute the average percentage for each subject that has data across all terms in that grade. Return a structure mapping grade to subject to average percentage."
         },
         {
-          "path": "frontend/src/lib/percent.ts",
+          "path": "frontend/src/components/SubjectAnalysisView.tsx",
           "operation": "modify",
-          "description": "Add a helper function to compute overall percentage per grade by accepting an array of adjusted term percentages and returning their average: sum all provided percentages and divide by the array length (which will be 2 or 3). This function should handle dynamic term counts without hardcoding divisors."
+          "description": "Update the SubjectAnalysisView component to display per-grade subject averages alongside or below the existing per-term breakdown. When a specific grade is selected in the filter, call the new `calculatePerGradeSubjectAverages` function from subjectAnalysis.ts and render a clearly labeled section (e.g., 'Grade X Average across all terms') showing each subject's average percentage for that grade. Ensure the display updates when new marks are added by leveraging React Query's cache invalidation."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Update Nine Scale Grades view to display a 9-point scale grade for each subject, for each term, for each grade level using the scale 90–100→9, 80–89→8, 70–79→7, 60–69→6, 50–59→5, 40–49→4, 30–39→3, 20–29→2, 0–19→1",
+      "summary": "Calculate and display overall subject averages across all grades in Subject Analysis",
       "acceptanceCriteria": [
-        "Each row or card in the Nine Scale view shows the student's grade level, term, and the 9-point scale grade for every subject.",
-        "Grade boundaries are: 90–100=9, 80–89=8, 70–79=7, 60–69=6, 50–59=5, 40–49=4, 30–39=3, 20–29=2, 0–19=1.",
-        "Data is grouped or filterable by grade level and term.",
-        "Every subject present for that grade/term combination shows a distinct 9-point scale badge."
+        "A summary section or row in Subject Analysis shows each subject's average percentage computed across all grades and all terms.",
+        "This overall average is clearly labeled (e.g., 'Overall Average across all grades').",
+        "Only subjects with at least one data entry contribute to the average."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/NineScaleGradesView.tsx",
+          "path": "frontend/src/lib/subjectAnalysis.ts",
           "operation": "modify",
-          "description": "Update the Nine Scale Grades view to display a 9-point scale grade (1–9) for every subject in every term of every grade level. For each academic entry, compute the 9-scale grade for each subject using its raw marks and the grading scale: 90–100=9, 80–89=8, 70–79=7, 60–69=6, 50–59=5, 40–49=4, 30–39=3, 20–29=2, 0–19=1. Display each subject's 9-scale grade as a distinct badge. Ensure the view supports filtering by grade level and term, and that data is organized so users can see per-subject grades for each grade/term combination."
+          "description": "Add a new function `calculateOverallSubjectAverages` that accepts all academic entries and computes each subject's average percentage across all grades and all terms. For each subject, aggregate all available marks and max marks entries, compute the overall percentage, and return a structure mapping subject to overall average percentage. Only include subjects with at least one data entry."
         },
         {
-          "path": "frontend/src/lib/gradeCalculation.ts",
+          "path": "frontend/src/components/SubjectAnalysisView.tsx",
           "operation": "modify",
-          "description": "Add or update a function to convert a raw percentage (0–100) into a 9-point scale grade using the exact boundaries: 90–100→9, 80–89→8, 70–79→7, 60–69→6, 50–59→5, 40–49→4, 30–39→3, 20–29→2, 0–19→1. This function should accept a numeric percentage and return an integer between 1 and 9. Use this helper in the NineScaleGradesView to compute per-subject grades from raw marks."
+          "description": "Update the SubjectAnalysisView component to display an overall subject average summary section. Call the new `calculateOverallSubjectAverages` function from subjectAnalysis.ts and render a clearly labeled section (e.g., 'Overall Average across all grades') showing each subject's average percentage computed across all grades and terms. Position this section prominently (e.g., at the top or as a summary card) so users can see cross-grade trends at a glance."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Enhance Subject Analysis view to show average raw marks, average percentage, highest raw marks with percentage, and lowest raw marks with percentage for each subject, with grade and term filter controls",
+      "summary": "Update Computer Science total marks configuration to 20 marks for Grades 1-7 and 30 marks for Grade 8",
       "acceptanceCriteria": [
-        "Each subject card/row displays: average raw marks (numeric), average percentage, highest raw marks with its percentage, and lowest raw marks with its percentage.",
-        "A grade filter dropdown narrows analysis to entries for the selected grade.",
-        "A term filter dropdown narrows analysis to entries for the selected term.",
-        "Both filters can be applied simultaneously.",
-        "Statistics update reactively when filters change.",
-        "When no filter is applied, statistics are computed across all grades and all terms."
+        "In frontend/src/lib/maxMarks.ts (or equivalent), Computer Science max marks is set to 20 for Grades 1–7.",
+        "In frontend/src/lib/maxMarks.ts (or equivalent), Computer Science max marks is set to 30 for Grade 8.",
+        "Subject Analysis percentage for Computer Science correctly reflects 20-mark total for Grades 1–7 and 30-mark total for Grade 8.",
+        "AddMarksForm enforces the correct max marks for Computer Science based on the selected grade.",
+        "No other subjects or grades are affected by this change."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/SubjectAnalysisView.tsx",
+          "path": "frontend/src/lib/maxMarks.ts",
           "operation": "modify",
-          "description": "Enhance the Subject Analysis view to display four statistics per subject: (1) average raw marks (numeric), (2) average percentage, (3) highest raw marks with its corresponding percentage, and (4) lowest raw marks with its corresponding percentage. Add two filter dropdowns: one for grade and one for term. When filters are applied, recompute statistics only for entries matching the selected grade and/or term. When no filters are applied, compute statistics across all grades and all terms. Ensure that both filters can be applied simultaneously and that statistics update reactively when filters change."
+          "description": "Update the Computer Science max marks configuration so that Grades 1–7 have a total of 20 marks, and Grade 8 has a total of 30 marks. Modify the `getMaxMarks` or equivalent helper function to return 20 for computerMaxMarks when grade is 1–7, and 30 when grade is 8. Ensure no other subjects or grades are affected. Verify that all percentage calculation paths (e.g., in Subject Analysis, Progress, Combined %, etc.) use this grade-specific max marks value for Computer Science."
         },
         {
-          "path": "frontend/src/lib/subjectAnalysis.ts",
+          "path": "frontend/src/components/AddMarksForm.tsx",
           "operation": "modify",
-          "description": "Update the subject analysis computation logic to support optional grade and term filters. Modify existing functions to accept optional grade and term parameters and filter the academic entries before computing statistics. Ensure that for each subject, the library computes: average raw marks (numeric mean), average percentage, highest raw marks with its percentage, and lowest raw marks with its percentage. When no filters are provided, compute across all entries."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Add or update Certificate section to generate a certificate for each grade and term, showing a computed percentage of (original term percentage + 94) / 2, with grade and term filter controls",
-      "acceptanceCriteria": [
-        "A certificate is generated for every grade–term combination that has data.",
-        "The percentage shown on the certificate equals (original term percentage + 94) / 2.",
-        "A grade filter dropdown limits displayed certificates to the selected grade.",
-        "A term filter dropdown limits displayed certificates to the selected term.",
-        "Both filters can be applied simultaneously.",
-        "The certificate displays the student's grade level, term, and the computed certificate percentage clearly."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/CertificateView.tsx",
-          "operation": "modify",
-          "description": "Update the Certificate view to generate a certificate for every grade–term combination present in the academic data. For each certificate, compute the displayed percentage using the formula: (original term percentage + 94) / 2. Add two filter dropdowns: one for grade and one for term. When filters are applied, display only certificates matching the selected grade and/or term. Both filters can be applied simultaneously. Ensure each certificate clearly displays the student's grade level, term, and the computed certificate percentage. Wire the generated certificate images from frontend/public/assets/generated/ (certificate-platinum.dim_400x250.png, certificate-gold.dim_400x250.png, certificate-silver.dim_400x250.png, certificate-bronze.dim_400x250.png) into the UI as static assets, selecting the appropriate tier based on the computed certificate percentage."
+          "description": "Update the AddMarksForm component to enforce the correct Computer Science max marks based on the selected grade. When the grade is 1–7, set computerMaxMarks to 20; when the grade is 8, set computerMaxMarks to 30. Ensure the form validation and input fields reflect these grade-specific limits. This ensures users cannot enter marks exceeding the correct total for Computer Science in each grade."
         }
       ]
     }

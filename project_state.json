@@ -1,44 +1,26 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Educational grading/reporting app with multi-term percentage calculation, 9-point grading system, subject analysis, and certificate generation features.",
+  "summary": "Academic progress tracking app with subject analysis features. Includes grade/term percentage calculations and subject-specific total marks rules.",
   "architectural_notes": [
-    "Combined percentage logic: sum adjusted term percentages per grade divided by term count (2 or 3)",
-    "Certificate percentage formula: (original_percentage + 94) / 2 per term per grade",
-    "Nine-point grading scale: 90-100=9, 80-89=8, 70-79=7, 60-69=6, 50-59=5, 40-49=4, 30-39=3, 20-29=2, 0-19=1"
+    "Computer Science subject has variable total marks: 20 marks for Grades 1-7, 30 marks for Grade 8"
   ],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-update-the-combined-percentage-view-to-compute-an-overall-percentage-per-grade-by-averaging-the-adjusted-percentages-across-all-available-terms-divide-the-sum-of-adjusted-term-percentages-by-2-when-only-two-terms-exist-or-by-3-when-a-third-term-is-present-display-the-result-as-a-single-overall-column-row-per-grade",
-      "title": "Update the Combined Percentage view to compute an overall percentage per grade by averaging the adjusted percentages across all available terms: divide the sum of adjusted term percentages by 2 when only two terms exist, or by 3 when a third term is present. Display the result as a single 'Overall %' column/row per grade.",
+      "id": "feature-in-subject-analysis-for-each-grade-calculate-and-display-the-average-percentage-of-each-subject-across-all-terms-of-that-grade-not-just-the-currently-selected-term-this-per-grade-subject-average-should-be-visible-alongside-or-below-the-per-term-breakdown",
+      "title": "In Subject Analysis, for each grade, calculate and display the average percentage of each subject across ALL terms of that grade (not just the currently selected term). This per-grade subject average should be visible alongside or below the per-term breakdown.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-update-the-nine-scale-grades-view-to-display-a-grade-1-9-for-each-subject-for-each-term-for-each-grade-level-apply-the-grading-scale-90-100-9-80-89-8-70-79-7-60-69-6-50-59-5-40-49-4-30-39-3-20-29-2-0-19-1-grades-must-be-shown-per-subject-per-term-per-grade-not-aggregated",
-      "title": "Update the Nine Scale Grades view to display a grade (1–9) for each subject, for each term, for each grade level. Apply the grading scale: 90–100 → 9, 80–89 → 8, 70–79 → 7, 60–69 → 6, 50–59 → 5, 40–49 → 4, 30–39 → 3, 20–29 → 2, 0–19 → 1. Grades must be shown per subject per term per grade, not aggregated.",
+      "id": "feature-in-subject-analysis-also-calculate-and-display-the-overall-average-percentage-of-each-subject-across-all-grades-not-filtered-by-any-single-grade-this-cross-grade-subject-average-should-be-shown-as-a-summary-row-or-section",
+      "title": "In Subject Analysis, also calculate and display the overall average percentage of each subject across ALL grades (not filtered by any single grade). This cross-grade subject average should be shown as a summary row or section.",
       "reqIds": [
         "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-enhance-the-subject-analysis-view-to-show-for-each-subject-across-all-grades-1-average-raw-marks-e-g-73-2-average-percentage-3-highest-raw-marks-and-corresponding-percentage-4-lowest-raw-marks-and-corresponding-percentage-add-filter-controls-for-grade-and-term-so-the-user-can-narrow-results-to-a-specific-grade-and-or-term",
-      "title": "Enhance the Subject Analysis view to show, for each subject across all grades: (1) average raw marks (e.g. 73), (2) average percentage, (3) highest raw marks and corresponding percentage, (4) lowest raw marks and corresponding percentage. Add filter controls for grade and term so the user can narrow results to a specific grade and/or term.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-a-certificate-section-or-update-the-existing-certificateview-that-generates-a-certificate-for-each-grade-and-term-the-certificate-percentage-is-calculated-as-original-term-percentage-94-2-display-the-certificate-with-that-computed-percentage-provide-grade-and-term-filter-controls-so-the-user-can-view-certificates-for-a-specific-grade-and-term",
-      "title": "Add a Certificate section (or update the existing CertificateView) that generates a certificate for each grade and term. The certificate percentage is calculated as: (original term percentage + 94) / 2. Display the certificate with that computed percentage. Provide grade and term filter controls so the user can view certificates for a specific grade and term.",
-      "reqIds": [
-        "REQ-4"
       ],
       "version": 1
     }
@@ -46,26 +28,22 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Combined percentage: combine all adjusted percentages per grade and divide by number of terms (2 for 2 terms, 3 if third term mentioned) to get overall percentage per grade",
+      "summary": "In subject analysis, calculate average percentage of each subject across all terms per grade, and also average percentage of each subject across all grades",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Nine grading system: assign grade (1-9) per subject per term per grade where 90-100=9, 80-89=8, 70-79=7, etc.",
+      "summary": "Computer Science total marks is 20 for Grade 1 through Grade 7, and 30 marks only in Grade 8",
       "reqIds": [],
       "status": "pending"
     },
     {
-      "id": "AR-3",
-      "summary": "Subject analysis: show average raw marks (e.g. 73), average percentage, highest and lowest raw marks, and highest/lowest percentage for each subject across all grades, filterable by grade and term",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Certificate generation per term: certificate percentage = (original percentage + 94) / 2, filterable by grade and term",
-      "reqIds": [],
+      "id": "AR-5",
+      "summary": "Update the Computer Science total marks configuration so that: for Grades 1 through 7, Computer Science carries a total of 20 marks; for Grade 8, Computer Science carries a total of 30 marks. This must be reflected in all percentage calculations (Subject Analysis, Progress, Combined %, etc.) that use max marks for Computer Science.",
+      "reqIds": [
+        "REQ-3"
+      ],
       "status": "pending"
     }
   ],

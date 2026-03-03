@@ -1,101 +1,76 @@
 {
   "kind": "build_request",
-  "title": "Enhance Combined %, Nine Grading, Subject Analysis, and Certificate features",
+  "title": "Subject Analysis: Cross-Term/Grade Averages & Computer Science Marks Fix",
   "projectName": "Academic Progress Tracker",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Update the Combined Percentage view to compute an overall percentage per grade by averaging the adjusted percentages across all available terms: divide the sum of adjusted term percentages by 2 when only two terms exist, or by 3 when a third term is present. Display the result as a single 'Overall %' column/row per grade.",
+      "text": "In Subject Analysis, for each grade, calculate and display the average percentage of each subject across ALL terms of that grade (not just the currently selected term). This per-grade subject average should be visible alongside or below the per-term breakdown.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-last"
+          "msg-latest"
         ],
         "quotes": [
-          "in combined percentage it should combine all adjusted percentage of each grade and give overall percentage of each grade by dividing it by 2 for 2 terms or divided it by three if third term is mentioned"
+          "Average percentage of each subject for all terms of each grade should be calculated"
         ]
       },
       "acceptanceCriteria": [
-        "When data for two terms exists for a grade, the overall percentage equals (Term1 adjusted % + Term2 adjusted %) / 2.",
-        "When data for three terms exists for a grade, the overall percentage equals (Term1 + Term2 + Term3 adjusted %) / 3.",
-        "Overall percentage is displayed per grade in the Combined Percentage view.",
-        "The division denominator is determined dynamically by the number of distinct terms present in the data for that grade."
+        "For each grade, each subject shows an average percentage computed over all terms that have data for that subject in that grade.",
+        "The per-grade average is clearly labeled (e.g., 'Grade Average across all terms').",
+        "The average updates correctly when new marks entries are added."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Update the Nine Scale Grades view to display a grade (1–9) for each subject, for each term, for each grade level. Apply the grading scale: 90–100 → 9, 80–89 → 8, 70–79 → 7, 60–69 → 6, 50–59 → 5, 40–49 → 4, 30–39 → 3, 20–29 → 2, 0–19 → 1. Grades must be shown per subject per term per grade, not aggregated.",
+      "text": "In Subject Analysis, also calculate and display the overall average percentage of each subject across ALL grades (not filtered by any single grade). This cross-grade subject average should be shown as a summary row or section.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-last"
+          "msg-latest"
         ],
         "quotes": [
-          "for nine grading system there should be grading for each subject of each term of each grade like 90-100 is 9 80-89 is 8 so on"
+          "average percentage of each subject of all grades also be calculated in subject analysis"
         ]
       },
       "acceptanceCriteria": [
-        "Each row or card in the Nine Scale view shows the student's grade level, term, and the 9-point scale grade for every subject.",
-        "Grade boundaries are: 90–100=9, 80–89=8, 70–79=7, 60–69=6, 50–59=5, 40–49=4, 30–39=3, 20–29=2, 0–19=1.",
-        "Data is grouped or filterable by grade level and term.",
-        "Every subject present for that grade/term combination shows a distinct 9-point scale badge."
+        "A summary section or row in Subject Analysis shows each subject's average percentage computed across all grades and all terms.",
+        "This overall average is clearly labeled (e.g., 'Overall Average across all grades').",
+        "Only subjects with at least one data entry contribute to the average."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Enhance the Subject Analysis view to show, for each subject across all grades: (1) average raw marks (e.g. 73), (2) average percentage, (3) highest raw marks and corresponding percentage, (4) lowest raw marks and corresponding percentage. Add filter controls for grade and term so the user can narrow results to a specific grade and/or term.",
+      "text": "Update the Computer Science total marks configuration so that: for Grades 1 through 7, Computer Science carries a total of 20 marks; for Grade 8, Computer Science carries a total of 30 marks. This must be reflected in all percentage calculations (Subject Analysis, Progress, Combined %, etc.) that use max marks for Computer Science.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-last"
+          "msg-latest"
         ],
         "quotes": [
-          "for subject analysis there must be average raw marks like 73 of each subject of all grades alongside average percentage and also highest and lowest of each subject alongside lowest and highest percentage of each grade and should be filter through grade and term"
+          "for computer science total marks is 20 marks only from grade till grade 7",
+          "only carries 30 marks only in computer science in grade 8"
         ]
       },
       "acceptanceCriteria": [
-        "Each subject card/row displays: average raw marks (numeric), average percentage, highest raw marks with its percentage, and lowest raw marks with its percentage.",
-        "A grade filter dropdown narrows analysis to entries for the selected grade.",
-        "A term filter dropdown narrows analysis to entries for the selected term.",
-        "Both filters can be applied simultaneously.",
-        "Statistics update reactively when filters change.",
-        "When no filter is applied, statistics are computed across all grades and all terms."
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Add a Certificate section (or update the existing CertificateView) that generates a certificate for each grade and term. The certificate percentage is calculated as: (original term percentage + 94) / 2. Display the certificate with that computed percentage. Provide grade and term filter controls so the user can view certificates for a specific grade and term.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-last"
-        ],
-        "quotes": [
-          "there should be certificate present for each term of percentage calculated after adding original percentage to 94 and divided by two and filter according to grade and term"
-        ]
-      },
-      "acceptanceCriteria": [
-        "A certificate is generated for every grade–term combination that has data.",
-        "The percentage shown on the certificate equals (original term percentage + 94) / 2.",
-        "A grade filter dropdown limits displayed certificates to the selected grade.",
-        "A term filter dropdown limits displayed certificates to the selected term.",
-        "Both filters can be applied simultaneously.",
-        "The certificate displays the student's grade level, term, and the computed certificate percentage clearly."
+        "In frontend/src/lib/maxMarks.ts (or equivalent), Computer Science max marks is set to 20 for Grades 1–7.",
+        "In frontend/src/lib/maxMarks.ts (or equivalent), Computer Science max marks is set to 30 for Grade 8.",
+        "Subject Analysis percentage for Computer Science correctly reflects 20-mark total for Grades 1–7 and 30-mark total for Grade 8.",
+        "AddMarksForm enforces the correct max marks for Computer Science based on the selected grade.",
+        "No other subjects or grades are affected by this change."
       ]
     }
   ],
   "constraints": [
     "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui.",
-    "All grading scale boundaries must exactly follow: 90–100=9, 80–89=8, 70–79=7, 60–69=6, 50–59=5, 40–49=4, 30–39=3, 20–29=2, 0–19=1.",
-    "Certificate percentage formula must be exactly: (originalTermPercentage + 94) / 2.",
-    "Combined percentage divisor must be dynamically determined by the count of distinct terms present for that grade (2 or 3), not hardcoded."
+    "Computer Science marks rule applies only to Grades 1–8; do not alter Computer Science max marks for Grades 9–12 unless explicitly requested.",
+    "All percentage calculations must use the grade-specific max marks for Computer Science."
   ],
   "nonGoals": [
-    "Adding new backend data models or API endpoints unless strictly required for the new calculations.",
-    "Changing the overall app navigation structure or module layout beyond the Academic module tabs.",
-    "Modifying the Coding or Data Management modules.",
-    "Changing authentication or user profile logic."
+    "Changing the marks rules for any subject other than Computer Science.",
+    "Modifying the backend data model or stored entries.",
+    "Altering the Combined Percentage, Certificate, or 9-Scale views beyond what is naturally affected by the corrected max marks."
   ],
   "imageRequirements": {
     "required": [],

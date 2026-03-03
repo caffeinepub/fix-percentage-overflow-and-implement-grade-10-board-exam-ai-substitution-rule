@@ -7,6 +7,10 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
+export interface CombinedPercentage {
+    overallPercentage: bigint;
+    grade: bigint;
+}
 export interface CodingChallenge {
     id: bigint;
     title: string;
@@ -18,6 +22,14 @@ export type Time = bigint;
 export interface AcademicEntriesExport {
     academicEntries: Array<[Principal, Array<AcademicEntry>]>;
     boardExamResults: Array<[Principal, BoardExamResults]>;
+}
+export interface CombinedPercentages {
+    percentages: Array<CombinedPercentage>;
+}
+export interface BoardExamResults {
+    maxMarks: bigint;
+    boardExamTotal: bigint;
+    percentage: bigint;
 }
 export interface AcademicEntry {
     totalFinalMarks: bigint;
@@ -40,11 +52,6 @@ export interface AcademicEntry {
     computerMaxMarks: bigint;
     termTotalMarks: bigint;
     aiMaxMarks: bigint;
-}
-export interface BoardExamResults {
-    maxMarks: bigint;
-    boardExamTotal: bigint;
-    percentage: bigint;
 }
 export interface Score9Scale {
     ai?: number;
@@ -157,6 +164,7 @@ export interface backendInterface {
     addAcademicEntry(grade: bigint, academicInputs: Array<SaveAcademicInput>, _finalMarks: bigint | null): Promise<Array<AcademicEntry>>;
     addCodingChallenge(title: string, description: string, sampleInput: string, sampleOutput: string): Promise<CodingChallenge>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    calculateCombinedPercentages(): Promise<CombinedPercentages>;
     calculateWeightedPercentages(): Promise<GradeAggregatesWithWeighting>;
     getAcademicEntries(): Promise<Array<AcademicEntry>>;
     getAcademicEntriesByGrade(grade: bigint): Promise<Array<AcademicEntry>>;

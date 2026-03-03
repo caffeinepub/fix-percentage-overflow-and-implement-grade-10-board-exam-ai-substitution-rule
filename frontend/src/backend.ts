@@ -93,6 +93,10 @@ export interface _CaffeineStorageRefillResult {
     success?: boolean;
     topped_up_amount?: bigint;
 }
+export interface CombinedPercentage {
+    overallPercentage: bigint;
+    grade: bigint;
+}
 export interface CodingChallenge {
     id: bigint;
     title: string;
@@ -111,6 +115,14 @@ export interface AcademicEntriesExport {
 export interface _CaffeineStorageCreateCertificateResult {
     method: string;
     blob_hash: string;
+}
+export interface CombinedPercentages {
+    percentages: Array<CombinedPercentage>;
+}
+export interface BoardExamResults {
+    maxMarks: bigint;
+    boardExamTotal: bigint;
+    percentage: bigint;
 }
 export interface AcademicEntry {
     totalFinalMarks: bigint;
@@ -133,11 +145,6 @@ export interface AcademicEntry {
     computerMaxMarks: bigint;
     termTotalMarks: bigint;
     aiMaxMarks: bigint;
-}
-export interface BoardExamResults {
-    maxMarks: bigint;
-    boardExamTotal: bigint;
-    percentage: bigint;
 }
 export interface Score9Scale {
     ai?: number;
@@ -256,6 +263,7 @@ export interface backendInterface {
     addAcademicEntry(grade: bigint, academicInputs: Array<SaveAcademicInput>, _finalMarks: bigint | null): Promise<Array<AcademicEntry>>;
     addCodingChallenge(title: string, description: string, sampleInput: string, sampleOutput: string): Promise<CodingChallenge>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    calculateCombinedPercentages(): Promise<CombinedPercentages>;
     calculateWeightedPercentages(): Promise<GradeAggregatesWithWeighting>;
     getAcademicEntries(): Promise<Array<AcademicEntry>>;
     getAcademicEntriesByGrade(grade: bigint): Promise<Array<AcademicEntry>>;
@@ -409,6 +417,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n26(this._uploadFile, this._downloadFile, arg1));
+            return result;
+        }
+    }
+    async calculateCombinedPercentages(): Promise<CombinedPercentages> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.calculateCombinedPercentages();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.calculateCombinedPercentages();
             return result;
         }
     }
