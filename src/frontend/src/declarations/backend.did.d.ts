@@ -16,12 +16,15 @@ export interface AcademicEntriesExport {
 }
 export interface AcademicEntry {
   'totalFinalMarks' : bigint,
+  'scienceSubgroup' : [] | [string],
   'stream' : [] | [string],
-  'subjects' : SubjectScores,
+  'subjects' : Subjects,
   'term' : bigint,
+  'mathsMaxMarks' : bigint,
   'gradeText' : string,
+  'commerceSubgroup' : [] | [string],
   'overallPercentage' : bigint,
-  'subgroup' : [] | [string],
+  'appliedMathsMaxMarks' : bigint,
   'maxMarksPerSubject' : bigint,
   'overallMaxMarks' : bigint,
   'grade' : bigint,
@@ -32,6 +35,9 @@ export interface AcademicEntry {
   'computerMaxMarks' : bigint,
   'termTotalMarks' : bigint,
   'aiMaxMarks' : bigint,
+}
+export interface AllGradesPercentages {
+  'entries' : Array<[bigint, GradePercentages]>,
 }
 export interface BoardExamResults {
   'maxMarks' : bigint,
@@ -56,6 +62,13 @@ export interface CodingExport {
   'attempts' : Array<[Principal, Array<CodingAttempt>]>,
   'challenges' : Array<CodingChallenge>,
 }
+export interface CombinedPercentage {
+  'overallPercentage' : bigint,
+  'grade' : bigint,
+}
+export interface CombinedPercentages {
+  'percentages' : Array<CombinedPercentage>,
+}
 export interface ExportTypes {
   'academicEntries' : AcademicEntriesExport,
   'coding' : CodingExport,
@@ -65,14 +78,31 @@ export interface GradeAggregate {
   'combinedOverallPercentage' : bigint,
   'term1Percentage' : bigint,
 }
+export interface GradeAggregateWithWeighting {
+  'term2Percentage' : bigint,
+  'combinedOverallPercentage' : bigint,
+  'term1Percentage' : bigint,
+  'term3Percentage' : bigint,
+}
 export interface GradeAggregates {
   'aggregates' : Array<[bigint, GradeAggregate]>,
 }
+export interface GradeAggregatesWithWeighting {
+  'aggregates' : Array<[bigint, GradeAggregateWithWeighting]>,
+}
+export interface GradePercentages {
+  'term1' : [] | [bigint],
+  'term2' : [] | [bigint],
+  'term3' : [] | [bigint],
+}
 export interface SaveAcademicInput {
-  'marks' : SubjectScores,
+  'marks' : Subjects,
+  'scienceSubgroup' : [] | [string],
   'stream' : [] | [string],
   'term' : bigint,
-  'subgroup' : [] | [string],
+  'mathsMaxMarks' : bigint,
+  'commerceSubgroup' : [] | [string],
+  'appliedMathsMaxMarks' : bigint,
   'termMaxMarks' : bigint,
   'marks9' : [] | [Score9Scale],
   'computerMaxMarks' : bigint,
@@ -82,8 +112,9 @@ export interface Score9Scale {
   'ai' : [] | [number],
   'pe' : [] | [number],
   'evs' : [] | [number],
+  'ssc' : [] | [number],
+  'maths' : [] | [number],
   'biology' : [] | [number],
-  'social' : [] | [number],
   'hindi' : [] | [number],
   'math' : [] | [number],
   'businessStudies' : [] | [number],
@@ -95,16 +126,18 @@ export interface Score9Scale {
   'management' : [] | [number],
   'psychology' : [] | [number],
   'kannada' : [] | [number],
+  'appliedMaths' : [] | [number],
   'english' : [] | [number],
   'statistics' : [] | [number],
   'science' : [] | [number],
 }
-export interface SubjectScores {
+export interface Subjects {
   'ai' : [] | [bigint],
   'pe' : [] | [bigint],
   'evs' : [] | [bigint],
+  'ssc' : [] | [bigint],
+  'maths' : [] | [bigint],
   'biology' : [] | [bigint],
-  'social' : [] | [bigint],
   'hindi' : [] | [bigint],
   'math' : [] | [bigint],
   'businessStudies' : [] | [bigint],
@@ -116,6 +149,7 @@ export interface SubjectScores {
   'management' : [] | [bigint],
   'psychology' : [] | [bigint],
   'kannada' : [] | [bigint],
+  'appliedMaths' : [] | [bigint],
   'english' : [] | [bigint],
   'statistics' : [] | [bigint],
   'science' : [] | [bigint],
@@ -161,6 +195,11 @@ export interface _SERVICE {
     CodingChallenge
   >,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'calculateCombinedPercentages' : ActorMethod<[], CombinedPercentages>,
+  'calculateWeightedPercentages' : ActorMethod<
+    [],
+    GradeAggregatesWithWeighting
+  >,
   'getAcademicEntries' : ActorMethod<[], Array<AcademicEntry>>,
   'getAcademicEntriesByGrade' : ActorMethod<[bigint], Array<AcademicEntry>>,
   'getAcademicEntriesByGradeAndTerm' : ActorMethod<
@@ -168,6 +207,7 @@ export interface _SERVICE {
     Array<AcademicEntry>
   >,
   'getAllCodingChallenges' : ActorMethod<[], Array<CodingChallenge>>,
+  'getAllGradePercentages' : ActorMethod<[], AllGradesPercentages>,
   'getBoardExamResults' : ActorMethod<[], BoardExamResults>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,

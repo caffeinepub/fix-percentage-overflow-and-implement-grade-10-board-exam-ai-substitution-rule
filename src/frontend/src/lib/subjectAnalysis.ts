@@ -1,118 +1,254 @@
-import type { AcademicEntry, SubjectScores } from '../backend';
-import { clampTo100 } from './percent';
-import { getExpectedMaxMarksForSubjectKey } from './maxMarks';
+import type { AcademicEntry } from "../backend";
+import { getExpectedMaxMarksForSubjectKey } from "./maxMarks";
 
 export interface SubjectStats {
-  subjectName: string;
-  average: number;
-  highest: number;
-  lowest: number;
+  subjectKey: string;
+  label: string;
+  highestMarks: number;
+  lowestMarks: number;
+  highestPercentage: number;
+  lowestPercentage: number;
+  averagePercentage: number;
+  maxMarks: number;
   count: number;
 }
 
-const SUBJECT_DISPLAY_NAMES: Record<string, string> = {
-  math: 'Math',
-  english: 'English',
-  hindi: 'Hindi',
-  evs: 'EVS',
-  computer: 'Computer',
-  kannada: 'Kannada',
-  science: 'Science',
-  social: 'Social',
-  ai: 'AI',
-  physics: 'Physics',
-  chemistry: 'Chemistry',
-  biology: 'Biology',
-  economics: 'Economics',
-  businessStudies: 'Business Studies',
-  accountancy: 'Accountancy',
-  statistics: 'Statistics',
-  management: 'Management',
-  psychology: 'Psychology',
-  pe: 'PE',
+export interface SubjectAverageResult {
+  subjectKey: string;
+  label: string;
+  averagePercentage: number;
+  count: number;
+}
+
+export interface PerGradeSubjectAverages {
+  grade: number;
+  subjects: SubjectAverageResult[];
+}
+
+const SUBJECT_LABELS: Record<string, string> = {
+  math: "Maths",
+  english: "English",
+  hindi: "Hindi",
+  evs: "EVS",
+  computer: "Computer",
+  kannada: "Kannada",
+  science: "Science",
+  ssc: "SSC",
+  ai: "AI",
+  physics: "Physics",
+  chemistry: "Chemistry",
+  biology: "Biology",
+  economics: "Economics",
+  businessStudies: "Business Studies",
+  accountancy: "Accountancy",
+  statistics: "Statistics",
+  management: "Management",
+  psychology: "Psychology",
+  pe: "P.E.",
+  appliedMaths: "Applied Maths",
+  maths: "Maths (Elective)",
 };
 
-/**
- * Calculate percentage for a subject using the same max marks logic as ProgressView
- */
-function getSubjectPercentage(entry: AcademicEntry, subjectKey: keyof SubjectScores): number {
-  const marks = entry.subjects[subjectKey];
-  if (marks === undefined || marks === null) return 0;
+const ALL_SUBJECT_KEYS = [
+  "math",
+  "english",
+  "hindi",
+  "evs",
+  "computer",
+  "kannada",
+  "science",
+  "ssc",
+  "ai",
+  "physics",
+  "chemistry",
+  "biology",
+  "economics",
+  "businessStudies",
+  "accountancy",
+  "statistics",
+  "management",
+  "psychology",
+  "pe",
+  "appliedMaths",
+  "maths",
+] as const;
 
+/**
+ * Helper: get authoritative max marks for a subject in a given entry.
+ * Always uses grade-based rules — stored entry values are not trusted
+ * because they may have been set incorrectly in older builds.
+ */
+function getSubjectMaxMarks(key: string, entry: AcademicEntry): number {
   const grade = Number(entry.grade);
   const term = Number(entry.term);
-  const termMaxMarks = Number(entry.termMaxMarks);
-  let maxMarks: number;
-
-  // Determine which stored max marks field to use
-  if (subjectKey === 'computer') {
-    maxMarks = Number(entry.computerMaxMarks);
-  } else if (subjectKey === 'ai') {
-    maxMarks = Number(entry.aiMaxMarks);
-  } else {
-    // For regular subjects, use maxMarksPerSubject
-    maxMarks = Number(entry.maxMarksPerSubject);
-  }
-
-  // Validate stored max marks and apply fallback if suspicious
-  if (maxMarks === 0 || maxMarks === termMaxMarks || maxMarks > 150) {
-    // Use grade-wise expected max marks as fallback
-    maxMarks = getExpectedMaxMarksForSubjectKey(subjectKey as string, grade, term);
-  }
-
-  // If still 0 after fallback, return 0% to avoid division by zero
-  if (maxMarks === 0) return 0;
-
-  const percentage = (Number(marks) * 100) / maxMarks;
-  return clampTo100(percentage);
+  return getExpectedMaxMarksForSubjectKey(key, grade, term);
 }
 
 /**
- * Compute subject-wise statistics from academic entries
+ * Compute per-subject statistics (highest, lowest, and average marks) from academic entries.
+ * Optionally filter by grade and/or term.
  */
-export function computeSubjectAnalysis(entries: AcademicEntry[]): SubjectStats[] {
-  if (entries.length === 0) return [];
+export function computeSubjectStats(
+  entries: AcademicEntry[],
+  filterGrade?: number,
+  filterTerm?: number,
+): SubjectStats[] {
+  const filtered = entries.filter((entry) => {
+    const grade = Number(entry.grade);
+    const term = Number(entry.term);
+    if (filterGrade !== undefined && grade !== filterGrade) return false;
+    if (filterTerm !== undefined && term !== filterTerm) return false;
+    return true;
+  });
 
-  // Collect percentages per subject
-  const subjectData = new Map<string, number[]>();
+  const subjectDataMap = new Map<
+    string,
+    { marks: number[]; percentages: number[]; maxMarks: number }
+  >();
 
-  for (const entry of entries) {
-    const subjects = entry.subjects;
-    
-    for (const [key, value] of Object.entries(subjects)) {
-      if (value !== undefined && value !== null) {
-        const percentage = getSubjectPercentage(entry, key as keyof SubjectScores);
-        
-        if (!subjectData.has(key)) {
-          subjectData.set(key, []);
-        }
-        subjectData.get(key)!.push(percentage);
+  for (const entry of filtered) {
+    const subjects = entry.subjects as Record<string, bigint | undefined>;
+
+    for (const key of ALL_SUBJECT_KEYS) {
+      const rawVal = subjects[key];
+      if (rawVal === undefined || rawVal === null) continue;
+      const marks = Number(rawVal);
+
+      const maxMarks = getSubjectMaxMarks(key, entry);
+      if (maxMarks === 0) continue;
+
+      const pct = Math.round((marks / maxMarks) * 100);
+
+      if (!subjectDataMap.has(key)) {
+        subjectDataMap.set(key, { marks: [], percentages: [], maxMarks });
       }
+      const data = subjectDataMap.get(key)!;
+      data.marks.push(marks);
+      data.percentages.push(pct);
+      // Update maxMarks to the latest seen (consistent within a grade/term filter)
+      data.maxMarks = maxMarks;
     }
   }
 
-  // Calculate stats for each subject
   const stats: SubjectStats[] = [];
 
-  for (const [key, percentages] of subjectData.entries()) {
-    if (percentages.length === 0) continue;
-
-    const sum = percentages.reduce((acc, val) => acc + val, 0);
-    const average = sum / percentages.length;
-    const highest = Math.max(...percentages);
-    const lowest = Math.min(...percentages);
+  for (const [key, data] of subjectDataMap.entries()) {
+    if (data.marks.length === 0) continue;
+    const highest = Math.max(...data.marks);
+    const lowest = Math.min(...data.marks);
+    const maxMarks = data.maxMarks;
+    const avgPct = Math.round(
+      data.percentages.reduce((a, b) => a + b, 0) / data.percentages.length,
+    );
 
     stats.push({
-      subjectName: SUBJECT_DISPLAY_NAMES[key] || key,
-      average: clampTo100(average),
-      highest: clampTo100(highest),
-      lowest: clampTo100(lowest),
-      count: percentages.length,
+      subjectKey: key,
+      label: SUBJECT_LABELS[key] ?? key,
+      highestMarks: highest,
+      lowestMarks: lowest,
+      highestPercentage:
+        maxMarks > 0 ? Math.round((highest / maxMarks) * 100) : 0,
+      lowestPercentage:
+        maxMarks > 0 ? Math.round((lowest / maxMarks) * 100) : 0,
+      averagePercentage: avgPct,
+      maxMarks,
+      count: data.marks.length,
     });
   }
 
-  // Sort by subject name
-  stats.sort((a, b) => a.subjectName.localeCompare(b.subjectName));
+  return stats.sort((a, b) => a.label.localeCompare(b.label));
+}
 
-  return stats;
+/**
+ * Calculate average percentage for each subject across all terms within each grade.
+ * Returns an array of per-grade subject averages.
+ */
+export function calculatePerGradeSubjectAverages(
+  entries: AcademicEntry[],
+): PerGradeSubjectAverages[] {
+  // Group entries by grade
+  const gradeMap = new Map<number, AcademicEntry[]>();
+  for (const entry of entries) {
+    const grade = Number(entry.grade);
+    if (!gradeMap.has(grade)) gradeMap.set(grade, []);
+    gradeMap.get(grade)!.push(entry);
+  }
+
+  const result: PerGradeSubjectAverages[] = [];
+
+  for (const [grade, gradeEntries] of gradeMap.entries()) {
+    // For each subject, collect percentages across all terms in this grade
+    const subjectPctMap = new Map<string, number[]>();
+
+    for (const entry of gradeEntries) {
+      const subjects = entry.subjects as Record<string, bigint | undefined>;
+      for (const key of ALL_SUBJECT_KEYS) {
+        const rawVal = subjects[key];
+        if (rawVal === undefined || rawVal === null) continue;
+        const marks = Number(rawVal);
+        const maxMarks = getSubjectMaxMarks(key, entry);
+        if (maxMarks === 0) continue;
+
+        const pct = Math.round((marks / maxMarks) * 100);
+        if (!subjectPctMap.has(key)) subjectPctMap.set(key, []);
+        subjectPctMap.get(key)!.push(pct);
+      }
+    }
+
+    const subjects: SubjectAverageResult[] = [];
+    for (const [key, pcts] of subjectPctMap.entries()) {
+      if (pcts.length === 0) continue;
+      const avgPct = Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length);
+      subjects.push({
+        subjectKey: key,
+        label: SUBJECT_LABELS[key] ?? key,
+        averagePercentage: avgPct,
+        count: pcts.length,
+      });
+    }
+
+    subjects.sort((a, b) => a.label.localeCompare(b.label));
+    result.push({ grade, subjects });
+  }
+
+  return result.sort((a, b) => a.grade - b.grade);
+}
+
+/**
+ * Calculate overall average percentage for each subject across all grades and all terms.
+ * Only includes subjects with at least one data entry.
+ */
+export function calculateOverallSubjectAverages(
+  entries: AcademicEntry[],
+): SubjectAverageResult[] {
+  const subjectPctMap = new Map<string, number[]>();
+
+  for (const entry of entries) {
+    const subjects = entry.subjects as Record<string, bigint | undefined>;
+    for (const key of ALL_SUBJECT_KEYS) {
+      const rawVal = subjects[key];
+      if (rawVal === undefined || rawVal === null) continue;
+      const marks = Number(rawVal);
+      const maxMarks = getSubjectMaxMarks(key, entry);
+      if (maxMarks === 0) continue;
+
+      const pct = Math.round((marks / maxMarks) * 100);
+      if (!subjectPctMap.has(key)) subjectPctMap.set(key, []);
+      subjectPctMap.get(key)!.push(pct);
+    }
+  }
+
+  const result: SubjectAverageResult[] = [];
+  for (const [key, pcts] of subjectPctMap.entries()) {
+    if (pcts.length === 0) continue;
+    const avgPct = Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length);
+    result.push({
+      subjectKey: key,
+      label: SUBJECT_LABELS[key] ?? key,
+      averagePercentage: avgPct,
+      count: pcts.length,
+    });
+  }
+
+  return result.sort((a, b) => a.label.localeCompare(b.label));
 }

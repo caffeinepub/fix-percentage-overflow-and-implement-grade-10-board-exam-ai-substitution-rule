@@ -19,12 +19,13 @@ export const _CaffeineStorageRefillResult = IDL.Record({
   'success' : IDL.Opt(IDL.Bool),
   'topped_up_amount' : IDL.Opt(IDL.Nat),
 });
-export const SubjectScores = IDL.Record({
+export const Subjects = IDL.Record({
   'ai' : IDL.Opt(IDL.Nat),
   'pe' : IDL.Opt(IDL.Nat),
   'evs' : IDL.Opt(IDL.Nat),
+  'ssc' : IDL.Opt(IDL.Nat),
+  'maths' : IDL.Opt(IDL.Nat),
   'biology' : IDL.Opt(IDL.Nat),
-  'social' : IDL.Opt(IDL.Nat),
   'hindi' : IDL.Opt(IDL.Nat),
   'math' : IDL.Opt(IDL.Nat),
   'businessStudies' : IDL.Opt(IDL.Nat),
@@ -36,6 +37,7 @@ export const SubjectScores = IDL.Record({
   'management' : IDL.Opt(IDL.Nat),
   'psychology' : IDL.Opt(IDL.Nat),
   'kannada' : IDL.Opt(IDL.Nat),
+  'appliedMaths' : IDL.Opt(IDL.Nat),
   'english' : IDL.Opt(IDL.Nat),
   'statistics' : IDL.Opt(IDL.Nat),
   'science' : IDL.Opt(IDL.Nat),
@@ -44,8 +46,9 @@ export const Score9Scale = IDL.Record({
   'ai' : IDL.Opt(IDL.Nat8),
   'pe' : IDL.Opt(IDL.Nat8),
   'evs' : IDL.Opt(IDL.Nat8),
+  'ssc' : IDL.Opt(IDL.Nat8),
+  'maths' : IDL.Opt(IDL.Nat8),
   'biology' : IDL.Opt(IDL.Nat8),
-  'social' : IDL.Opt(IDL.Nat8),
   'hindi' : IDL.Opt(IDL.Nat8),
   'math' : IDL.Opt(IDL.Nat8),
   'businessStudies' : IDL.Opt(IDL.Nat8),
@@ -57,15 +60,19 @@ export const Score9Scale = IDL.Record({
   'management' : IDL.Opt(IDL.Nat8),
   'psychology' : IDL.Opt(IDL.Nat8),
   'kannada' : IDL.Opt(IDL.Nat8),
+  'appliedMaths' : IDL.Opt(IDL.Nat8),
   'english' : IDL.Opt(IDL.Nat8),
   'statistics' : IDL.Opt(IDL.Nat8),
   'science' : IDL.Opt(IDL.Nat8),
 });
 export const SaveAcademicInput = IDL.Record({
-  'marks' : SubjectScores,
+  'marks' : Subjects,
+  'scienceSubgroup' : IDL.Opt(IDL.Text),
   'stream' : IDL.Opt(IDL.Text),
   'term' : IDL.Nat,
-  'subgroup' : IDL.Opt(IDL.Text),
+  'mathsMaxMarks' : IDL.Nat,
+  'commerceSubgroup' : IDL.Opt(IDL.Text),
+  'appliedMathsMaxMarks' : IDL.Nat,
   'termMaxMarks' : IDL.Nat,
   'marks9' : IDL.Opt(Score9Scale),
   'computerMaxMarks' : IDL.Nat,
@@ -74,12 +81,15 @@ export const SaveAcademicInput = IDL.Record({
 export const Time = IDL.Int;
 export const AcademicEntry = IDL.Record({
   'totalFinalMarks' : IDL.Nat,
+  'scienceSubgroup' : IDL.Opt(IDL.Text),
   'stream' : IDL.Opt(IDL.Text),
-  'subjects' : SubjectScores,
+  'subjects' : Subjects,
   'term' : IDL.Nat,
+  'mathsMaxMarks' : IDL.Nat,
   'gradeText' : IDL.Text,
+  'commerceSubgroup' : IDL.Opt(IDL.Text),
   'overallPercentage' : IDL.Nat,
-  'subgroup' : IDL.Opt(IDL.Text),
+  'appliedMathsMaxMarks' : IDL.Nat,
   'maxMarksPerSubject' : IDL.Nat,
   'overallMaxMarks' : IDL.Nat,
   'grade' : IDL.Nat,
@@ -102,6 +112,30 @@ export const UserRole = IDL.Variant({
   'admin' : IDL.Null,
   'user' : IDL.Null,
   'guest' : IDL.Null,
+});
+export const CombinedPercentage = IDL.Record({
+  'overallPercentage' : IDL.Nat,
+  'grade' : IDL.Nat,
+});
+export const CombinedPercentages = IDL.Record({
+  'percentages' : IDL.Vec(CombinedPercentage),
+});
+export const GradeAggregateWithWeighting = IDL.Record({
+  'term2Percentage' : IDL.Nat,
+  'combinedOverallPercentage' : IDL.Nat,
+  'term1Percentage' : IDL.Nat,
+  'term3Percentage' : IDL.Nat,
+});
+export const GradeAggregatesWithWeighting = IDL.Record({
+  'aggregates' : IDL.Vec(IDL.Tuple(IDL.Nat, GradeAggregateWithWeighting)),
+});
+export const GradePercentages = IDL.Record({
+  'term1' : IDL.Opt(IDL.Nat),
+  'term2' : IDL.Opt(IDL.Nat),
+  'term3' : IDL.Opt(IDL.Nat),
+});
+export const AllGradesPercentages = IDL.Record({
+  'entries' : IDL.Vec(IDL.Tuple(IDL.Nat, GradePercentages)),
 });
 export const BoardExamResults = IDL.Record({
   'maxMarks' : IDL.Nat,
@@ -175,6 +209,16 @@ export const idlService = IDL.Service({
       [],
     ),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'calculateCombinedPercentages' : IDL.Func(
+      [],
+      [CombinedPercentages],
+      ['query'],
+    ),
+  'calculateWeightedPercentages' : IDL.Func(
+      [],
+      [GradeAggregatesWithWeighting],
+      ['query'],
+    ),
   'getAcademicEntries' : IDL.Func([], [IDL.Vec(AcademicEntry)], ['query']),
   'getAcademicEntriesByGrade' : IDL.Func(
       [IDL.Nat],
@@ -191,6 +235,7 @@ export const idlService = IDL.Service({
       [IDL.Vec(CodingChallenge)],
       ['query'],
     ),
+  'getAllGradePercentages' : IDL.Func([], [AllGradesPercentages], ['query']),
   'getBoardExamResults' : IDL.Func([], [BoardExamResults], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
@@ -241,12 +286,13 @@ export const idlFactory = ({ IDL }) => {
     'success' : IDL.Opt(IDL.Bool),
     'topped_up_amount' : IDL.Opt(IDL.Nat),
   });
-  const SubjectScores = IDL.Record({
+  const Subjects = IDL.Record({
     'ai' : IDL.Opt(IDL.Nat),
     'pe' : IDL.Opt(IDL.Nat),
     'evs' : IDL.Opt(IDL.Nat),
+    'ssc' : IDL.Opt(IDL.Nat),
+    'maths' : IDL.Opt(IDL.Nat),
     'biology' : IDL.Opt(IDL.Nat),
-    'social' : IDL.Opt(IDL.Nat),
     'hindi' : IDL.Opt(IDL.Nat),
     'math' : IDL.Opt(IDL.Nat),
     'businessStudies' : IDL.Opt(IDL.Nat),
@@ -258,6 +304,7 @@ export const idlFactory = ({ IDL }) => {
     'management' : IDL.Opt(IDL.Nat),
     'psychology' : IDL.Opt(IDL.Nat),
     'kannada' : IDL.Opt(IDL.Nat),
+    'appliedMaths' : IDL.Opt(IDL.Nat),
     'english' : IDL.Opt(IDL.Nat),
     'statistics' : IDL.Opt(IDL.Nat),
     'science' : IDL.Opt(IDL.Nat),
@@ -266,8 +313,9 @@ export const idlFactory = ({ IDL }) => {
     'ai' : IDL.Opt(IDL.Nat8),
     'pe' : IDL.Opt(IDL.Nat8),
     'evs' : IDL.Opt(IDL.Nat8),
+    'ssc' : IDL.Opt(IDL.Nat8),
+    'maths' : IDL.Opt(IDL.Nat8),
     'biology' : IDL.Opt(IDL.Nat8),
-    'social' : IDL.Opt(IDL.Nat8),
     'hindi' : IDL.Opt(IDL.Nat8),
     'math' : IDL.Opt(IDL.Nat8),
     'businessStudies' : IDL.Opt(IDL.Nat8),
@@ -279,15 +327,19 @@ export const idlFactory = ({ IDL }) => {
     'management' : IDL.Opt(IDL.Nat8),
     'psychology' : IDL.Opt(IDL.Nat8),
     'kannada' : IDL.Opt(IDL.Nat8),
+    'appliedMaths' : IDL.Opt(IDL.Nat8),
     'english' : IDL.Opt(IDL.Nat8),
     'statistics' : IDL.Opt(IDL.Nat8),
     'science' : IDL.Opt(IDL.Nat8),
   });
   const SaveAcademicInput = IDL.Record({
-    'marks' : SubjectScores,
+    'marks' : Subjects,
+    'scienceSubgroup' : IDL.Opt(IDL.Text),
     'stream' : IDL.Opt(IDL.Text),
     'term' : IDL.Nat,
-    'subgroup' : IDL.Opt(IDL.Text),
+    'mathsMaxMarks' : IDL.Nat,
+    'commerceSubgroup' : IDL.Opt(IDL.Text),
+    'appliedMathsMaxMarks' : IDL.Nat,
     'termMaxMarks' : IDL.Nat,
     'marks9' : IDL.Opt(Score9Scale),
     'computerMaxMarks' : IDL.Nat,
@@ -296,12 +348,15 @@ export const idlFactory = ({ IDL }) => {
   const Time = IDL.Int;
   const AcademicEntry = IDL.Record({
     'totalFinalMarks' : IDL.Nat,
+    'scienceSubgroup' : IDL.Opt(IDL.Text),
     'stream' : IDL.Opt(IDL.Text),
-    'subjects' : SubjectScores,
+    'subjects' : Subjects,
     'term' : IDL.Nat,
+    'mathsMaxMarks' : IDL.Nat,
     'gradeText' : IDL.Text,
+    'commerceSubgroup' : IDL.Opt(IDL.Text),
     'overallPercentage' : IDL.Nat,
-    'subgroup' : IDL.Opt(IDL.Text),
+    'appliedMathsMaxMarks' : IDL.Nat,
     'maxMarksPerSubject' : IDL.Nat,
     'overallMaxMarks' : IDL.Nat,
     'grade' : IDL.Nat,
@@ -324,6 +379,30 @@ export const idlFactory = ({ IDL }) => {
     'admin' : IDL.Null,
     'user' : IDL.Null,
     'guest' : IDL.Null,
+  });
+  const CombinedPercentage = IDL.Record({
+    'overallPercentage' : IDL.Nat,
+    'grade' : IDL.Nat,
+  });
+  const CombinedPercentages = IDL.Record({
+    'percentages' : IDL.Vec(CombinedPercentage),
+  });
+  const GradeAggregateWithWeighting = IDL.Record({
+    'term2Percentage' : IDL.Nat,
+    'combinedOverallPercentage' : IDL.Nat,
+    'term1Percentage' : IDL.Nat,
+    'term3Percentage' : IDL.Nat,
+  });
+  const GradeAggregatesWithWeighting = IDL.Record({
+    'aggregates' : IDL.Vec(IDL.Tuple(IDL.Nat, GradeAggregateWithWeighting)),
+  });
+  const GradePercentages = IDL.Record({
+    'term1' : IDL.Opt(IDL.Nat),
+    'term2' : IDL.Opt(IDL.Nat),
+    'term3' : IDL.Opt(IDL.Nat),
+  });
+  const AllGradesPercentages = IDL.Record({
+    'entries' : IDL.Vec(IDL.Tuple(IDL.Nat, GradePercentages)),
   });
   const BoardExamResults = IDL.Record({
     'maxMarks' : IDL.Nat,
@@ -399,6 +478,16 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'calculateCombinedPercentages' : IDL.Func(
+        [],
+        [CombinedPercentages],
+        ['query'],
+      ),
+    'calculateWeightedPercentages' : IDL.Func(
+        [],
+        [GradeAggregatesWithWeighting],
+        ['query'],
+      ),
     'getAcademicEntries' : IDL.Func([], [IDL.Vec(AcademicEntry)], ['query']),
     'getAcademicEntriesByGrade' : IDL.Func(
         [IDL.Nat],
@@ -415,6 +504,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(CodingChallenge)],
         ['query'],
       ),
+    'getAllGradePercentages' : IDL.Func([], [AllGradesPercentages], ['query']),
     'getBoardExamResults' : IDL.Func([], [BoardExamResults], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),

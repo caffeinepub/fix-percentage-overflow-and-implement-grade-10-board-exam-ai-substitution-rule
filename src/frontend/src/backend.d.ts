@@ -7,43 +7,41 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
-export interface UserProfile {
-    name: string;
+export interface CombinedPercentage {
+    overallPercentage: bigint;
+    grade: bigint;
 }
-export interface SubjectScores {
-    ai?: bigint;
-    pe?: bigint;
-    evs?: bigint;
-    biology?: bigint;
-    social?: bigint;
-    hindi?: bigint;
-    math?: bigint;
-    businessStudies?: bigint;
-    computer?: bigint;
-    economics?: bigint;
-    chemistry?: bigint;
-    accountancy?: bigint;
-    physics?: bigint;
-    management?: bigint;
-    psychology?: bigint;
-    kannada?: bigint;
-    english?: bigint;
-    statistics?: bigint;
-    science?: bigint;
+export interface CodingChallenge {
+    id: bigint;
+    title: string;
+    sampleOutput: string;
+    description: string;
+    sampleInput: string;
 }
 export type Time = bigint;
 export interface AcademicEntriesExport {
     academicEntries: Array<[Principal, Array<AcademicEntry>]>;
     boardExamResults: Array<[Principal, BoardExamResults]>;
 }
+export interface CombinedPercentages {
+    percentages: Array<CombinedPercentage>;
+}
+export interface BoardExamResults {
+    maxMarks: bigint;
+    boardExamTotal: bigint;
+    percentage: bigint;
+}
 export interface AcademicEntry {
     totalFinalMarks: bigint;
+    scienceSubgroup?: string;
     stream?: string;
-    subjects: SubjectScores;
+    subjects: Subjects;
     term: bigint;
+    mathsMaxMarks: bigint;
     gradeText: string;
+    commerceSubgroup?: string;
     overallPercentage: bigint;
-    subgroup?: string;
+    appliedMathsMaxMarks: bigint;
     maxMarksPerSubject: bigint;
     overallMaxMarks: bigint;
     grade: bigint;
@@ -55,17 +53,13 @@ export interface AcademicEntry {
     termTotalMarks: bigint;
     aiMaxMarks: bigint;
 }
-export interface BoardExamResults {
-    maxMarks: bigint;
-    boardExamTotal: bigint;
-    percentage: bigint;
-}
 export interface Score9Scale {
     ai?: number;
     pe?: number;
     evs?: number;
+    ssc?: number;
+    maths?: number;
     biology?: number;
-    social?: number;
     hindi?: number;
     math?: number;
     businessStudies?: number;
@@ -77,15 +71,19 @@ export interface Score9Scale {
     management?: number;
     psychology?: number;
     kannada?: number;
+    appliedMaths?: number;
     english?: number;
     statistics?: number;
     science?: number;
 }
 export interface SaveAcademicInput {
-    marks: SubjectScores;
+    marks: Subjects;
+    scienceSubgroup?: string;
     stream?: string;
     term: bigint;
-    subgroup?: string;
+    mathsMaxMarks: bigint;
+    commerceSubgroup?: string;
+    appliedMathsMaxMarks: bigint;
     termMaxMarks: bigint;
     marks9?: Score9Scale;
     computerMaxMarks: bigint;
@@ -95,17 +93,19 @@ export interface ExportTypes {
     academicEntries: AcademicEntriesExport;
     coding: CodingExport;
 }
+export interface GradeAggregateWithWeighting {
+    term2Percentage: bigint;
+    combinedOverallPercentage: bigint;
+    term1Percentage: bigint;
+    term3Percentage: bigint;
+}
 export interface GradeAggregate {
     term2Percentage: bigint;
     combinedOverallPercentage: bigint;
     term1Percentage: bigint;
 }
-export interface CodingAttempt {
-    result: string;
-    code: string;
-    score?: bigint;
-    challengeId: bigint;
-    timestamp: Time;
+export interface GradeAggregatesWithWeighting {
+    aggregates: Array<[bigint, GradeAggregateWithWeighting]>;
 }
 export interface CodingExport {
     attempts: Array<[Principal, Array<CodingAttempt>]>;
@@ -114,12 +114,46 @@ export interface CodingExport {
 export interface GradeAggregates {
     aggregates: Array<[bigint, GradeAggregate]>;
 }
-export interface CodingChallenge {
-    id: bigint;
-    title: string;
-    sampleOutput: string;
-    description: string;
-    sampleInput: string;
+export interface CodingAttempt {
+    result: string;
+    code: string;
+    score?: bigint;
+    challengeId: bigint;
+    timestamp: Time;
+}
+export interface AllGradesPercentages {
+    entries: Array<[bigint, GradePercentages]>;
+}
+export interface Subjects {
+    ai?: bigint;
+    pe?: bigint;
+    evs?: bigint;
+    ssc?: bigint;
+    maths?: bigint;
+    biology?: bigint;
+    hindi?: bigint;
+    math?: bigint;
+    businessStudies?: bigint;
+    computer?: bigint;
+    economics?: bigint;
+    chemistry?: bigint;
+    accountancy?: bigint;
+    physics?: bigint;
+    management?: bigint;
+    psychology?: bigint;
+    kannada?: bigint;
+    appliedMaths?: bigint;
+    english?: bigint;
+    statistics?: bigint;
+    science?: bigint;
+}
+export interface GradePercentages {
+    term1?: bigint;
+    term2?: bigint;
+    term3?: bigint;
+}
+export interface UserProfile {
+    name: string;
 }
 export enum UserRole {
     admin = "admin",
@@ -130,10 +164,13 @@ export interface backendInterface {
     addAcademicEntry(grade: bigint, academicInputs: Array<SaveAcademicInput>, _finalMarks: bigint | null): Promise<Array<AcademicEntry>>;
     addCodingChallenge(title: string, description: string, sampleInput: string, sampleOutput: string): Promise<CodingChallenge>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    calculateCombinedPercentages(): Promise<CombinedPercentages>;
+    calculateWeightedPercentages(): Promise<GradeAggregatesWithWeighting>;
     getAcademicEntries(): Promise<Array<AcademicEntry>>;
     getAcademicEntriesByGrade(grade: bigint): Promise<Array<AcademicEntry>>;
     getAcademicEntriesByGradeAndTerm(grade: bigint, term: bigint): Promise<Array<AcademicEntry>>;
     getAllCodingChallenges(): Promise<Array<CodingChallenge>>;
+    getAllGradePercentages(): Promise<AllGradesPercentages>;
     getBoardExamResults(): Promise<BoardExamResults>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;

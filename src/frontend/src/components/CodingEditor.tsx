@@ -1,40 +1,64 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { useGetCodingChallenges, useSaveCodingAttempt } from '@/hooks/useQueries';
-import { toast } from 'sonner';
-import { Play, Save, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { usePyodide } from '@/hooks/usePyodide';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { usePyodide } from "@/hooks/usePyodide";
+import {
+  useGetAllCodingChallenges,
+  useSaveCodingAttempt,
+} from "@/hooks/useQueries";
+import { AlertCircle, Loader2, Play, Save } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function CodingEditor() {
-  const [selectedChallenge, setSelectedChallenge] = useState<string>('');
-  const [code, setCode] = useState('# Write your Python code here\nprint("Hello, World!")');
-  const [output, setOutput] = useState('');
-  const [score, setScore] = useState<string>('');
+  const [selectedChallenge, setSelectedChallenge] = useState<string>("");
+  const [code, setCode] = useState(
+    '# Write your Python code here\nprint("Hello, World!")',
+  );
+  const [output, setOutput] = useState("");
+  const [score, setScore] = useState<string>("");
   const [isRunning, setIsRunning] = useState(false);
 
-  const { data: challenges, isLoading: challengesLoading } = useGetCodingChallenges();
+  const { data: challenges, isLoading: challengesLoading } =
+    useGetAllCodingChallenges();
   const saveAttempt = useSaveCodingAttempt();
-  const { runPython, isLoading: pyodideLoading, error: pyodideError } = usePyodide();
+  const {
+    runPython,
+    isLoading: pyodideLoading,
+    error: pyodideError,
+  } = usePyodide();
 
   const selectedChallengeData = challenges?.find(
-    (c) => c.id.toString() === selectedChallenge
+    (c) => c.id.toString() === selectedChallenge,
   );
 
   const handleRun = async () => {
     setIsRunning(true);
-    setOutput('');
+    setOutput("");
 
     try {
       const result = await runPython(code);
       setOutput(result);
     } catch (error) {
-      setOutput(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setOutput(
+        `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     } finally {
       setIsRunning(false);
     }
@@ -42,22 +66,23 @@ export default function CodingEditor() {
 
   const handleSave = async () => {
     if (!selectedChallenge) {
-      toast.error('Please select a challenge first');
+      toast.error("Please select a challenge first");
       return;
     }
 
     try {
       await saveAttempt.mutateAsync({
-        challengeId: BigInt(selectedChallenge),
+        // challengeId is number in the new hook signature
+        challengeId: Number.parseInt(selectedChallenge, 10),
         code,
         result: output,
-        score: score ? parseInt(score) : null,
+        score: score ? Number.parseInt(score, 10) : null,
       });
 
-      toast.success('Coding attempt saved successfully!');
-      setScore('');
-    } catch (error) {
-      toast.error('Failed to save attempt. Please try again.');
+      toast.success("Coding attempt saved successfully!");
+      setScore("");
+    } catch (_error) {
+      toast.error("Failed to save attempt. Please try again.");
     }
   };
 
@@ -67,22 +92,32 @@ export default function CodingEditor() {
       <Card className="lg:col-span-1 border-border/50">
         <CardHeader>
           <CardTitle>Challenge</CardTitle>
-          <CardDescription>Select a coding challenge to practice</CardDescription>
+          <CardDescription>
+            Select a coding challenge to practice
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {challengesLoading ? (
-            <div className="text-sm text-muted-foreground">Loading challenges...</div>
+            <div className="text-sm text-muted-foreground">
+              Loading challenges...
+            </div>
           ) : challenges && challenges.length > 0 ? (
             <>
               <div className="space-y-2">
                 <Label>Select Challenge</Label>
-                <Select value={selectedChallenge} onValueChange={setSelectedChallenge}>
+                <Select
+                  value={selectedChallenge}
+                  onValueChange={setSelectedChallenge}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Choose a challenge" />
                   </SelectTrigger>
                   <SelectContent>
                     {challenges.map((challenge) => (
-                      <SelectItem key={challenge.id.toString()} value={challenge.id.toString()}>
+                      <SelectItem
+                        key={challenge.id.toString()}
+                        value={challenge.id.toString()}
+                      >
                         {challenge.title}
                       </SelectItem>
                     ))}
@@ -94,7 +129,9 @@ export default function CodingEditor() {
                 <div className="space-y-3 pt-2">
                   <div>
                     <h4 className="font-semibold text-sm mb-1">Description</h4>
-                    <p className="text-sm text-muted-foreground">{selectedChallengeData.description}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedChallengeData.description}
+                    </p>
                   </div>
                   <div>
                     <h4 className="font-semibold text-sm mb-1">Sample Input</h4>
@@ -103,7 +140,9 @@ export default function CodingEditor() {
                     </pre>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-sm mb-1">Expected Output</h4>
+                    <h4 className="font-semibold text-sm mb-1">
+                      Expected Output
+                    </h4>
                     <pre className="text-xs bg-muted p-2 rounded-md overflow-x-auto">
                       {selectedChallengeData.sampleOutput}
                     </pre>
@@ -115,7 +154,8 @@ export default function CodingEditor() {
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                No challenges available yet. Contact your instructor to add challenges.
+                No challenges available yet. Contact your instructor to add
+                challenges.
               </AlertDescription>
             </Alert>
           )}
@@ -127,7 +167,9 @@ export default function CodingEditor() {
         <Card className="border-border/50">
           <CardHeader>
             <CardTitle>Python Editor</CardTitle>
-            <CardDescription>Write and execute your Python code</CardDescription>
+            <CardDescription>
+              Write and execute your Python code
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {pyodideError && (
@@ -145,7 +187,7 @@ export default function CodingEditor() {
               disabled={pyodideLoading}
             />
 
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button
                 onClick={handleRun}
                 disabled={isRunning || pyodideLoading}
@@ -189,7 +231,9 @@ export default function CodingEditor() {
               </Button>
 
               <div className="ml-auto flex items-center gap-2">
-                <Label htmlFor="score" className="text-sm">Score (optional):</Label>
+                <Label htmlFor="score" className="text-sm">
+                  Score (optional):
+                </Label>
                 <Input
                   id="score"
                   type="number"
@@ -208,7 +252,9 @@ export default function CodingEditor() {
         <Card className="border-border/50">
           <CardHeader>
             <CardTitle>Output</CardTitle>
-            <CardDescription>Execution results will appear here</CardDescription>
+            <CardDescription>
+              Execution results will appear here
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {output ? (

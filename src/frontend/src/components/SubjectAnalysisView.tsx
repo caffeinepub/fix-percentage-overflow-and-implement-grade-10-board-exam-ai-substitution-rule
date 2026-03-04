@@ -1,413 +1,370 @@
-import { useMemo, useState } from 'react';
-import { useGetAcademicEntries } from '@/hooks/useQueries';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Skeleton } from '@/components/ui/skeleton';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { TrendingUp, Award, TrendingDown, Filter } from 'lucide-react';
-import type { AcademicEntry } from '../backend';
-import { getExpectedMaxMarksForSubjectKey } from '@/lib/maxMarks';
-import { clampTo100, formatPercent } from '@/lib/percent';
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { BarChart2, Globe, TrendingDown, TrendingUp } from "lucide-react";
+import type React from "react";
+import { useState } from "react";
+import { useGetAcademicEntries } from "../hooks/useQueries";
+import {
+  type SubjectAverageResult,
+  calculateOverallSubjectAverages,
+  calculatePerGradeSubjectAverages,
+  computeSubjectStats,
+} from "../lib/subjectAnalysis";
+import { ErrorMessage } from "./ErrorMessage";
+import { LoadingState } from "./LoadingState";
 
-interface SubjectStats {
-  subjectName: string;
-  averageMarks: string;
-  averagePercentage: string;
-  highestMarks: string;
-  lowestMarks: string;
-  count: number;
+function getNineScale(percentage: number): number {
+  if (percentage >= 90) return 9;
+  if (percentage >= 80) return 8;
+  if (percentage >= 70) return 7;
+  if (percentage >= 60) return 6;
+  if (percentage >= 50) return 5;
+  if (percentage >= 40) return 4;
+  if (percentage >= 33) return 3;
+  if (percentage >= 21) return 2;
+  if (percentage >= 10) return 1;
+  return 0;
 }
 
-const SUBJECT_DISPLAY_NAMES: Record<string, string> = {
-  math: 'Math',
-  english: 'English',
-  hindi: 'Hindi',
-  evs: 'EVS',
-  computer: 'Computer',
-  kannada: 'Kannada',
-  science: 'Science',
-  social: 'Social',
-  ai: 'AI',
-  physics: 'Physics',
-  chemistry: 'Chemistry',
-  biology: 'Biology',
-  economics: 'Economics',
-  businessStudies: 'Business Studies',
-  accountancy: 'Accountancy',
-  statistics: 'Statistics',
-  management: 'Management',
-  psychology: 'Psychology',
-  pe: 'PE',
-};
+function getScaleColor(score: number): string {
+  if (score >= 8) return "bg-emerald-500 text-white";
+  if (score >= 6) return "bg-green-500 text-white";
+  if (score >= 4) return "bg-yellow-500 text-white";
+  if (score >= 2) return "bg-orange-500 text-white";
+  return "bg-red-500 text-white";
+}
+
+function getAvgColor(pct: number): string {
+  if (pct >= 80) return "text-emerald-600 dark:text-emerald-400";
+  if (pct >= 60) return "text-green-600 dark:text-green-400";
+  if (pct >= 40) return "text-yellow-600 dark:text-yellow-400";
+  return "text-red-600 dark:text-red-400";
+}
+
+function AverageSubjectGrid({
+  subjects,
+  title,
+  icon,
+}: {
+  subjects: SubjectAverageResult[];
+  title: string;
+  icon: React.ReactNode;
+}) {
+  if (subjects.length === 0) return null;
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        {icon}
+        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
+        {subjects.map((sub) => {
+          const scale = getNineScale(sub.averagePercentage);
+          return (
+            <div
+              key={sub.subjectKey}
+              className="flex flex-col items-center justify-center p-3 rounded-lg border bg-muted/30 gap-1"
+            >
+              <span className="text-xs font-medium text-center text-foreground leading-tight">
+                {sub.label}
+              </span>
+              <span
+                className={`text-lg font-bold ${getAvgColor(sub.averagePercentage)}`}
+              >
+                {sub.averagePercentage}%
+              </span>
+              <Badge
+                className={`text-xs px-1.5 py-0.5 ${getScaleColor(scale)}`}
+              >
+                {scale}
+              </Badge>
+              {sub.count > 1 && (
+                <span className="text-xs text-muted-foreground">
+                  {sub.count} terms
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default function SubjectAnalysisView() {
   const { data: entries = [], isLoading, error } = useGetAcademicEntries();
-  const [selectedGrade, setSelectedGrade] = useState<string>('all');
-  const [filterSection, setFilterSection] = useState<string>('all');
-  const [filterTerm, setFilterTerm] = useState<string>('all');
+  const [filterGrade, setFilterGrade] = useState<string>("all");
+  const [filterTerm, setFilterTerm] = useState<string>("all");
 
-  // Get unique grades, sections, and terms for filters
-  const { grades, sections, terms } = useMemo(() => {
-    const gradesSet = new Set<number>();
-    const sectionsSet = new Set<string>();
-    const termsSet = new Set<number>();
+  if (isLoading) return <LoadingState message="Loading subject analysis..." />;
+  if (error) return <ErrorMessage message="Failed to load academic entries." />;
 
-    entries.forEach((entry) => {
-      gradesSet.add(Number(entry.grade));
-      termsSet.add(Number(entry.term));
-      
-      const section = entry.stream || entry.subgroup;
-      if (section) {
-        sectionsSet.add(section);
-      }
-    });
+  const uniqueGrades = Array.from(
+    new Set(entries.map((e) => Number(e.grade))),
+  ).sort((a, b) => a - b);
+  const uniqueTerms = Array.from(
+    new Set(
+      entries
+        .filter(
+          (e) =>
+            filterGrade === "all" || Number(e.grade) === Number(filterGrade),
+        )
+        .map((e) => Number(e.term)),
+    ),
+  ).sort((a, b) => a - b);
 
-    return {
-      grades: Array.from(gradesSet).sort((a, b) => a - b),
-      sections: Array.from(sectionsSet).sort(),
-      terms: Array.from(termsSet).sort((a, b) => a - b),
-    };
-  }, [entries]);
+  const gradeFilter = filterGrade === "all" ? undefined : Number(filterGrade);
+  const termFilter = filterTerm === "all" ? undefined : Number(filterTerm);
 
-  // Filter entries based on selected grade, section, and term
-  const filteredEntries = useMemo(() => {
-    return entries.filter((entry) => {
-      if (selectedGrade !== 'all' && Number(entry.grade) !== Number(selectedGrade)) {
-        return false;
-      }
-      if (filterTerm !== 'all' && Number(entry.term) !== Number(filterTerm)) {
-        return false;
-      }
-      if (filterSection !== 'all') {
-        const section = entry.stream || entry.subgroup || '';
-        if (section !== filterSection) {
-          return false;
-        }
-      }
-      return true;
-    });
-  }, [entries, selectedGrade, filterSection, filterTerm]);
+  const stats = computeSubjectStats(entries, gradeFilter, termFilter);
 
-  const getSubjectMarksDisplay = (entry: AcademicEntry, subjectKey: keyof typeof entry.subjects): { marks: number; maxMarks: number } | null => {
-    const marks = entry.subjects[subjectKey];
-    if (marks === undefined || marks === null) return null;
+  // Per-grade averages (across all terms in each grade)
+  const perGradeAverages = calculatePerGradeSubjectAverages(entries);
 
-    const grade = Number(entry.grade);
-    const term = Number(entry.term);
-    const termMaxMarks = Number(entry.termMaxMarks);
-    let maxMarks: number;
+  // Overall averages across all grades and terms
+  const overallAverages = calculateOverallSubjectAverages(entries);
 
-    // Determine which stored max marks field to use
-    if (subjectKey === 'computer') {
-      maxMarks = Number(entry.computerMaxMarks);
-    } else if (subjectKey === 'ai') {
-      maxMarks = Number(entry.aiMaxMarks);
-    } else {
-      maxMarks = Number(entry.maxMarksPerSubject);
-    }
+  // When a specific grade is selected, show that grade's averages
+  const selectedGradeAverages =
+    gradeFilter !== undefined
+      ? perGradeAverages.find((g) => g.grade === gradeFilter)
+      : null;
 
-    // Validate stored max marks and apply fallback if suspicious
-    if (maxMarks === 0 || maxMarks === termMaxMarks || maxMarks > 150) {
-      maxMarks = getExpectedMaxMarksForSubjectKey(subjectKey as string, grade, term);
-    }
-
-    if (maxMarks === 0) return null;
-
-    return { marks: Number(marks), maxMarks };
-  };
-
-  const subjectStats = useMemo((): SubjectStats[] => {
-    if (filteredEntries.length === 0) return [];
-
-    // Collect marks per subject
-    const subjectData = new Map<string, Array<{ marks: number; maxMarks: number }>>();
-
-    for (const entry of filteredEntries) {
-      const subjects = entry.subjects;
-      
-      for (const [key, value] of Object.entries(subjects)) {
-        if (value !== undefined && value !== null) {
-          const marksData = getSubjectMarksDisplay(entry, key as keyof typeof entry.subjects);
-          
-          if (marksData) {
-            if (!subjectData.has(key)) {
-              subjectData.set(key, []);
-            }
-            subjectData.get(key)!.push(marksData);
-          }
-        }
-      }
-    }
-
-    // Calculate stats for each subject
-    const stats: SubjectStats[] = [];
-
-    for (const [key, marksArray] of subjectData.entries()) {
-      if (marksArray.length === 0) continue;
-
-      const avgMarks = marksArray.reduce((sum, m) => sum + m.marks, 0) / marksArray.length;
-      const avgMaxMarks = marksArray.reduce((sum, m) => sum + m.maxMarks, 0) / marksArray.length;
-      
-      // Calculate average percentage
-      const avgPercentage = avgMaxMarks > 0 ? clampTo100((avgMarks * 100) / avgMaxMarks) : 0;
-      
-      const highestEntry = marksArray.reduce((max, m) => m.marks > max.marks ? m : max);
-      const lowestEntry = marksArray.reduce((min, m) => m.marks < min.marks ? m : min);
-
-      stats.push({
-        subjectName: SUBJECT_DISPLAY_NAMES[key] || key,
-        averageMarks: `${Math.round(avgMarks)}/${Math.round(avgMaxMarks)}`,
-        averagePercentage: `${formatPercent(avgPercentage)}%`,
-        highestMarks: `${highestEntry.marks}/${highestEntry.maxMarks}`,
-        lowestMarks: `${lowestEntry.marks}/${lowestEntry.maxMarks}`,
-        count: marksArray.length,
-      });
-    }
-
-    // Sort by subject name
-    stats.sort((a, b) => a.subjectName.localeCompare(b.subjectName));
-
-    return stats;
-  }, [filteredEntries]);
-
-  const chartData = useMemo(() => {
-    return subjectStats.map((stat) => {
-      // Parse the average marks display to get percentage
-      const [marks, maxMarks] = stat.averageMarks.split('/').map(Number);
-      const percentage = maxMarks > 0 ? clampTo100((marks * 100) / maxMarks) : 0;
-      
-      return {
-        subject: stat.subjectName,
-        marks: marks,
-        maxMarks: maxMarks,
-        percentage: percentage,
-      };
-    });
-  }, [subjectStats]);
-
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-6 w-48" />
-          </CardHeader>
-          <CardContent>
-            <Skeleton className="h-10 w-full" />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-6 w-48" />
-          </CardHeader>
-          <CardContent>
-            <Skeleton className="h-64 w-full" />
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <Card className="border-destructive">
-        <CardHeader>
-          <CardTitle className="text-destructive">Error Loading Subject Analysis</CardTitle>
-          <CardDescription>
-            {error instanceof Error ? error.message : 'Failed to load academic entries'}
-          </CardDescription>
-        </CardHeader>
-      </Card>
-    );
-  }
-
-  if (entries.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>No Data Available</CardTitle>
-          <CardDescription>
-            Add academic entries to see subject-wise analysis.
-          </CardDescription>
-        </CardHeader>
-      </Card>
-    );
-  }
+  const hasData = entries.length > 0;
 
   return (
-    <div className="space-y-6">
-      {/* Filters */}
-      <Card className="border-border/50 shadow-md">
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Filter className="h-5 w-5 text-primary" />
-            <CardTitle>Filters</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Grade</label>
-              <Select value={selectedGrade} onValueChange={setSelectedGrade}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select grade" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Grades</SelectItem>
-                  {grades.map((grade) => (
-                    <SelectItem key={grade} value={String(grade)}>
-                      Grade {grade}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Section</label>
-              <Select value={filterSection} onValueChange={setFilterSection}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Sections" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Sections</SelectItem>
-                  {sections.map((section) => (
-                    <SelectItem key={section} value={section}>
-                      {section}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Term</label>
-              <Select value={filterTerm} onValueChange={setFilterTerm}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Terms" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Terms</SelectItem>
-                  {terms.map((term) => (
-                    <SelectItem key={term} value={String(term)}>
-                      Term {term}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {filteredEntries.length === 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>No Data for Selected Filters</CardTitle>
-            <CardDescription>
-              Try adjusting your filter selections to see subject analysis.
-            </CardDescription>
+    <div className="space-y-8">
+      {/* ── Overall Average Summary (always visible when data exists) ── */}
+      {hasData && overallAverages.length > 0 && (
+        <Card className="border-2 border-primary/20 bg-primary/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Globe className="h-5 w-5 text-primary" />
+              Overall Average — All Grades &amp; All Terms
+            </CardTitle>
           </CardHeader>
+          <CardContent>
+            <AverageSubjectGrid
+              subjects={overallAverages}
+              title=""
+              icon={null}
+            />
+          </CardContent>
         </Card>
-      ) : (
-        <>
-          {/* Subject Statistics Table */}
-          <Card className="border-border/50 shadow-md">
-            <CardHeader>
-              <CardTitle>Subject Statistics</CardTitle>
-              <CardDescription>
-                Raw marks and percentage analysis for {selectedGrade === 'all' ? 'all grades' : `Grade ${selectedGrade}`}
-                {filterSection !== 'all' && ` - ${filterSection}`}
-                {filterTerm !== 'all' && ` - Term ${filterTerm}`}
-                {' '}({filteredEntries.length} entries)
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-md border overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Subject</TableHead>
-                      <TableHead className="text-right">Average Marks</TableHead>
-                      <TableHead className="text-right">Avg %</TableHead>
-                      <TableHead className="text-right">Highest</TableHead>
-                      <TableHead className="text-right">Lowest</TableHead>
-                      <TableHead className="text-right">Entries</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {subjectStats.map((stat) => (
-                      <TableRow key={stat.subjectName}>
-                        <TableCell className="font-medium">{stat.subjectName}</TableCell>
-                        <TableCell className="text-right font-mono text-sm">
-                          {stat.averageMarks}
-                        </TableCell>
-                        <TableCell className="text-right font-mono text-sm font-semibold text-primary">
-                          {stat.averagePercentage}
-                        </TableCell>
-                        <TableCell className="text-right font-mono text-sm text-green-600 dark:text-green-400">
-                          <div className="flex items-center justify-end gap-1">
-                            <Award className="h-3 w-3" />
-                            {stat.highestMarks}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right font-mono text-sm text-orange-600 dark:text-orange-400">
-                          <div className="flex items-center justify-end gap-1">
-                            <TrendingDown className="h-3 w-3" />
-                            {stat.lowestMarks}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right text-muted-foreground">
-                          {stat.count}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
+      )}
 
-          {/* Subject Performance Chart */}
-          <Card className="border-border/50 shadow-md">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-primary" />
-                <CardTitle>Subject Performance Chart</CardTitle>
-              </div>
-              <CardDescription>
-                Average raw marks by subject
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-96">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis type="number" className="text-xs" />
-                    <YAxis dataKey="subject" type="category" width={120} className="text-xs" />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'hsl(var(--background))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '6px',
-                      }}
-                      formatter={(value: number, name: string, props: any) => {
-                        if (name === 'marks') {
-                          return [`${value}/${props.payload.maxMarks} (${formatPercent(props.payload.percentage)}%)`, 'Average Marks'];
-                        }
-                        return [value, name];
-                      }}
-                    />
-                    <Legend />
-                    <Bar dataKey="marks" fill="hsl(var(--primary))" name="Average Marks" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </>
+      {/* ── Filters ── */}
+      <div className="flex flex-wrap gap-4 items-center">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-muted-foreground">
+            Grade:
+          </span>
+          <Select
+            value={filterGrade}
+            onValueChange={(v) => {
+              setFilterGrade(v);
+              setFilterTerm("all");
+            }}
+          >
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="All Grades" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Grades</SelectItem>
+              {uniqueGrades.map((g) => (
+                <SelectItem key={g} value={String(g)}>
+                  Grade {g}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-muted-foreground">
+            Term:
+          </span>
+          <Select value={filterTerm} onValueChange={setFilterTerm}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="All Terms" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Terms</SelectItem>
+              {uniqueTerms.map((t) => (
+                <SelectItem key={t} value={String(t)}>
+                  Term {t}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* ── Per-Grade Average (shown when a specific grade is selected) ── */}
+      {selectedGradeAverages && selectedGradeAverages.subjects.length > 0 && (
+        <Card className="border-2 border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <BarChart2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              Grade {selectedGradeAverages.grade} — Average Across All Terms
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <AverageSubjectGrid
+              subjects={selectedGradeAverages.subjects}
+              title=""
+              icon={null}
+            />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ── Per-Grade Averages for All Grades (when "All Grades" is selected) ── */}
+      {gradeFilter === undefined && perGradeAverages.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <BarChart2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            Per-Grade Average — Across All Terms
+          </h3>
+          <div className="space-y-4">
+            {perGradeAverages.map((gradeData) => (
+              <Card key={gradeData.grade} className="border bg-card">
+                <CardHeader className="pb-2 pt-3 px-4">
+                  <CardTitle className="text-sm font-semibold text-muted-foreground">
+                    Grade {gradeData.grade}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-4 pb-3">
+                  <AverageSubjectGrid
+                    subjects={gradeData.subjects}
+                    title=""
+                    icon={null}
+                  />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Per-Subject Cards (Highest / Lowest / Average) ── */}
+      {stats.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground">
+          <p className="text-lg font-medium">No data available</p>
+          <p className="text-sm mt-1">
+            Add academic entries to see subject analysis.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-foreground">
+            {gradeFilter !== undefined
+              ? termFilter !== undefined
+                ? `Grade ${gradeFilter} · Term ${termFilter} — Subject Breakdown`
+                : `Grade ${gradeFilter} — Subject Breakdown (All Terms)`
+              : "All Grades — Subject Breakdown"}
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {stats.map((stat) => {
+              const highScale = getNineScale(stat.highestPercentage);
+              const lowScale = getNineScale(stat.lowestPercentage);
+              const avgScale = getNineScale(stat.averagePercentage);
+              return (
+                <Card key={stat.subjectKey} className="border shadow-sm">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center justify-between">
+                      <span>{stat.label}</span>
+                      <span className="text-xs text-muted-foreground font-normal">
+                        Max: {stat.maxMarks} marks
+                      </span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {/* Highest Marks */}
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="h-4 w-4 text-emerald-600" />
+                        <span className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                          Highest
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">
+                          {stat.highestMarks}/{stat.maxMarks}
+                        </span>
+                        <span className="text-xs text-emerald-600 dark:text-emerald-500">
+                          ({stat.highestPercentage}%)
+                        </span>
+                        <Badge
+                          className={`text-xs px-1.5 py-0.5 ${getScaleColor(highScale)}`}
+                        >
+                          {highScale}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    {/* Average Marks */}
+                    {stat.count > 1 && (
+                      <div className="flex items-center justify-between p-2 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+                        <div className="flex items-center gap-2">
+                          <BarChart2 className="h-4 w-4 text-blue-600" />
+                          <span className="text-sm font-medium text-blue-700 dark:text-blue-400">
+                            Average
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-blue-700 dark:text-blue-400">
+                            {stat.averagePercentage}%
+                          </span>
+                          <Badge
+                            className={`text-xs px-1.5 py-0.5 ${getScaleColor(avgScale)}`}
+                          >
+                            {avgScale}
+                          </Badge>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Lowest Marks */}
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
+                      <div className="flex items-center gap-2">
+                        <TrendingDown className="h-4 w-4 text-red-600" />
+                        <span className="text-sm font-medium text-red-700 dark:text-red-400">
+                          Lowest
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-red-700 dark:text-red-400">
+                          {stat.lowestMarks}/{stat.maxMarks}
+                        </span>
+                        <span className="text-xs text-red-600 dark:text-red-500">
+                          ({stat.lowestPercentage}%)
+                        </span>
+                        <Badge
+                          className={`text-xs px-1.5 py-0.5 ${getScaleColor(lowScale)}`}
+                        >
+                          {lowScale}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    {stat.count > 1 && (
+                      <p className="text-xs text-muted-foreground text-center">
+                        Based on {stat.count} entries
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
       )}
     </div>
   );

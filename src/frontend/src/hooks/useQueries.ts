@@ -1,19 +1,333 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useActor } from './useActor';
-import { Principal } from '@icp-sdk/core/principal';
-import type { AcademicEntry, BoardExamResults, CodingAttempt, CodingChallenge, UserProfile, UserRole, SubjectScores, Score9Scale, ExportTypes, GradeAggregates } from '../backend';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type {
+  AcademicEntry,
+  AllGradesPercentages,
+  BoardExamResults,
+  CodingAttempt,
+  CodingChallenge,
+  ExportTypes,
+  GradeAggregates,
+  GradeAggregatesWithWeighting,
+  SaveAcademicInput,
+  UserProfile,
+} from "../backend";
+import { UserRole } from "../backend";
+import { useActor } from "./useActor";
+
+// ─── Academic Entries ────────────────────────────────────────────────────────
+
+export function useGetAcademicEntries() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<AcademicEntry[]>({
+    queryKey: ["academicEntries"],
+    queryFn: async () => {
+      if (!actor) return [];
+      try {
+        return await actor.getAcademicEntries();
+      } catch (err) {
+        console.error("Failed to fetch academic entries:", err);
+        throw err;
+      }
+    },
+    enabled: !!actor && !actorFetching,
+    retry: 1,
+    staleTime: 30_000,
+  });
+}
+
+export function useGetAcademicEntriesByGrade(grade: number) {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<AcademicEntry[]>({
+    queryKey: ["academicEntries", "grade", grade],
+    queryFn: async () => {
+      if (!actor) return [];
+      try {
+        return await actor.getAcademicEntriesByGrade(BigInt(grade));
+      } catch (err) {
+        console.error("Failed to fetch academic entries by grade:", err);
+        throw err;
+      }
+    },
+    enabled: !!actor && !actorFetching && grade > 0,
+    retry: 1,
+    staleTime: 30_000,
+  });
+}
+
+export function useGetAcademicEntriesByGradeAndTerm(
+  grade: number,
+  term: number,
+) {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<AcademicEntry[]>({
+    queryKey: ["academicEntries", "grade", grade, "term", term],
+    queryFn: async () => {
+      if (!actor) return [];
+      try {
+        return await actor.getAcademicEntriesByGradeAndTerm(
+          BigInt(grade),
+          BigInt(term),
+        );
+      } catch (err) {
+        console.error(
+          "Failed to fetch academic entries by grade and term:",
+          err,
+        );
+        throw err;
+      }
+    },
+    enabled: !!actor && !actorFetching && grade > 0 && term > 0,
+    retry: 1,
+    staleTime: 30_000,
+  });
+}
+
+export function useAddAcademicEntry() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    AcademicEntry[],
+    Error,
+    { grade: number; inputs: SaveAcademicInput[]; finalMarks?: number | null }
+  >({
+    mutationFn: async ({ grade, inputs, finalMarks }) => {
+      if (!actor) throw new Error("Backend not available. Please try again.");
+      return actor.addAcademicEntry(
+        BigInt(grade),
+        inputs,
+        finalMarks != null ? BigInt(finalMarks) : null,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["academicEntries"] });
+      queryClient.invalidateQueries({ queryKey: ["gradeAggregates"] });
+      queryClient.invalidateQueries({ queryKey: ["allGradePercentages"] });
+      queryClient.invalidateQueries({ queryKey: ["weightedPercentages"] });
+    },
+  });
+}
+
+// ─── Board Exam ───────────────────────────────────────────────────────────────
+
+export function useGetBoardExamResults() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<BoardExamResults | null>({
+    queryKey: ["boardExamResults"],
+    queryFn: async () => {
+      if (!actor) return null;
+      try {
+        return await actor.getBoardExamResults();
+      } catch {
+        return null;
+      }
+    },
+    enabled: !!actor && !actorFetching,
+    retry: false,
+    staleTime: 30_000,
+  });
+}
+
+export function useSaveBoardExamResults() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, { boardExamTotal: number; maxMarks: number }>(
+    {
+      mutationFn: async ({ boardExamTotal, maxMarks }) => {
+        if (!actor) throw new Error("Backend not available. Please try again.");
+        return actor.saveBoardExamResults(
+          BigInt(boardExamTotal),
+          BigInt(maxMarks),
+        );
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["boardExamResults"] });
+      },
+    },
+  );
+}
+
+// ─── Grade Aggregates ─────────────────────────────────────────────────────────
+
+export function useGetGradeAggregatePercentages() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<GradeAggregates>({
+    queryKey: ["gradeAggregates"],
+    queryFn: async () => {
+      if (!actor) return { aggregates: [] };
+      try {
+        return await actor.getGradeAggregatePercentages();
+      } catch (err) {
+        console.error("Failed to fetch grade aggregates:", err);
+        throw err;
+      }
+    },
+    enabled: !!actor && !actorFetching,
+    retry: 1,
+    staleTime: 30_000,
+  });
+}
+
+export function useGetAllGradePercentages() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<AllGradesPercentages>({
+    queryKey: ["allGradePercentages"],
+    queryFn: async () => {
+      if (!actor) return { entries: [] };
+      try {
+        return await actor.getAllGradePercentages();
+      } catch (err) {
+        console.error("Failed to fetch all grade percentages:", err);
+        throw err;
+      }
+    },
+    enabled: !!actor && !actorFetching,
+    retry: 1,
+    staleTime: 30_000,
+  });
+}
+
+export function useCalculateWeightedPercentages() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<GradeAggregatesWithWeighting>({
+    queryKey: ["weightedPercentages"],
+    queryFn: async () => {
+      if (!actor) return { aggregates: [] };
+      try {
+        return await actor.calculateWeightedPercentages();
+      } catch (err) {
+        console.error("Failed to fetch weighted percentages:", err);
+        throw err;
+      }
+    },
+    enabled: !!actor && !actorFetching,
+    retry: 1,
+    staleTime: 30_000,
+  });
+}
+
+// ─── Coding ───────────────────────────────────────────────────────────────────
+
+export function useGetCodingAttempts() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<CodingAttempt[]>({
+    queryKey: ["codingAttempts"],
+    queryFn: async () => {
+      if (!actor) return [];
+      try {
+        return await actor.getCodingAttempts();
+      } catch (err) {
+        console.error("Failed to fetch coding attempts:", err);
+        throw err;
+      }
+    },
+    enabled: !!actor && !actorFetching,
+    retry: 1,
+    staleTime: 30_000,
+  });
+}
+
+export function useGetAllCodingChallenges() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<CodingChallenge[]>({
+    queryKey: ["codingChallenges"],
+    queryFn: async () => {
+      if (!actor) return [];
+      try {
+        return await actor.getAllCodingChallenges();
+      } catch (err) {
+        console.error("Failed to fetch coding challenges:", err);
+        throw err;
+      }
+    },
+    enabled: !!actor && !actorFetching,
+    retry: 1,
+    staleTime: 60_000,
+  });
+}
+
+export function useSaveCodingAttempt() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    CodingAttempt,
+    Error,
+    { challengeId: number; code: string; result: string; score?: number | null }
+  >({
+    mutationFn: async ({ challengeId, code, result, score }) => {
+      if (!actor) throw new Error("Backend not available. Please try again.");
+      return actor.saveCodingAttempt(
+        BigInt(challengeId),
+        code,
+        result,
+        score != null ? BigInt(score) : null,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["codingAttempts"] });
+    },
+  });
+}
+
+export function useAddCodingChallenge() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    CodingChallenge,
+    Error,
+    {
+      title: string;
+      description: string;
+      sampleInput: string;
+      sampleOutput: string;
+    }
+  >({
+    mutationFn: async ({ title, description, sampleInput, sampleOutput }) => {
+      if (!actor) throw new Error("Backend not available. Please try again.");
+      return actor.addCodingChallenge(
+        title,
+        description,
+        sampleInput,
+        sampleOutput,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["codingChallenges"] });
+    },
+  });
+}
+
+// ─── User Profile ─────────────────────────────────────────────────────────────
 
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
 
   const query = useQuery<UserProfile | null>({
-    queryKey: ['currentUserProfile'],
+    queryKey: ["currentUserProfile"],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.getCallerUserProfile();
+      if (!actor) throw new Error("Actor not available");
+      try {
+        return await actor.getCallerUserProfile();
+      } catch (err) {
+        console.error("Failed to fetch user profile:", err);
+        throw err;
+      }
     },
     enabled: !!actor && !actorFetching,
     retry: false,
+    staleTime: 60_000,
   });
 
   return {
@@ -27,279 +341,93 @@ export function useSaveCallerUserProfile() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (profile: UserProfile) => {
-      if (!actor) throw new Error('Actor not initialized');
+  return useMutation<void, Error, UserProfile>({
+    mutationFn: async (profile) => {
+      if (!actor) throw new Error("Backend not available. Please try again.");
       return actor.saveCallerUserProfile(profile);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      queryClient.invalidateQueries({ queryKey: ["currentUserProfile"] });
     },
   });
 }
+
+// ─── Access Control ───────────────────────────────────────────────────────────
 
 export function useIsCallerAdmin() {
-  const { actor, isFetching } = useActor();
+  const { actor, isFetching: actorFetching } = useActor();
 
   return useQuery<boolean>({
-    queryKey: ['isAdmin'],
+    queryKey: ["isCallerAdmin"],
     queryFn: async () => {
       if (!actor) return false;
-      return actor.isCallerAdmin();
-    },
-    enabled: !!actor && !isFetching,
-  });
-}
-
-export function useAssignUserRole() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (params: { principal: string; role: UserRole }) => {
-      if (!actor) throw new Error('Actor not initialized');
-      const principal = Principal.fromText(params.principal);
-      return actor.assignCallerUserRole(principal, params.role);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-    },
-  });
-}
-
-export function useGetAcademicEntries() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<AcademicEntry[]>({
-    queryKey: ['academicEntries'],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getAcademicEntries();
-    },
-    enabled: !!actor && !isFetching,
-    refetchOnMount: 'always',
-    staleTime: 0,
-  });
-}
-
-export function useGetAcademicEntriesByGradeAndTerm(grade: number, term: number) {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<AcademicEntry[]>({
-    queryKey: ['academicEntries', 'byGradeAndTerm', grade, term],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getAcademicEntriesByGradeAndTerm(BigInt(grade), BigInt(term));
-    },
-    enabled: !!actor && !isFetching,
-    refetchOnMount: 'always',
-    staleTime: 0,
-  });
-}
-
-export function useGetCombinedAcademicEntriesByGrade(grade: number) {
-  const { actor, isFetching } = useActor();
-
-  return useQuery({
-    queryKey: ['academicEntries', 'combined', grade],
-    queryFn: async () => {
-      if (!actor) return null;
-      return actor.getCombinedAcademicEntriesByGrade(BigInt(grade));
-    },
-    enabled: !!actor && !isFetching,
-    refetchOnMount: 'always',
-    staleTime: 0,
-  });
-}
-
-export function useGetGradeAggregatePercentages() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<GradeAggregates>({
-    queryKey: ['gradeAggregates'],
-    queryFn: async () => {
-      if (!actor) return { aggregates: [] };
-      return actor.getGradeAggregatePercentages();
-    },
-    enabled: !!actor && !isFetching,
-    refetchOnMount: 'always',
-    staleTime: 0,
-  });
-}
-
-export function useGetBoardExamResults() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<BoardExamResults | null>({
-    queryKey: ['boardExamResults'],
-    queryFn: async () => {
-      if (!actor) return null;
       try {
-        return await actor.getBoardExamResults();
-      } catch (error) {
-        // No board exam results exist yet
-        return null;
+        return await actor.isCallerAdmin();
+      } catch {
+        return false;
       }
     },
-    enabled: !!actor && !isFetching,
-    refetchOnMount: 'always',
-    staleTime: 0,
+    enabled: !!actor && !actorFetching,
+    retry: false,
+    staleTime: 60_000,
   });
 }
 
-export function useAddAcademicEntry() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
+export function useGetCallerUserRole() {
+  const { actor, isFetching: actorFetching } = useActor();
 
-  return useMutation({
-    mutationFn: async (params: {
-      grade: number;
-      term: number;
-      stream: string | null;
-      subgroup: string | null;
-      section: string;
-      marks: SubjectScores;
-      marks9: Score9Scale | null;
-      termMaxMarks: number;
-      computerMaxMarks: number;
-      aiMaxMarks: number;
-    }) => {
-      if (!actor) throw new Error('Actor not initialized');
-      
-      const academicInputs = [{
-        term: BigInt(params.term),
-        marks: params.marks,
-        marks9: params.marks9 || undefined,
-        stream: params.stream || undefined,
-        subgroup: params.subgroup || undefined,
-        termMaxMarks: BigInt(params.termMaxMarks),
-        computerMaxMarks: BigInt(params.computerMaxMarks),
-        aiMaxMarks: BigInt(params.aiMaxMarks),
-      }];
-      
-      const results = await actor.addAcademicEntry(
-        BigInt(params.grade),
-        academicInputs,
-        BigInt(params.termMaxMarks)
-      );
-      
-      return results[0];
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['academicEntries'] });
-      await queryClient.invalidateQueries({ queryKey: ['gradeAggregates'] });
-      await queryClient.refetchQueries({ queryKey: ['academicEntries'] });
-      await queryClient.refetchQueries({ queryKey: ['gradeAggregates'] });
-    },
-  });
-}
-
-export function useSaveBoardExamResults() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (params: {
-      boardExamTotal: number;
-      maxMarks: number;
-    }) => {
-      if (!actor) throw new Error('Actor not initialized');
-      return actor.saveBoardExamResults(
-        BigInt(params.boardExamTotal),
-        BigInt(params.maxMarks)
-      );
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['boardExamResults'] });
-      await queryClient.refetchQueries({ queryKey: ['boardExamResults'] });
-    },
-  });
-}
-
-export function useGetCodingChallenges() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<CodingChallenge[]>({
-    queryKey: ['codingChallenges'],
+  return useQuery<UserRole>({
+    queryKey: ["callerUserRole"],
     queryFn: async () => {
-      if (!actor) return [];
-      return actor.getAllCodingChallenges();
+      if (!actor) return UserRole.guest;
+      try {
+        return await actor.getCallerUserRole();
+      } catch {
+        return UserRole.guest;
+      }
     },
-    enabled: !!actor && !isFetching,
+    enabled: !!actor && !actorFetching,
+    retry: false,
+    staleTime: 60_000,
   });
 }
 
-export function useGetCodingAttempts() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<CodingAttempt[]>({
-    queryKey: ['codingAttempts'],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getCodingAttempts();
-    },
-    enabled: !!actor && !isFetching,
-  });
-}
-
-export function useSaveCodingAttempt() {
+export function useAssignCallerUserRole() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (attempt: {
-      challengeId: bigint;
-      code: string;
-      result: string;
-      score: number | null;
-    }) => {
-      if (!actor) throw new Error('Actor not initialized');
-      return actor.saveCodingAttempt(
-        attempt.challengeId,
-        attempt.code,
-        attempt.result,
-        attempt.score !== null ? BigInt(attempt.score) : null
-      );
+  return useMutation<void, Error, { user: string; role: UserRole }>({
+    mutationFn: async ({ user, role }) => {
+      if (!actor) throw new Error("Backend not available. Please try again.");
+      const { Principal } = await import("@dfinity/principal");
+      const principal = Principal.fromText(user);
+      return actor.assignCallerUserRole(principal, role);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['codingAttempts'] });
+      queryClient.invalidateQueries({ queryKey: ["isCallerAdmin"] });
+      queryClient.invalidateQueries({ queryKey: ["callerUserRole"] });
     },
   });
 }
 
-export function useAddCodingChallenge() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
+// ─── Data Export / Import ─────────────────────────────────────────────────────
 
-  return useMutation({
-    mutationFn: async (challenge: {
-      title: string;
-      description: string;
-      sampleInput: string;
-      sampleOutput: string;
-    }) => {
-      if (!actor) throw new Error('Actor not initialized');
-      return actor.addCodingChallenge(
-        challenge.title,
-        challenge.description,
-        challenge.sampleInput,
-        challenge.sampleOutput
-      );
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['codingChallenges'] });
-    },
-  });
-}
-
-export function useExportData() {
+export function useRetrieveDataExportRequest(exportType: string) {
   const { actor } = useActor();
 
-  return useMutation({
-    mutationFn: async (exportType: 'academic-entries' | 'coding-attempts' | 'full-export') => {
-      if (!actor) throw new Error('Actor not initialized');
-      return actor.retrieveDataExportRequest(exportType);
+  return useQuery<ExportTypes>({
+    queryKey: ["dataExport", exportType],
+    queryFn: async () => {
+      if (!actor) throw new Error("Actor not available");
+      try {
+        return await actor.retrieveDataExportRequest(exportType);
+      } catch (err) {
+        console.error("Failed to retrieve export data:", err);
+        throw err;
+      }
     },
+    enabled: false, // Only run on demand
+    retry: false,
   });
 }
 
@@ -307,17 +435,19 @@ export function useImportData() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (data: ExportTypes) => {
-      if (!actor) throw new Error('Actor not initialized');
+  return useMutation<void, Error, ExportTypes>({
+    mutationFn: async (data) => {
+      if (!actor) throw new Error("Backend not available. Please try again.");
       return actor.importData(data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['academicEntries'] });
-      queryClient.invalidateQueries({ queryKey: ['boardExamResults'] });
-      queryClient.invalidateQueries({ queryKey: ['codingAttempts'] });
-      queryClient.invalidateQueries({ queryKey: ['codingChallenges'] });
-      queryClient.invalidateQueries({ queryKey: ['gradeAggregates'] });
+      queryClient.invalidateQueries({ queryKey: ["academicEntries"] });
+      queryClient.invalidateQueries({ queryKey: ["codingAttempts"] });
+      queryClient.invalidateQueries({ queryKey: ["codingChallenges"] });
+      queryClient.invalidateQueries({ queryKey: ["gradeAggregates"] });
+      queryClient.invalidateQueries({ queryKey: ["allGradePercentages"] });
+      queryClient.invalidateQueries({ queryKey: ["weightedPercentages"] });
+      queryClient.invalidateQueries({ queryKey: ["boardExamResults"] });
     },
   });
 }

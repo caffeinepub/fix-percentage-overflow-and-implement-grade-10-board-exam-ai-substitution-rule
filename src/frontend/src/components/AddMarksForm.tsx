@@ -1,462 +1,630 @@
-import { useState, useMemo } from 'react';
-import { useAddAcademicEntry } from '@/hooks/useQueries';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Plus, Trash2, AlertCircle } from 'lucide-react';
-import { toast } from 'sonner';
-import type { SubjectScores } from '../backend';
-import { getMaxMarksConfig, calculateTermMaxMarks, getStoredMaxMarks } from '@/lib/maxMarks';
-import { calculateLetterGrade, calculateNineScaleGrade } from '@/lib/gradeCalculation';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  AlertCircle,
+  Award,
+  BookOpen,
+  Calculator,
+  FlaskConical,
+  Info,
+  Loader2,
+  ShoppingBag,
+} from "lucide-react";
+import type React from "react";
+import { useEffect, useState } from "react";
+import type { SaveAcademicInput, Subjects } from "../backend";
+import { useAddAcademicEntry } from "../hooks/useQueries";
+import { computeAiSubstitution } from "../lib/boardExam";
+import {
+  calculateTermMaxMarks,
+  getSubjectsForGrade,
+  isBoardExamGrade,
+} from "../lib/maxMarks";
 
-interface SubjectInput {
-  name: string;
-  marks: string;
-  maxMarks: number;
-  isElective?: boolean;
+type ElectiveMath = "maths" | "appliedMaths" | null;
+type ScienceSubgroup = "PCM-Psych" | "PCMCs" | "PCMB" | null;
+type CommerceSubgroup = "CEBA" | "SEBA" | null;
+
+const GRADES = Array.from({ length: 12 }, (_, i) => i + 1);
+const TERMS = [1, 2, 3];
+const STREAMS = ["Science", "Commerce", "Arts"];
+
+const SCIENCE_SUBGROUPS: {
+  value: ScienceSubgroup;
+  label: string;
+  subjects: string;
+}[] = [
+  {
+    value: "PCM-Psych",
+    label: "PCM-Psych",
+    subjects: "Physics, Chemistry, Maths, Psychology",
+  },
+  {
+    value: "PCMCs",
+    label: "PCMCs",
+    subjects: "Physics, Chemistry, Maths, Computer Science",
+  },
+  {
+    value: "PCMB",
+    label: "PCMB",
+    subjects: "Physics, Chemistry, Maths, Biology",
+  },
+];
+
+const COMMERCE_SUBGROUPS: {
+  value: CommerceSubgroup;
+  label: string;
+  subjects: string;
+}[] = [
+  {
+    value: "CEBA",
+    label: "CEBA",
+    subjects: "Computer Science, Economics, Business Studies, Accountancy",
+  },
+  {
+    value: "SEBA",
+    label: "SEBA",
+    subjects: "Statistics, Economics, Business Studies, Accountancy",
+  },
+];
+
+function getScienceSubgroupSubjects(
+  subgroup: ScienceSubgroup,
+  maxMarks: number,
+) {
+  const base = [
+    { name: "English", key: "english", maxMarks },
+    { name: "Physics", key: "physics", maxMarks },
+    { name: "Chemistry", key: "chemistry", maxMarks },
+    { name: "Maths", key: "math", maxMarks },
+  ];
+  if (subgroup === "PCM-Psych") {
+    base.push({ name: "Psychology", key: "psychology", maxMarks });
+  } else if (subgroup === "PCMCs") {
+    base.push({ name: "Computer Science", key: "computer", maxMarks });
+  } else if (subgroup === "PCMB") {
+    base.push({ name: "Biology", key: "biology", maxMarks });
+  }
+  base.push({ name: "Physical Education (Elective)", key: "pe", maxMarks });
+  return base;
 }
 
-const GRADE_SUBJECTS: Record<number, string[]> = {
-  1: ['Math', 'English', 'Hindi', 'EVS', 'Computer'],
-  2: ['Math', 'English', 'Hindi', 'EVS', 'Computer'],
-  3: ['Math', 'English', 'Hindi', 'EVS', 'Computer'],
-  4: ['Math', 'English', 'Hindi', 'EVS', 'Computer'],
-  5: ['Math', 'English', 'Hindi', 'Science', 'Social', 'Computer', 'Kannada'],
-  6: ['Math', 'English', 'Hindi', 'Science', 'Social', 'Computer', 'Kannada'],
-  7: ['Math', 'English', 'Hindi', 'Science', 'Social', 'Computer', 'Kannada'],
-  8: ['Math', 'English', 'Hindi', 'Science', 'Social', 'Computer', 'Kannada'],
-  9: ['Math', 'English', 'Hindi', 'Science', 'Social', 'AI', 'Kannada'],
-  10: ['Math', 'English', 'Hindi', 'Science', 'Social', 'AI', 'Kannada'],
-  11: ['Math', 'English', 'Physics', 'Chemistry', 'Computer'],
-  12: ['Math', 'English', 'Physics', 'Chemistry', 'Computer'],
-};
+function getCommerceSubgroupSubjects(
+  subgroup: CommerceSubgroup,
+  maxMarks: number,
+  electiveMath: ElectiveMath,
+  isBoardExam: boolean,
+) {
+  const base: { name: string; key: string; maxMarks: number }[] = [
+    { name: "English", key: "english", maxMarks },
+  ];
+  if (subgroup === "CEBA") {
+    base.push({ name: "Computer Science", key: "computer", maxMarks });
+    base.push({ name: "Economics", key: "economics", maxMarks });
+    base.push({ name: "Business Studies", key: "businessStudies", maxMarks });
+    base.push({ name: "Accountancy", key: "accountancy", maxMarks });
+  } else if (subgroup === "SEBA") {
+    base.push({ name: "Statistics", key: "statistics", maxMarks });
+    base.push({ name: "Economics", key: "economics", maxMarks });
+    base.push({ name: "Business Studies", key: "businessStudies", maxMarks });
+    base.push({ name: "Accountancy", key: "accountancy", maxMarks });
+  } else {
+    base.push({ name: "Economics", key: "economics", maxMarks });
+    base.push({ name: "Business Studies", key: "businessStudies", maxMarks });
+    base.push({ name: "Accountancy", key: "accountancy", maxMarks });
+  }
 
-const STREAM_OPTIONS = ['Science', 'Commerce', 'Arts'];
-const SUBGROUP_OPTIONS = {
-  Science: ['PCMC', 'PCMB', 'PCME'],
-  Commerce: ['CEBA', 'CEBA-CS'],
-  Arts: ['HESP', 'HEMP'],
-};
+  if (!isBoardExam) {
+    if (electiveMath === "maths") {
+      base.push({ name: "Maths", key: "maths", maxMarks });
+    } else if (electiveMath === "appliedMaths") {
+      base.push({ name: "Applied Maths", key: "appliedMaths", maxMarks });
+    }
+  } else {
+    if (electiveMath === "appliedMaths") {
+      base.push({ name: "Applied Maths", key: "appliedMaths", maxMarks });
+    } else {
+      base.push({ name: "Maths", key: "maths", maxMarks });
+    }
+  }
 
-export default function AddMarksForm({ onSuccess }: { onSuccess?: () => void }) {
-  const [selectedGrade, setSelectedGrade] = useState<string>('');
-  const [selectedTerm, setSelectedTerm] = useState<string>('');
-  const [selectedStream, setSelectedStream] = useState<string>('');
-  const [selectedSubgroup, setSelectedSubgroup] = useState<string>('');
-  const [subjects, setSubjects] = useState<SubjectInput[]>([]);
+  base.push({ name: "Physical Education (Elective)", key: "pe", maxMarks });
+  return base;
+}
 
-  const addAcademicEntry = useAddAcademicEntry();
+export default function AddMarksForm({
+  onSuccess,
+}: { onSuccess?: () => void }) {
+  const [selectedGrade, setSelectedGrade] = useState<number>(1);
+  const [selectedTerm, setSelectedTerm] = useState<number>(1);
+  const [selectedStream, setSelectedStream] = useState<string>("");
+  const [scienceSubgroup, setScienceSubgroup] = useState<ScienceSubgroup>(null);
+  const [commerceSubgroup, setCommerceSubgroup] =
+    useState<CommerceSubgroup>(null);
+  const [marks, setMarks] = useState<Record<string, string>>({});
+  const [isBoardExam, setIsBoardExam] = useState(false);
+  const [electiveMath, setElectiveMath] = useState<ElectiveMath>(null);
+  const [boardExamMathChoice, setBoardExamMathChoice] = useState<
+    "maths" | "appliedMaths"
+  >("maths");
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const isBoardExam = useMemo(() => {
-    return selectedTerm === '8' || selectedTerm === '9';
-  }, [selectedTerm]);
+  const addEntryMutation = useAddAcademicEntry();
 
-  const isHigherSecondary = useMemo(() => {
-    const grade = parseInt(selectedGrade);
-    return grade === 11 || grade === 12;
+  const isHighSchool = selectedGrade >= 11;
+  const isScienceStream = selectedStream === "Science";
+  const isCommerceStream = selectedStream === "Commerce";
+  const showScienceSubgroupSelector = isHighSchool && isScienceStream;
+  const showCommerceSubgroupSelector = isHighSchool && isCommerceStream;
+  const showElectiveMathSelector =
+    isHighSchool && isCommerceStream && !isBoardExam;
+  const showBoardExamMathChoice =
+    isBoardExam && selectedGrade === 12 && isCommerceStream;
+  const showBoardExamOption = isBoardExamGrade(selectedGrade);
+  const showStreamSelector = selectedGrade >= 11;
+  const isGrade10BoardExam = selectedGrade === 10 && isBoardExam;
+
+  const effectiveElectiveMath: ElectiveMath = showElectiveMathSelector
+    ? electiveMath
+    : showBoardExamMathChoice
+      ? boardExamMathChoice
+      : null;
+
+  const getSubjects = () => {
+    if (isHighSchool && isScienceStream && scienceSubgroup) {
+      return getScienceSubgroupSubjects(scienceSubgroup, 80);
+    }
+    if (isHighSchool && isCommerceStream) {
+      const maxMarks = isBoardExam ? 100 : 80;
+      return getCommerceSubgroupSubjects(
+        commerceSubgroup,
+        maxMarks,
+        effectiveElectiveMath,
+        isBoardExam,
+      );
+    }
+    return getSubjectsForGrade(
+      selectedGrade,
+      selectedStream || undefined,
+      isBoardExam,
+      effectiveElectiveMath,
+    );
+  };
+
+  const subjects = getSubjects();
+
+  // Reset marks/errors whenever the subject list changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: resetting on subject configuration changes
+  useEffect(() => {
+    setMarks({});
+    setErrors({});
+  }, [
+    selectedGrade,
+    selectedStream,
+    isBoardExam,
+    electiveMath,
+    boardExamMathChoice,
+    scienceSubgroup,
+    commerceSubgroup,
+  ]);
+
+  useEffect(() => {
+    if (!showElectiveMathSelector) {
+      setElectiveMath(null);
+    }
+  }, [showElectiveMathSelector]);
+
+  // Reset subgroups when stream or grade changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: resetting on stream/grade configuration changes
+  useEffect(() => {
+    setScienceSubgroup(null);
+    setCommerceSubgroup(null);
+  }, [selectedStream, selectedGrade]);
+
+  useEffect(() => {
+    if (!isBoardExamGrade(selectedGrade)) {
+      setIsBoardExam(false);
+    }
+    setSelectedStream("");
   }, [selectedGrade]);
 
-  const isCommerceSubgroup = useMemo(() => {
-    return selectedSubgroup === 'CEBA' || selectedSubgroup === 'CEBA-CS';
-  }, [selectedSubgroup]);
-
-  const availableSubjects = useMemo(() => {
-    const grade = parseInt(selectedGrade);
-    if (!grade || grade < 1 || grade > 12) return [];
-
-    let baseSubjects = GRADE_SUBJECTS[grade] || [];
-
-    if (isHigherSecondary && selectedSubgroup) {
-      const subgroupMap: Record<string, string[]> = {
-        PCMC: ['Physics', 'Chemistry', 'Math', 'Computer', 'English'],
-        PCMB: ['Physics', 'Chemistry', 'Math', 'Biology', 'English'],
-        PCME: ['Physics', 'Chemistry', 'Math', 'Economics', 'English'],
-        // For Commerce subgroups, Math is now an elective (not in compulsory list)
-        CEBA: ['Commerce', 'Economics', 'Business Studies', 'Accountancy', 'English'],
-        'CEBA-CS': ['Commerce', 'Economics', 'Business Studies', 'Accountancy', 'Computer', 'English'],
-        HESP: ['History', 'Economics', 'Sociology', 'Psychology', 'English'],
-        HEMP: ['History', 'Economics', 'Management', 'Psychology', 'English'],
-      };
-      baseSubjects = subgroupMap[selectedSubgroup] || baseSubjects;
+  const handleMarkChange = (key: string, value: string) => {
+    setMarks((prev) => ({ ...prev, [key]: value }));
+    if (errors[key]) {
+      setErrors((prev) => {
+        const e = { ...prev };
+        delete e[key];
+        return e;
+      });
     }
-
-    return baseSubjects;
-  }, [selectedGrade, selectedSubgroup, isHigherSecondary]);
-
-  const handleGradeChange = (value: string) => {
-    setSelectedGrade(value);
-    setSelectedTerm('');
-    setSelectedStream('');
-    setSelectedSubgroup('');
-    setSubjects([]);
   };
 
-  const handleTermChange = (value: string) => {
-    setSelectedTerm(value);
-    initializeSubjects();
-  };
-
-  const handleStreamChange = (value: string) => {
-    setSelectedStream(value);
-    setSelectedSubgroup('');
-    setSubjects([]);
-  };
-
-  const handleSubgroupChange = (value: string) => {
-    setSelectedSubgroup(value);
-    initializeSubjects();
-  };
-
-  const initializeSubjects = () => {
-    const grade = parseInt(selectedGrade);
-    if (!grade || !selectedTerm) return;
-
-    const config = getMaxMarksConfig(grade, isBoardExam);
-    const initialSubjects: SubjectInput[] = availableSubjects.map((subject) => {
-      let maxMarks = config.regularSubjectMax;
-      if (subject === 'Computer') {
-        maxMarks = config.computerMax;
-      } else if (subject === 'AI') {
-        maxMarks = config.aiMax;
+  const validateMarks = (): boolean => {
+    const newErrors: Record<string, string> = {};
+    for (const subject of subjects) {
+      const val = marks[subject.key];
+      if (val === undefined || val === "") continue;
+      const num = Number(val);
+      if (Number.isNaN(num) || num < 0) {
+        newErrors[subject.key] = "Must be a non-negative number";
+      } else if (num > subject.maxMarks) {
+        newErrors[subject.key] = `Max is ${subject.maxMarks}`;
       }
-
-      return {
-        name: subject,
-        marks: '',
-        maxMarks,
-        isElective: false,
-      };
-    });
-
-    setSubjects(initialSubjects);
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const addElectiveSubject = (subjectName: string) => {
-    const config = getMaxMarksConfig(parseInt(selectedGrade), isBoardExam);
-    const newSubject: SubjectInput = {
-      name: subjectName,
-      marks: '',
-      maxMarks: config.regularSubjectMax,
-      isElective: true,
-    };
-    setSubjects([...subjects, newSubject]);
+  const buildSubjectsPayload = (): Subjects => {
+    const payload: Subjects = {};
+    for (const subject of subjects) {
+      const val = marks[subject.key];
+      if (val !== undefined && val !== "") {
+        const num = Math.min(Math.round(Number(val)), subject.maxMarks);
+        (payload as Record<string, bigint>)[subject.key] = BigInt(num);
+      }
+    }
+    return payload;
   };
 
-  const removeElectiveSubject = (index: number) => {
-    const newSubjects = subjects.filter((_, i) => i !== index);
-    setSubjects(newSubjects);
+  const getTermMaxMarks = (): number => {
+    const activeKeys = subjects
+      .filter((s) => marks[s.key] !== undefined && marks[s.key] !== "")
+      .map((s) => s.key);
+    if (activeKeys.length === 0) {
+      return subjects.reduce((sum, s) => sum + s.maxMarks, 0);
+    }
+    return calculateTermMaxMarks(activeKeys, selectedGrade, isBoardExam);
   };
 
-  const handleMarksChange = (index: number, value: string) => {
-    const newSubjects = [...subjects];
-    newSubjects[index].marks = value;
-    setSubjects(newSubjects);
+  const getAiSubstitutionPreview = () => {
+    if (!isGrade10BoardExam) return null;
+    const mathVal = Number(marks.math || 0);
+    const scienceVal = Number(marks.science || 0);
+    const sscVal = Number(marks.ssc || 0);
+    const aiVal = Number(marks.ai || 0);
+    if (aiVal === 0) return null;
+    return computeAiSubstitution(mathVal, scienceVal, sscVal, aiVal);
   };
+
+  const aiPreview = getAiSubstitutionPreview();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateMarks()) return;
 
-    const grade = parseInt(selectedGrade);
-    const term = parseInt(selectedTerm);
-
-    if (!grade || !term) {
-      toast.error('Please select grade and term');
+    const subjectsPayload = buildSubjectsPayload();
+    const filledKeys = Object.keys(subjectsPayload);
+    if (filledKeys.length === 0) {
+      setErrors({ _form: "Please enter at least one subject mark" });
       return;
     }
 
-    if (isHigherSecondary && !selectedStream) {
-      toast.error('Please select a stream for grades 11-12');
-      return;
-    }
+    const termMaxMarks = getTermMaxMarks();
 
-    if (isHigherSecondary && !selectedSubgroup) {
-      toast.error('Please select a subgroup');
-      return;
-    }
+    // Determine computer and AI max marks
+    const computerMaxMarks =
+      subjects.find((s) => s.key === "computer")?.maxMarks ?? 0;
+    const aiMaxMarks = subjects.find((s) => s.key === "ai")?.maxMarks ?? 0;
+    const mathsMaxMarks =
+      subjects.find((s) => s.key === "maths")?.maxMarks ?? 0;
+    const appliedMathsMaxMarks =
+      subjects.find((s) => s.key === "appliedMaths")?.maxMarks ?? 0;
 
-    // Validate that at least one subject has marks
-    const hasMarks = subjects.some((s) => s.marks.trim() !== '');
-    if (!hasMarks) {
-      toast.error('Please enter marks for at least one subject');
-      return;
-    }
+    // Encode board exam metadata into scienceSubgroup for grade 10 board exam
+    let encodedScienceSubgroup: string | undefined = undefined;
+    let encodedCommerceSubgroup: string | undefined = undefined;
 
-    // Build SubjectScores object
-    const subjectScores: SubjectScores = {};
-    const subjectKeyMap: Record<string, keyof SubjectScores> = {
-      Math: 'math',
-      English: 'english',
-      Hindi: 'hindi',
-      EVS: 'evs',
-      Computer: 'computer',
-      Kannada: 'kannada',
-      Science: 'science',
-      Social: 'social',
-      AI: 'ai',
-      Physics: 'physics',
-      Chemistry: 'chemistry',
-      Biology: 'biology',
-      Economics: 'economics',
-      'Business Studies': 'businessStudies',
-      Accountancy: 'accountancy',
-      Statistics: 'statistics',
-      Management: 'management',
-      Psychology: 'psychology',
-      PE: 'pe',
-    };
-
-    subjects.forEach((subject) => {
-      if (subject.marks.trim() !== '') {
-        const key = subjectKeyMap[subject.name];
-        if (key) {
-          subjectScores[key] = BigInt(parseInt(subject.marks));
+    if (isBoardExam && selectedGrade === 10) {
+      // For grade 10 board exam, encode AI substitution info into scienceSubgroup
+      const aiVal = Number(marks.ai || 0);
+      if (aiVal > 0) {
+        const mathVal = Number(marks.math || 0);
+        const scienceVal = Number(marks.science || 0);
+        const sscVal = Number(marks.ssc || 0);
+        const sub = computeAiSubstitution(mathVal, scienceVal, sscVal, aiVal);
+        if (sub) {
+          encodedScienceSubgroup = `boardExam:${sub.substitutedSubject}`;
         }
       }
-    });
+    } else if (scienceSubgroup) {
+      encodedScienceSubgroup = scienceSubgroup;
+    }
 
-    // Calculate term max marks
-    const activeSubjects = subjects.filter((s) => s.marks.trim() !== '').map((s) => s.name);
-    const termMaxMarks = calculateTermMaxMarks(activeSubjects, grade, isBoardExam);
+    if (commerceSubgroup) {
+      encodedCommerceSubgroup = commerceSubgroup;
+    }
 
-    // Get stored max marks for backend
-    const { computerMaxMarks, aiMaxMarks } = getStoredMaxMarks(grade, isBoardExam);
+    // Determine term number: board exam uses term 8 (grade 10) or 9 (grade 12)
+    const termNumber = isBoardExam
+      ? selectedGrade === 10
+        ? 8
+        : 9
+      : selectedTerm;
+
+    const input: SaveAcademicInput = {
+      term: BigInt(termNumber),
+      marks: subjectsPayload,
+      marks9: undefined,
+      stream: selectedStream || undefined,
+      scienceSubgroup: encodedScienceSubgroup,
+      commerceSubgroup: encodedCommerceSubgroup,
+      termMaxMarks: BigInt(termMaxMarks),
+      computerMaxMarks: BigInt(computerMaxMarks),
+      aiMaxMarks: BigInt(aiMaxMarks),
+      mathsMaxMarks: BigInt(mathsMaxMarks),
+      appliedMathsMaxMarks: BigInt(appliedMathsMaxMarks),
+    };
 
     try {
-      await addAcademicEntry.mutateAsync({
-        grade: grade,
-        term: term,
-        stream: isHigherSecondary ? selectedStream : null,
-        subgroup: isHigherSecondary ? selectedSubgroup : null,
-        section: isHigherSecondary ? `${selectedStream}-${selectedSubgroup}` : '',
-        marks: subjectScores,
-        marks9: null,
-        termMaxMarks: termMaxMarks,
-        computerMaxMarks: computerMaxMarks,
-        aiMaxMarks: aiMaxMarks,
+      await addEntryMutation.mutateAsync({
+        grade: selectedGrade,
+        inputs: [input],
+        finalMarks: null,
       });
-
-      toast.success('Academic entry added successfully!');
-      
-      // Reset form
-      setSelectedGrade('');
-      setSelectedTerm('');
-      setSelectedStream('');
-      setSelectedSubgroup('');
-      setSubjects([]);
-
-      if (onSuccess) {
-        onSuccess();
-      }
-    } catch (error) {
-      console.error('Error adding academic entry:', error);
-      toast.error('Failed to add academic entry');
+      setMarks({});
+      setErrors({});
+      onSuccess?.();
+    } catch (err: any) {
+      setErrors({
+        _form: err?.message || "Failed to save marks. Please try again.",
+      });
     }
   };
 
-  // Calculate preview grade
-  const previewGrade = useMemo(() => {
-    const totalMarks = subjects.reduce((sum, s) => {
-      const marks = parseInt(s.marks) || 0;
-      return sum + marks;
-    }, 0);
-
-    const totalMaxMarks = subjects.reduce((sum, s) => {
-      if (s.marks.trim() !== '') {
-        return sum + s.maxMarks;
-      }
-      return sum;
-    }, 0);
-
-    if (totalMaxMarks === 0) return null;
-
-    const letterGrade = calculateLetterGrade(totalMarks, totalMaxMarks);
-    const percentage = ((totalMarks * 100) / totalMaxMarks).toFixed(1);
-
-    return {
-      totalMarks,
-      totalMaxMarks,
-      percentage,
-      letterGrade,
-    };
-  }, [subjects]);
-
-  // Check if PE is already added
-  const hasPE = subjects.some((s) => s.name === 'PE');
-  // Check if Math is already added (for Commerce subgroups)
-  const hasMath = subjects.some((s) => s.name === 'Math');
-
   return (
-    <Card className="border-border/50 shadow-md">
+    <Card>
       <CardHeader>
-        <CardTitle>Add Academic Entry</CardTitle>
-        <CardDescription>
-          Enter raw marks for each subject (e.g., 73 out of 100). PE is available as an elective for all subgroups.
-          {isCommerceSubgroup && ' Mathematics is an elective subject for Commerce subgroups.'}
-        </CardDescription>
+        <CardTitle className="flex items-center gap-2">
+          <BookOpen className="w-5 h-5" />
+          Add Academic Marks
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Grade Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="grade">Grade</Label>
-            <Select value={selectedGrade} onValueChange={handleGradeChange}>
-              <SelectTrigger id="grade">
-                <SelectValue placeholder="Select grade" />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: 12 }, (_, i) => i + 1).map((grade) => (
-                  <SelectItem key={grade} value={String(grade)}>
-                    Grade {grade}
-                  </SelectItem>
+          {/* Grade & Term selectors */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>Grade</Label>
+              <div className="flex flex-wrap gap-1">
+                {GRADES.map((g) => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => setSelectedGrade(g)}
+                    className={`px-2 py-1 text-xs rounded border transition-colors ${
+                      selectedGrade === g
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background border-border hover:border-primary/50"
+                    }`}
+                  >
+                    {g}
+                  </button>
                 ))}
-              </SelectContent>
-            </Select>
+              </div>
+            </div>
+
+            {!isBoardExam && (
+              <div className="space-y-2">
+                <Label>Term</Label>
+                <div className="flex gap-2">
+                  {TERMS.map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setSelectedTerm(t)}
+                      className={`px-3 py-1 text-sm rounded border transition-colors ${
+                        selectedTerm === t
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background border-border hover:border-primary/50"
+                      }`}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {showStreamSelector && (
+              <div className="space-y-2">
+                <Label>Stream</Label>
+                <div className="flex flex-wrap gap-1">
+                  {STREAMS.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setSelectedStream(s)}
+                      className={`px-2 py-1 text-xs rounded border transition-colors ${
+                        selectedStream === s
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background border-border hover:border-primary/50"
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Term Selection */}
-          {selectedGrade && (
-            <div className="space-y-2">
-              <Label htmlFor="term">Term</Label>
-              <Select value={selectedTerm} onValueChange={handleTermChange}>
-                <SelectTrigger id="term">
-                  <SelectValue placeholder="Select term" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">Term 1</SelectItem>
-                  <SelectItem value="2">Term 2</SelectItem>
-                  <SelectItem value="3">Term 3</SelectItem>
-                  {(selectedGrade === '10' || selectedGrade === '12') && (
-                    <>
-                      <SelectItem value="8">Board Exam</SelectItem>
-                      <SelectItem value="9">Board Exam (with AI substitution)</SelectItem>
-                    </>
-                  )}
-                </SelectContent>
-              </Select>
+          {/* Board Exam toggle */}
+          {showBoardExamOption && (
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="board-exam"
+                checked={isBoardExam}
+                onCheckedChange={(checked) => setIsBoardExam(!!checked)}
+              />
+              <Label
+                htmlFor="board-exam"
+                className="cursor-pointer flex items-center gap-1"
+              >
+                <Award className="w-4 h-4 text-amber-500" />
+                Board Exam Mode
+              </Label>
             </div>
           )}
 
-          {/* Stream and Subgroup for Grades 11-12 */}
-          {isHigherSecondary && selectedTerm && (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="stream">Stream</Label>
-                <Select value={selectedStream} onValueChange={handleStreamChange}>
-                  <SelectTrigger id="stream">
-                    <SelectValue placeholder="Select stream" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {STREAM_OPTIONS.map((stream) => (
-                      <SelectItem key={stream} value={stream}>
-                        {stream}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          {/* Science Subgroup selector */}
+          {showScienceSubgroupSelector && (
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1">
+                <FlaskConical className="w-4 h-4" />
+                Science Subgroup
+              </Label>
+              <div className="flex flex-wrap gap-2">
+                {SCIENCE_SUBGROUPS.map((sg) => (
+                  <button
+                    key={sg.value}
+                    type="button"
+                    onClick={() => setScienceSubgroup(sg.value)}
+                    className={`px-3 py-1.5 text-sm rounded border transition-colors ${
+                      scienceSubgroup === sg.value
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <span className="font-medium">{sg.label}</span>
+                    <span className="text-xs ml-1 opacity-70">
+                      ({sg.subjects})
+                    </span>
+                  </button>
+                ))}
               </div>
-
-              {selectedStream && (
-                <div className="space-y-2">
-                  <Label htmlFor="subgroup">Subgroup</Label>
-                  <Select value={selectedSubgroup} onValueChange={handleSubgroupChange}>
-                    <SelectTrigger id="subgroup">
-                      <SelectValue placeholder="Select subgroup" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SUBGROUP_OPTIONS[selectedStream as keyof typeof SUBGROUP_OPTIONS]?.map((subgroup) => (
-                        <SelectItem key={subgroup} value={subgroup}>
-                          {subgroup}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </>
+            </div>
           )}
 
-          {/* Grade 10 Board Exam Alert */}
-          {selectedGrade === '10' && selectedTerm === '9' && (
+          {/* Commerce Subgroup selector */}
+          {showCommerceSubgroupSelector && (
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1">
+                <ShoppingBag className="w-4 h-4" />
+                Commerce Subgroup
+              </Label>
+              <div className="flex flex-wrap gap-2">
+                {COMMERCE_SUBGROUPS.map((sg) => (
+                  <button
+                    key={sg.value}
+                    type="button"
+                    onClick={() => setCommerceSubgroup(sg.value)}
+                    className={`px-3 py-1.5 text-sm rounded border transition-colors ${
+                      commerceSubgroup === sg.value
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <span className="font-medium">{sg.label}</span>
+                    <span className="text-xs ml-1 opacity-70">
+                      ({sg.subjects})
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Elective Math selector (grades 11-12 Commerce, non-board-exam) */}
+          {showElectiveMathSelector && (
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1">
+                <Calculator className="w-4 h-4" />
+                Maths Elective
+              </Label>
+              <RadioGroup
+                value={electiveMath ?? ""}
+                onValueChange={(v) => setElectiveMath(v as ElectiveMath)}
+                className="flex gap-4"
+              >
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="maths" id="maths" />
+                  <Label htmlFor="maths">Maths</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="appliedMaths" id="appliedMaths" />
+                  <Label htmlFor="appliedMaths">Applied Maths</Label>
+                </div>
+              </RadioGroup>
+            </div>
+          )}
+
+          {/* Board Exam Math choice (grade 12 Commerce board exam) */}
+          {showBoardExamMathChoice && (
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1">
+                <Calculator className="w-4 h-4" />
+                Board Exam Maths
+              </Label>
+              <RadioGroup
+                value={boardExamMathChoice}
+                onValueChange={(v) =>
+                  setBoardExamMathChoice(v as "maths" | "appliedMaths")
+                }
+                className="flex gap-4"
+              >
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="maths" id="be-maths" />
+                  <Label htmlFor="be-maths">Maths</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="appliedMaths" id="be-appliedMaths" />
+                  <Label htmlFor="be-appliedMaths">Applied Maths</Label>
+                </div>
+              </RadioGroup>
+            </div>
+          )}
+
+          {/* AI Substitution Preview (Grade 10 Board Exam) */}
+          {isGrade10BoardExam && aiPreview && (
             <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                Grade 10 Board Exam with AI substitution: AI will replace the lowest of Math/Science/Social only if it
-                improves the total.
+              <Info className="h-4 w-4" />
+              <AlertDescription className="text-sm">
+                <strong>AI Substitution:</strong> AI marks (
+                {Number(marks.ai || 0)}) will substitute{" "}
+                <strong>{aiPreview.substitutedSubject}</strong> if it improves
+                your score.
               </AlertDescription>
             </Alert>
           )}
 
-          {/* Subject Marks Input */}
+          {/* Subject Marks */}
           {subjects.length > 0 && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label>Subject Marks (Raw Marks)</Label>
-                {selectedTerm && (
-                  <div className="flex gap-2">
-                    {!hasPE && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => addElectiveSubject('PE')}
-                      >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add PE (Elective)
-                      </Button>
-                    )}
-                    {isCommerceSubgroup && !hasMath && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => addElectiveSubject('Math')}
-                      >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Math (Elective)
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </div>
-              <div className="space-y-3">
-                {subjects.map((subject, index) => (
-                  <div key={index} className="grid grid-cols-[1fr_2fr_auto] gap-4 items-center">
-                    <Label htmlFor={`subject-${index}`} className="font-medium">
+            <div className="space-y-3">
+              <Label className="text-base font-semibold">Subject Marks</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {subjects.map((subject) => (
+                  <div key={subject.key} className="space-y-1">
+                    <Label htmlFor={subject.key} className="text-sm">
                       {subject.name}
-                      {subject.isElective && (
-                        <span className="ml-2 text-xs text-muted-foreground">(Elective)</span>
-                      )}
+                      <span className="text-muted-foreground ml-1 text-xs">
+                        / {subject.maxMarks}
+                      </span>
                     </Label>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        id={`subject-${index}`}
-                        type="number"
-                        min="0"
-                        max={subject.maxMarks}
-                        value={subject.marks}
-                        onChange={(e) => handleMarksChange(index, e.target.value)}
-                        placeholder={`0-${subject.maxMarks}`}
-                        className="font-mono"
-                      />
-                      <span className="text-sm text-muted-foreground whitespace-nowrap">/ {subject.maxMarks}</span>
-                      {subject.marks.trim() !== '' && (
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          (Grade: {calculateNineScaleGrade(parseInt(subject.marks) || 0, subject.maxMarks)})
-                        </span>
-                      )}
-                    </div>
-                    {subject.isElective && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeElectiveSubject(index)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                    <Input
+                      id={subject.key}
+                      type="number"
+                      min="0"
+                      max={subject.maxMarks}
+                      placeholder={`0–${subject.maxMarks}`}
+                      value={marks[subject.key] ?? ""}
+                      onChange={(e) =>
+                        handleMarkChange(subject.key, e.target.value)
+                      }
+                      className={
+                        errors[subject.key] ? "border-destructive" : ""
+                      }
+                    />
+                    {errors[subject.key] && (
+                      <p className="text-xs text-destructive">
+                        {errors[subject.key]}
+                      </p>
                     )}
                   </div>
                 ))}
@@ -464,33 +632,26 @@ export default function AddMarksForm({ onSuccess }: { onSuccess?: () => void }) 
             </div>
           )}
 
-          {/* Preview Grade */}
-          {previewGrade && (
-            <Alert>
-              <AlertDescription>
-                <div className="space-y-1">
-                  <p className="font-medium">Preview:</p>
-                  <p className="text-sm">
-                    Total: {previewGrade.totalMarks}/{previewGrade.totalMaxMarks} ({previewGrade.percentage}%)
-                  </p>
-                  <p className="text-sm">Letter Grade: <strong>{previewGrade.letterGrade}</strong></p>
-                </div>
-              </AlertDescription>
+          {/* Form-level error */}
+          {errors._form && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{errors._form}</AlertDescription>
             </Alert>
           )}
 
-          {/* Submit Button */}
-          <Button type="submit" className="w-full" disabled={addAcademicEntry.isPending || subjects.length === 0}>
-            {addAcademicEntry.isPending ? (
+          <Button
+            type="submit"
+            disabled={addEntryMutation.isPending}
+            className="w-full sm:w-auto"
+          >
+            {addEntryMutation.isPending ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Adding Entry...
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Saving...
               </>
             ) : (
-              <>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Entry
-              </>
+              "Save Marks"
             )}
           </Button>
         </form>

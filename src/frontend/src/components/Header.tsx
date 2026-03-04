@@ -1,40 +1,53 @@
-import { GraduationCap, Code2, Moon, Sun, Users, LogIn, LogOut, Database } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useTheme } from 'next-themes';
-import { useInternetIdentity } from '@/hooks/useInternetIdentity';
-import { useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { Button } from "@/components/ui/button";
+import { useInternetIdentity } from "@/hooks/useInternetIdentity";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  Code2,
+  Database,
+  GraduationCap,
+  LogIn,
+  LogOut,
+  Moon,
+  Sun,
+  Users,
+} from "lucide-react";
+import { useTheme } from "next-themes";
+import { toast } from "sonner";
 
 interface HeaderProps {
-  activeModule: 'academic' | 'coding' | 'users' | 'data';
-  setActiveModule: (module: 'academic' | 'coding' | 'users' | 'data') => void;
+  activeModule: "academic" | "coding" | "users" | "data";
+  setActiveModule: (module: "academic" | "coding" | "users" | "data") => void;
   isAdmin: boolean;
 }
 
-export default function Header({ activeModule, setActiveModule, isAdmin }: HeaderProps) {
+export default function Header({
+  activeModule,
+  setActiveModule,
+  isAdmin,
+}: HeaderProps) {
   const { theme, setTheme } = useTheme();
   const { login, clear, loginStatus, identity } = useInternetIdentity();
   const queryClient = useQueryClient();
 
   const isAuthenticated = !!identity;
-  const isLoggingIn = loginStatus === 'logging-in';
+  const isLoggingIn = loginStatus === "logging-in";
 
   const handleAuth = async () => {
     if (isAuthenticated) {
       await clear();
       queryClient.clear();
-      toast.success('Logged out successfully');
+      toast.success("Logged out successfully");
     } else {
       try {
         await login();
-        toast.success('Logged in successfully');
+        toast.success("Logged in successfully");
       } catch (error: any) {
-        console.error('Login error:', error);
-        if (error.message === 'User is already authenticated') {
+        console.error("Login error:", error);
+        if (error.message === "User is already authenticated") {
           await clear();
           setTimeout(() => login(), 300);
         } else {
-          toast.error('Login failed. Please try again.');
+          toast.error("Login failed. Please try again.");
         }
       }
     }
@@ -60,27 +73,27 @@ export default function Header({ activeModule, setActiveModule, isAdmin }: Heade
             {isAuthenticated && (
               <div className="flex items-center gap-1 p-1 bg-muted/50 rounded-lg">
                 <Button
-                  variant={activeModule === 'academic' ? 'default' : 'ghost'}
+                  variant={activeModule === "academic" ? "default" : "ghost"}
                   size="sm"
-                  onClick={() => setActiveModule('academic')}
+                  onClick={() => setActiveModule("academic")}
                   className="gap-2"
                 >
                   <GraduationCap className="w-4 h-4" />
                   <span className="hidden sm:inline">Academic</span>
                 </Button>
                 <Button
-                  variant={activeModule === 'coding' ? 'default' : 'ghost'}
+                  variant={activeModule === "coding" ? "default" : "ghost"}
                   size="sm"
-                  onClick={() => setActiveModule('coding')}
+                  onClick={() => setActiveModule("coding")}
                   className="gap-2"
                 >
                   <Code2 className="w-4 h-4" />
                   <span className="hidden sm:inline">Coding</span>
                 </Button>
                 <Button
-                  variant={activeModule === 'data' ? 'default' : 'ghost'}
+                  variant={activeModule === "data" ? "default" : "ghost"}
                   size="sm"
-                  onClick={() => setActiveModule('data')}
+                  onClick={() => setActiveModule("data")}
                   className="gap-2"
                 >
                   <Database className="w-4 h-4" />
@@ -88,9 +101,9 @@ export default function Header({ activeModule, setActiveModule, isAdmin }: Heade
                 </Button>
                 {isAdmin && (
                   <Button
-                    variant={activeModule === 'users' ? 'default' : 'ghost'}
+                    variant={activeModule === "users" ? "default" : "ghost"}
                     size="sm"
-                    onClick={() => setActiveModule('users')}
+                    onClick={() => setActiveModule("users")}
                     className="gap-2"
                   >
                     <Users className="w-4 h-4" />
@@ -103,7 +116,7 @@ export default function Header({ activeModule, setActiveModule, isAdmin }: Heade
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               className="ml-2"
             >
               <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
@@ -114,7 +127,7 @@ export default function Header({ activeModule, setActiveModule, isAdmin }: Heade
             <Button
               onClick={handleAuth}
               disabled={isLoggingIn}
-              variant={isAuthenticated ? 'outline' : 'default'}
+              variant={isAuthenticated ? "outline" : "default"}
               size="sm"
               className="gap-2"
             >
@@ -141,4 +154,3 @@ export default function Header({ activeModule, setActiveModule, isAdmin }: Heade
     </header>
   );
 }
-

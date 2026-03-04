@@ -89,29 +89,20 @@ export class ExternalBlob {
         return this;
     }
 }
-export interface UserProfile {
-    name: string;
+export interface _CaffeineStorageRefillResult {
+    success?: boolean;
+    topped_up_amount?: bigint;
 }
-export interface SubjectScores {
-    ai?: bigint;
-    pe?: bigint;
-    evs?: bigint;
-    biology?: bigint;
-    social?: bigint;
-    hindi?: bigint;
-    math?: bigint;
-    businessStudies?: bigint;
-    computer?: bigint;
-    economics?: bigint;
-    chemistry?: bigint;
-    accountancy?: bigint;
-    physics?: bigint;
-    management?: bigint;
-    psychology?: bigint;
-    kannada?: bigint;
-    english?: bigint;
-    statistics?: bigint;
-    science?: bigint;
+export interface CombinedPercentage {
+    overallPercentage: bigint;
+    grade: bigint;
+}
+export interface CodingChallenge {
+    id: bigint;
+    title: string;
+    sampleOutput: string;
+    description: string;
+    sampleInput: string;
 }
 export type Time = bigint;
 export interface _CaffeineStorageRefillInformation {
@@ -125,14 +116,25 @@ export interface _CaffeineStorageCreateCertificateResult {
     method: string;
     blob_hash: string;
 }
+export interface CombinedPercentages {
+    percentages: Array<CombinedPercentage>;
+}
+export interface BoardExamResults {
+    maxMarks: bigint;
+    boardExamTotal: bigint;
+    percentage: bigint;
+}
 export interface AcademicEntry {
     totalFinalMarks: bigint;
+    scienceSubgroup?: string;
     stream?: string;
-    subjects: SubjectScores;
+    subjects: Subjects;
     term: bigint;
+    mathsMaxMarks: bigint;
     gradeText: string;
+    commerceSubgroup?: string;
     overallPercentage: bigint;
-    subgroup?: string;
+    appliedMathsMaxMarks: bigint;
     maxMarksPerSubject: bigint;
     overallMaxMarks: bigint;
     grade: bigint;
@@ -144,17 +146,13 @@ export interface AcademicEntry {
     termTotalMarks: bigint;
     aiMaxMarks: bigint;
 }
-export interface BoardExamResults {
-    maxMarks: bigint;
-    boardExamTotal: bigint;
-    percentage: bigint;
-}
 export interface Score9Scale {
     ai?: number;
     pe?: number;
     evs?: number;
+    ssc?: number;
+    maths?: number;
     biology?: number;
-    social?: number;
     hindi?: number;
     math?: number;
     businessStudies?: number;
@@ -166,15 +164,19 @@ export interface Score9Scale {
     management?: number;
     psychology?: number;
     kannada?: number;
+    appliedMaths?: number;
     english?: number;
     statistics?: number;
     science?: number;
 }
 export interface SaveAcademicInput {
-    marks: SubjectScores;
+    marks: Subjects;
+    scienceSubgroup?: string;
     stream?: string;
     term: bigint;
-    subgroup?: string;
+    mathsMaxMarks: bigint;
+    commerceSubgroup?: string;
+    appliedMathsMaxMarks: bigint;
     termMaxMarks: bigint;
     marks9?: Score9Scale;
     computerMaxMarks: bigint;
@@ -184,17 +186,19 @@ export interface ExportTypes {
     academicEntries: AcademicEntriesExport;
     coding: CodingExport;
 }
+export interface GradeAggregateWithWeighting {
+    term2Percentage: bigint;
+    combinedOverallPercentage: bigint;
+    term1Percentage: bigint;
+    term3Percentage: bigint;
+}
 export interface GradeAggregate {
     term2Percentage: bigint;
     combinedOverallPercentage: bigint;
     term1Percentage: bigint;
 }
-export interface CodingAttempt {
-    result: string;
-    code: string;
-    score?: bigint;
-    challengeId: bigint;
-    timestamp: Time;
+export interface GradeAggregatesWithWeighting {
+    aggregates: Array<[bigint, GradeAggregateWithWeighting]>;
 }
 export interface CodingExport {
     attempts: Array<[Principal, Array<CodingAttempt>]>;
@@ -203,16 +207,46 @@ export interface CodingExport {
 export interface GradeAggregates {
     aggregates: Array<[bigint, GradeAggregate]>;
 }
-export interface _CaffeineStorageRefillResult {
-    success?: boolean;
-    topped_up_amount?: bigint;
+export interface CodingAttempt {
+    result: string;
+    code: string;
+    score?: bigint;
+    challengeId: bigint;
+    timestamp: Time;
 }
-export interface CodingChallenge {
-    id: bigint;
-    title: string;
-    sampleOutput: string;
-    description: string;
-    sampleInput: string;
+export interface AllGradesPercentages {
+    entries: Array<[bigint, GradePercentages]>;
+}
+export interface Subjects {
+    ai?: bigint;
+    pe?: bigint;
+    evs?: bigint;
+    ssc?: bigint;
+    maths?: bigint;
+    biology?: bigint;
+    hindi?: bigint;
+    math?: bigint;
+    businessStudies?: bigint;
+    computer?: bigint;
+    economics?: bigint;
+    chemistry?: bigint;
+    accountancy?: bigint;
+    physics?: bigint;
+    management?: bigint;
+    psychology?: bigint;
+    kannada?: bigint;
+    appliedMaths?: bigint;
+    english?: bigint;
+    statistics?: bigint;
+    science?: bigint;
+}
+export interface GradePercentages {
+    term1?: bigint;
+    term2?: bigint;
+    term3?: bigint;
+}
+export interface UserProfile {
+    name: string;
 }
 export enum UserRole {
     admin = "admin",
@@ -229,10 +263,13 @@ export interface backendInterface {
     addAcademicEntry(grade: bigint, academicInputs: Array<SaveAcademicInput>, _finalMarks: bigint | null): Promise<Array<AcademicEntry>>;
     addCodingChallenge(title: string, description: string, sampleInput: string, sampleOutput: string): Promise<CodingChallenge>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    calculateCombinedPercentages(): Promise<CombinedPercentages>;
+    calculateWeightedPercentages(): Promise<GradeAggregatesWithWeighting>;
     getAcademicEntries(): Promise<Array<AcademicEntry>>;
     getAcademicEntriesByGrade(grade: bigint): Promise<Array<AcademicEntry>>;
     getAcademicEntriesByGradeAndTerm(grade: bigint, term: bigint): Promise<Array<AcademicEntry>>;
     getAllCodingChallenges(): Promise<Array<CodingChallenge>>;
+    getAllGradePercentages(): Promise<AllGradesPercentages>;
     getBoardExamResults(): Promise<BoardExamResults>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
@@ -254,7 +291,7 @@ export interface backendInterface {
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     saveCodingAttempt(challengeId: bigint, code: string, result: string, score: bigint | null): Promise<CodingAttempt>;
 }
-import type { AcademicEntriesExport as _AcademicEntriesExport, AcademicEntry as _AcademicEntry, BoardExamResults as _BoardExamResults, CodingAttempt as _CodingAttempt, CodingChallenge as _CodingChallenge, CodingExport as _CodingExport, ExportTypes as _ExportTypes, SaveAcademicInput as _SaveAcademicInput, Score9Scale as _Score9Scale, SubjectScores as _SubjectScores, Time as _Time, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
+import type { AcademicEntriesExport as _AcademicEntriesExport, AcademicEntry as _AcademicEntry, AllGradesPercentages as _AllGradesPercentages, BoardExamResults as _BoardExamResults, CodingAttempt as _CodingAttempt, CodingChallenge as _CodingChallenge, CodingExport as _CodingExport, ExportTypes as _ExportTypes, GradePercentages as _GradePercentages, SaveAcademicInput as _SaveAcademicInput, Score9Scale as _Score9Scale, Subjects as _Subjects, Time as _Time, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _caffeineStorageBlobIsLive(arg0: Uint8Array): Promise<boolean> {
@@ -383,6 +420,34 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async calculateCombinedPercentages(): Promise<CombinedPercentages> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.calculateCombinedPercentages();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.calculateCombinedPercentages();
+            return result;
+        }
+    }
+    async calculateWeightedPercentages(): Promise<GradeAggregatesWithWeighting> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.calculateWeightedPercentages();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.calculateWeightedPercentages();
+            return result;
+        }
+    }
     async getAcademicEntries(): Promise<Array<AcademicEntry>> {
         if (this.processError) {
             try {
@@ -439,6 +504,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async getAllGradePercentages(): Promise<AllGradesPercentages> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllGradePercentages();
+                return from_candid_AllGradesPercentages_n28(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllGradePercentages();
+            return from_candid_AllGradesPercentages_n28(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async getBoardExamResults(): Promise<BoardExamResults> {
         if (this.processError) {
             try {
@@ -457,42 +536,42 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserProfile();
-                return from_candid_opt_n28(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n34(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserProfile();
-            return from_candid_opt_n28(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n34(this._uploadFile, this._downloadFile, result);
         }
     }
     async getCallerUserRole(): Promise<UserRole> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserRole();
-                return from_candid_UserRole_n29(this._uploadFile, this._downloadFile, result);
+                return from_candid_UserRole_n35(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserRole();
-            return from_candid_UserRole_n29(this._uploadFile, this._downloadFile, result);
+            return from_candid_UserRole_n35(this._uploadFile, this._downloadFile, result);
         }
     }
     async getCodingAttempts(): Promise<Array<CodingAttempt>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCodingAttempts();
-                return from_candid_vec_n31(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n37(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCodingAttempts();
-            return from_candid_vec_n31(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n37(this._uploadFile, this._downloadFile, result);
         }
     }
     async getCodingChallenge(arg0: bigint): Promise<CodingChallenge> {
@@ -518,14 +597,14 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.getCombinedAcademicEntriesByGrade(arg0);
-                return from_candid_record_n34(this._uploadFile, this._downloadFile, result);
+                return from_candid_record_n40(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCombinedAcademicEntriesByGrade(arg0);
-            return from_candid_record_n34(this._uploadFile, this._downloadFile, result);
+            return from_candid_record_n40(this._uploadFile, this._downloadFile, result);
         }
     }
     async getGradeAggregatePercentages(): Promise<GradeAggregates> {
@@ -546,27 +625,27 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.getUserProfile(arg0);
-                return from_candid_opt_n28(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n34(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getUserProfile(arg0);
-            return from_candid_opt_n28(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n34(this._uploadFile, this._downloadFile, result);
         }
     }
     async importData(arg0: ExportTypes): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.importData(to_candid_ExportTypes_n36(this._uploadFile, this._downloadFile, arg0));
+                const result = await this.actor.importData(to_candid_ExportTypes_n42(this._uploadFile, this._downloadFile, arg0));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.importData(to_candid_ExportTypes_n36(this._uploadFile, this._downloadFile, arg0));
+            const result = await this.actor.importData(to_candid_ExportTypes_n42(this._uploadFile, this._downloadFile, arg0));
             return result;
         }
     }
@@ -602,14 +681,14 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.retrieveDataExportRequest(arg0);
-                return from_candid_ExportTypes_n52(this._uploadFile, this._downloadFile, result);
+                return from_candid_ExportTypes_n58(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.retrieveDataExportRequest(arg0);
-            return from_candid_ExportTypes_n52(this._uploadFile, this._downloadFile, result);
+            return from_candid_ExportTypes_n58(this._uploadFile, this._downloadFile, result);
         }
     }
     async saveBoardExamResults(arg0: bigint, arg1: bigint): Promise<void> {
@@ -644,40 +723,46 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.saveCodingAttempt(arg0, arg1, arg2, to_candid_opt_n15(this._uploadFile, this._downloadFile, arg3));
-                return from_candid_CodingAttempt_n32(this._uploadFile, this._downloadFile, result);
+                return from_candid_CodingAttempt_n38(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.saveCodingAttempt(arg0, arg1, arg2, to_candid_opt_n15(this._uploadFile, this._downloadFile, arg3));
-            return from_candid_CodingAttempt_n32(this._uploadFile, this._downloadFile, result);
+            return from_candid_CodingAttempt_n38(this._uploadFile, this._downloadFile, result);
         }
     }
 }
-function from_candid_AcademicEntriesExport_n54(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _AcademicEntriesExport): AcademicEntriesExport {
-    return from_candid_record_n55(_uploadFile, _downloadFile, value);
+function from_candid_AcademicEntriesExport_n60(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _AcademicEntriesExport): AcademicEntriesExport {
+    return from_candid_record_n61(_uploadFile, _downloadFile, value);
 }
 function from_candid_AcademicEntry_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _AcademicEntry): AcademicEntry {
     return from_candid_record_n18(_uploadFile, _downloadFile, value);
 }
-function from_candid_CodingAttempt_n32(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _CodingAttempt): CodingAttempt {
-    return from_candid_record_n33(_uploadFile, _downloadFile, value);
+function from_candid_AllGradesPercentages_n28(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _AllGradesPercentages): AllGradesPercentages {
+    return from_candid_record_n29(_uploadFile, _downloadFile, value);
 }
-function from_candid_CodingExport_n58(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _CodingExport): CodingExport {
+function from_candid_CodingAttempt_n38(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _CodingAttempt): CodingAttempt {
+    return from_candid_record_n39(_uploadFile, _downloadFile, value);
+}
+function from_candid_CodingExport_n64(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _CodingExport): CodingExport {
+    return from_candid_record_n65(_uploadFile, _downloadFile, value);
+}
+function from_candid_ExportTypes_n58(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ExportTypes): ExportTypes {
     return from_candid_record_n59(_uploadFile, _downloadFile, value);
 }
-function from_candid_ExportTypes_n52(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ExportTypes): ExportTypes {
-    return from_candid_record_n53(_uploadFile, _downloadFile, value);
+function from_candid_GradePercentages_n32(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _GradePercentages): GradePercentages {
+    return from_candid_record_n33(_uploadFile, _downloadFile, value);
 }
 function from_candid_Score9Scale_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Score9Scale): Score9Scale {
     return from_candid_record_n24(_uploadFile, _downloadFile, value);
 }
-function from_candid_SubjectScores_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _SubjectScores): SubjectScores {
+function from_candid_Subjects_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Subjects): Subjects {
     return from_candid_record_n21(_uploadFile, _downloadFile, value);
 }
-function from_candid_UserRole_n29(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
-    return from_candid_variant_n30(_uploadFile, _downloadFile, value);
+function from_candid_UserRole_n35(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
+    return from_candid_variant_n36(_uploadFile, _downloadFile, value);
 }
 function from_candid__CaffeineStorageRefillResult_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: __CaffeineStorageRefillResult): _CaffeineStorageRefillResult {
     return from_candid_record_n5(_uploadFile, _downloadFile, value);
@@ -691,10 +776,10 @@ function from_candid_opt_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
 function from_candid_opt_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [number]): number | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n28(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
+function from_candid_opt_n34(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n35(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_AcademicEntry]): AcademicEntry | null {
+function from_candid_opt_n41(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_AcademicEntry]): AcademicEntry | null {
     return value.length === 0 ? null : from_candid_AcademicEntry_n17(_uploadFile, _downloadFile, value[0]);
 }
 function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [boolean]): boolean | null {
@@ -705,12 +790,15 @@ function from_candid_opt_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Ar
 }
 function from_candid_record_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     totalFinalMarks: bigint;
+    scienceSubgroup: [] | [string];
     stream: [] | [string];
-    subjects: _SubjectScores;
+    subjects: _Subjects;
     term: bigint;
+    mathsMaxMarks: bigint;
     gradeText: string;
+    commerceSubgroup: [] | [string];
     overallPercentage: bigint;
-    subgroup: [] | [string];
+    appliedMathsMaxMarks: bigint;
     maxMarksPerSubject: bigint;
     overallMaxMarks: bigint;
     grade: bigint;
@@ -723,12 +811,15 @@ function from_candid_record_n18(_uploadFile: (file: ExternalBlob) => Promise<Uin
     aiMaxMarks: bigint;
 }): {
     totalFinalMarks: bigint;
+    scienceSubgroup?: string;
     stream?: string;
-    subjects: SubjectScores;
+    subjects: Subjects;
     term: bigint;
+    mathsMaxMarks: bigint;
     gradeText: string;
+    commerceSubgroup?: string;
     overallPercentage: bigint;
-    subgroup?: string;
+    appliedMathsMaxMarks: bigint;
     maxMarksPerSubject: bigint;
     overallMaxMarks: bigint;
     grade: bigint;
@@ -742,12 +833,15 @@ function from_candid_record_n18(_uploadFile: (file: ExternalBlob) => Promise<Uin
 } {
     return {
         totalFinalMarks: value.totalFinalMarks,
+        scienceSubgroup: record_opt_to_undefined(from_candid_opt_n19(_uploadFile, _downloadFile, value.scienceSubgroup)),
         stream: record_opt_to_undefined(from_candid_opt_n19(_uploadFile, _downloadFile, value.stream)),
-        subjects: from_candid_SubjectScores_n20(_uploadFile, _downloadFile, value.subjects),
+        subjects: from_candid_Subjects_n20(_uploadFile, _downloadFile, value.subjects),
         term: value.term,
+        mathsMaxMarks: value.mathsMaxMarks,
         gradeText: value.gradeText,
+        commerceSubgroup: record_opt_to_undefined(from_candid_opt_n19(_uploadFile, _downloadFile, value.commerceSubgroup)),
         overallPercentage: value.overallPercentage,
-        subgroup: record_opt_to_undefined(from_candid_opt_n19(_uploadFile, _downloadFile, value.subgroup)),
+        appliedMathsMaxMarks: value.appliedMathsMaxMarks,
         maxMarksPerSubject: value.maxMarksPerSubject,
         overallMaxMarks: value.overallMaxMarks,
         grade: value.grade,
@@ -764,8 +858,9 @@ function from_candid_record_n21(_uploadFile: (file: ExternalBlob) => Promise<Uin
     ai: [] | [bigint];
     pe: [] | [bigint];
     evs: [] | [bigint];
+    ssc: [] | [bigint];
+    maths: [] | [bigint];
     biology: [] | [bigint];
-    social: [] | [bigint];
     hindi: [] | [bigint];
     math: [] | [bigint];
     businessStudies: [] | [bigint];
@@ -777,6 +872,7 @@ function from_candid_record_n21(_uploadFile: (file: ExternalBlob) => Promise<Uin
     management: [] | [bigint];
     psychology: [] | [bigint];
     kannada: [] | [bigint];
+    appliedMaths: [] | [bigint];
     english: [] | [bigint];
     statistics: [] | [bigint];
     science: [] | [bigint];
@@ -784,8 +880,9 @@ function from_candid_record_n21(_uploadFile: (file: ExternalBlob) => Promise<Uin
     ai?: bigint;
     pe?: bigint;
     evs?: bigint;
+    ssc?: bigint;
+    maths?: bigint;
     biology?: bigint;
-    social?: bigint;
     hindi?: bigint;
     math?: bigint;
     businessStudies?: bigint;
@@ -797,6 +894,7 @@ function from_candid_record_n21(_uploadFile: (file: ExternalBlob) => Promise<Uin
     management?: bigint;
     psychology?: bigint;
     kannada?: bigint;
+    appliedMaths?: bigint;
     english?: bigint;
     statistics?: bigint;
     science?: bigint;
@@ -805,8 +903,9 @@ function from_candid_record_n21(_uploadFile: (file: ExternalBlob) => Promise<Uin
         ai: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.ai)),
         pe: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.pe)),
         evs: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.evs)),
+        ssc: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.ssc)),
+        maths: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.maths)),
         biology: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.biology)),
-        social: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.social)),
         hindi: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.hindi)),
         math: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.math)),
         businessStudies: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.businessStudies)),
@@ -818,6 +917,7 @@ function from_candid_record_n21(_uploadFile: (file: ExternalBlob) => Promise<Uin
         management: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.management)),
         psychology: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.psychology)),
         kannada: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.kannada)),
+        appliedMaths: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.appliedMaths)),
         english: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.english)),
         statistics: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.statistics)),
         science: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.science))
@@ -827,8 +927,9 @@ function from_candid_record_n24(_uploadFile: (file: ExternalBlob) => Promise<Uin
     ai: [] | [number];
     pe: [] | [number];
     evs: [] | [number];
+    ssc: [] | [number];
+    maths: [] | [number];
     biology: [] | [number];
-    social: [] | [number];
     hindi: [] | [number];
     math: [] | [number];
     businessStudies: [] | [number];
@@ -840,6 +941,7 @@ function from_candid_record_n24(_uploadFile: (file: ExternalBlob) => Promise<Uin
     management: [] | [number];
     psychology: [] | [number];
     kannada: [] | [number];
+    appliedMaths: [] | [number];
     english: [] | [number];
     statistics: [] | [number];
     science: [] | [number];
@@ -847,8 +949,9 @@ function from_candid_record_n24(_uploadFile: (file: ExternalBlob) => Promise<Uin
     ai?: number;
     pe?: number;
     evs?: number;
+    ssc?: number;
+    maths?: number;
     biology?: number;
-    social?: number;
     hindi?: number;
     math?: number;
     businessStudies?: number;
@@ -860,6 +963,7 @@ function from_candid_record_n24(_uploadFile: (file: ExternalBlob) => Promise<Uin
     management?: number;
     psychology?: number;
     kannada?: number;
+    appliedMaths?: number;
     english?: number;
     statistics?: number;
     science?: number;
@@ -868,8 +972,9 @@ function from_candid_record_n24(_uploadFile: (file: ExternalBlob) => Promise<Uin
         ai: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.ai)),
         pe: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.pe)),
         evs: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.evs)),
+        ssc: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.ssc)),
+        maths: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.maths)),
         biology: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.biology)),
-        social: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.social)),
         hindi: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.hindi)),
         math: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.math)),
         businessStudies: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.businessStudies)),
@@ -881,12 +986,37 @@ function from_candid_record_n24(_uploadFile: (file: ExternalBlob) => Promise<Uin
         management: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.management)),
         psychology: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.psychology)),
         kannada: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.kannada)),
+        appliedMaths: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.appliedMaths)),
         english: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.english)),
         statistics: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.statistics)),
         science: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.science))
     };
 }
+function from_candid_record_n29(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    entries: Array<[bigint, _GradePercentages]>;
+}): {
+    entries: Array<[bigint, GradePercentages]>;
+} {
+    return {
+        entries: from_candid_vec_n30(_uploadFile, _downloadFile, value.entries)
+    };
+}
 function from_candid_record_n33(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    term1: [] | [bigint];
+    term2: [] | [bigint];
+    term3: [] | [bigint];
+}): {
+    term1?: bigint;
+    term2?: bigint;
+    term3?: bigint;
+} {
+    return {
+        term1: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.term1)),
+        term2: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.term2)),
+        term3: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.term3))
+    };
+}
+function from_candid_record_n39(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     result: string;
     code: string;
     score: [] | [bigint];
@@ -907,7 +1037,7 @@ function from_candid_record_n33(_uploadFile: (file: ExternalBlob) => Promise<Uin
         timestamp: value.timestamp
     };
 }
-function from_candid_record_n34(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n40(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     term1: [] | [_AcademicEntry];
     term2: [] | [_AcademicEntry];
     combinedTotal: bigint;
@@ -919,8 +1049,8 @@ function from_candid_record_n34(_uploadFile: (file: ExternalBlob) => Promise<Uin
     combinedAverage: bigint;
 } {
     return {
-        term1: record_opt_to_undefined(from_candid_opt_n35(_uploadFile, _downloadFile, value.term1)),
-        term2: record_opt_to_undefined(from_candid_opt_n35(_uploadFile, _downloadFile, value.term2)),
+        term1: record_opt_to_undefined(from_candid_opt_n41(_uploadFile, _downloadFile, value.term1)),
+        term2: record_opt_to_undefined(from_candid_opt_n41(_uploadFile, _downloadFile, value.term2)),
         combinedTotal: value.combinedTotal,
         combinedAverage: value.combinedAverage
     };
@@ -937,7 +1067,7 @@ function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint
         topped_up_amount: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.topped_up_amount))
     };
 }
-function from_candid_record_n53(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n59(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     academicEntries: _AcademicEntriesExport;
     coding: _CodingExport;
 }): {
@@ -945,11 +1075,11 @@ function from_candid_record_n53(_uploadFile: (file: ExternalBlob) => Promise<Uin
     coding: CodingExport;
 } {
     return {
-        academicEntries: from_candid_AcademicEntriesExport_n54(_uploadFile, _downloadFile, value.academicEntries),
-        coding: from_candid_CodingExport_n58(_uploadFile, _downloadFile, value.coding)
+        academicEntries: from_candid_AcademicEntriesExport_n60(_uploadFile, _downloadFile, value.academicEntries),
+        coding: from_candid_CodingExport_n64(_uploadFile, _downloadFile, value.coding)
     };
 }
-function from_candid_record_n55(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n61(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     academicEntries: Array<[Principal, Array<_AcademicEntry>]>;
     boardExamResults: Array<[Principal, _BoardExamResults]>;
 }): {
@@ -957,11 +1087,11 @@ function from_candid_record_n55(_uploadFile: (file: ExternalBlob) => Promise<Uin
     boardExamResults: Array<[Principal, BoardExamResults]>;
 } {
     return {
-        academicEntries: from_candid_vec_n56(_uploadFile, _downloadFile, value.academicEntries),
+        academicEntries: from_candid_vec_n62(_uploadFile, _downloadFile, value.academicEntries),
         boardExamResults: value.boardExamResults
     };
 }
-function from_candid_record_n59(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n65(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     attempts: Array<[Principal, Array<_CodingAttempt>]>;
     challenges: Array<_CodingChallenge>;
 }): {
@@ -969,23 +1099,29 @@ function from_candid_record_n59(_uploadFile: (file: ExternalBlob) => Promise<Uin
     challenges: Array<CodingChallenge>;
 } {
     return {
-        attempts: from_candid_vec_n60(_uploadFile, _downloadFile, value.attempts),
+        attempts: from_candid_vec_n66(_uploadFile, _downloadFile, value.attempts),
         challenges: value.challenges
     };
 }
-function from_candid_tuple_n57(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [Principal, Array<_AcademicEntry>]): [Principal, Array<AcademicEntry>] {
+function from_candid_tuple_n31(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [bigint, _GradePercentages]): [bigint, GradePercentages] {
+    return [
+        value[0],
+        from_candid_GradePercentages_n32(_uploadFile, _downloadFile, value[1])
+    ];
+}
+function from_candid_tuple_n63(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [Principal, Array<_AcademicEntry>]): [Principal, Array<AcademicEntry>] {
     return [
         value[0],
         from_candid_vec_n16(_uploadFile, _downloadFile, value[1])
     ];
 }
-function from_candid_tuple_n61(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [Principal, Array<_CodingAttempt>]): [Principal, Array<CodingAttempt>] {
+function from_candid_tuple_n67(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [Principal, Array<_CodingAttempt>]): [Principal, Array<CodingAttempt>] {
     return [
         value[0],
-        from_candid_vec_n31(_uploadFile, _downloadFile, value[1])
+        from_candid_vec_n37(_uploadFile, _downloadFile, value[1])
     ];
 }
-function from_candid_variant_n30(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n36(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     admin: null;
 } | {
     user: null;
@@ -997,29 +1133,32 @@ function from_candid_variant_n30(_uploadFile: (file: ExternalBlob) => Promise<Ui
 function from_candid_vec_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_AcademicEntry>): Array<AcademicEntry> {
     return value.map((x)=>from_candid_AcademicEntry_n17(_uploadFile, _downloadFile, x));
 }
-function from_candid_vec_n31(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_CodingAttempt>): Array<CodingAttempt> {
-    return value.map((x)=>from_candid_CodingAttempt_n32(_uploadFile, _downloadFile, x));
+function from_candid_vec_n30(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<[bigint, _GradePercentages]>): Array<[bigint, GradePercentages]> {
+    return value.map((x)=>from_candid_tuple_n31(_uploadFile, _downloadFile, x));
 }
-function from_candid_vec_n56(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<[Principal, Array<_AcademicEntry>]>): Array<[Principal, Array<AcademicEntry>]> {
-    return value.map((x)=>from_candid_tuple_n57(_uploadFile, _downloadFile, x));
+function from_candid_vec_n37(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_CodingAttempt>): Array<CodingAttempt> {
+    return value.map((x)=>from_candid_CodingAttempt_n38(_uploadFile, _downloadFile, x));
 }
-function from_candid_vec_n60(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<[Principal, Array<_CodingAttempt>]>): Array<[Principal, Array<CodingAttempt>]> {
-    return value.map((x)=>from_candid_tuple_n61(_uploadFile, _downloadFile, x));
+function from_candid_vec_n62(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<[Principal, Array<_AcademicEntry>]>): Array<[Principal, Array<AcademicEntry>]> {
+    return value.map((x)=>from_candid_tuple_n63(_uploadFile, _downloadFile, x));
 }
-function to_candid_AcademicEntriesExport_n38(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: AcademicEntriesExport): _AcademicEntriesExport {
-    return to_candid_record_n39(_uploadFile, _downloadFile, value);
+function from_candid_vec_n66(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<[Principal, Array<_CodingAttempt>]>): Array<[Principal, Array<CodingAttempt>]> {
+    return value.map((x)=>from_candid_tuple_n67(_uploadFile, _downloadFile, x));
 }
-function to_candid_AcademicEntry_n43(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: AcademicEntry): _AcademicEntry {
-    return to_candid_record_n44(_uploadFile, _downloadFile, value);
+function to_candid_AcademicEntriesExport_n44(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: AcademicEntriesExport): _AcademicEntriesExport {
+    return to_candid_record_n45(_uploadFile, _downloadFile, value);
 }
-function to_candid_CodingAttempt_n50(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: CodingAttempt): _CodingAttempt {
-    return to_candid_record_n51(_uploadFile, _downloadFile, value);
+function to_candid_AcademicEntry_n49(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: AcademicEntry): _AcademicEntry {
+    return to_candid_record_n50(_uploadFile, _downloadFile, value);
 }
-function to_candid_CodingExport_n45(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: CodingExport): _CodingExport {
-    return to_candid_record_n46(_uploadFile, _downloadFile, value);
+function to_candid_CodingAttempt_n56(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: CodingAttempt): _CodingAttempt {
+    return to_candid_record_n57(_uploadFile, _downloadFile, value);
 }
-function to_candid_ExportTypes_n36(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ExportTypes): _ExportTypes {
-    return to_candid_record_n37(_uploadFile, _downloadFile, value);
+function to_candid_CodingExport_n51(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: CodingExport): _CodingExport {
+    return to_candid_record_n52(_uploadFile, _downloadFile, value);
+}
+function to_candid_ExportTypes_n42(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ExportTypes): _ExportTypes {
+    return to_candid_record_n43(_uploadFile, _downloadFile, value);
 }
 function to_candid_SaveAcademicInput_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: SaveAcademicInput): _SaveAcademicInput {
     return to_candid_record_n10(_uploadFile, _downloadFile, value);
@@ -1027,7 +1166,7 @@ function to_candid_SaveAcademicInput_n9(_uploadFile: (file: ExternalBlob) => Pro
 function to_candid_Score9Scale_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Score9Scale): _Score9Scale {
     return to_candid_record_n14(_uploadFile, _downloadFile, value);
 }
-function to_candid_SubjectScores_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: SubjectScores): _SubjectScores {
+function to_candid_Subjects_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Subjects): _Subjects {
     return to_candid_record_n12(_uploadFile, _downloadFile, value);
 }
 function to_candid_UserRole_n26(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
@@ -1043,29 +1182,38 @@ function to_candid_opt_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Arr
     return value === null ? candid_none() : candid_some(value);
 }
 function to_candid_record_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    marks: SubjectScores;
+    marks: Subjects;
+    scienceSubgroup?: string;
     stream?: string;
     term: bigint;
-    subgroup?: string;
+    mathsMaxMarks: bigint;
+    commerceSubgroup?: string;
+    appliedMathsMaxMarks: bigint;
     termMaxMarks: bigint;
     marks9?: Score9Scale;
     computerMaxMarks: bigint;
     aiMaxMarks: bigint;
 }): {
-    marks: _SubjectScores;
+    marks: _Subjects;
+    scienceSubgroup: [] | [string];
     stream: [] | [string];
     term: bigint;
-    subgroup: [] | [string];
+    mathsMaxMarks: bigint;
+    commerceSubgroup: [] | [string];
+    appliedMathsMaxMarks: bigint;
     termMaxMarks: bigint;
     marks9: [] | [_Score9Scale];
     computerMaxMarks: bigint;
     aiMaxMarks: bigint;
 } {
     return {
-        marks: to_candid_SubjectScores_n11(_uploadFile, _downloadFile, value.marks),
+        marks: to_candid_Subjects_n11(_uploadFile, _downloadFile, value.marks),
+        scienceSubgroup: value.scienceSubgroup ? candid_some(value.scienceSubgroup) : candid_none(),
         stream: value.stream ? candid_some(value.stream) : candid_none(),
         term: value.term,
-        subgroup: value.subgroup ? candid_some(value.subgroup) : candid_none(),
+        mathsMaxMarks: value.mathsMaxMarks,
+        commerceSubgroup: value.commerceSubgroup ? candid_some(value.commerceSubgroup) : candid_none(),
+        appliedMathsMaxMarks: value.appliedMathsMaxMarks,
         termMaxMarks: value.termMaxMarks,
         marks9: value.marks9 ? candid_some(to_candid_Score9Scale_n13(_uploadFile, _downloadFile, value.marks9)) : candid_none(),
         computerMaxMarks: value.computerMaxMarks,
@@ -1076,8 +1224,9 @@ function to_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     ai?: bigint;
     pe?: bigint;
     evs?: bigint;
+    ssc?: bigint;
+    maths?: bigint;
     biology?: bigint;
-    social?: bigint;
     hindi?: bigint;
     math?: bigint;
     businessStudies?: bigint;
@@ -1089,6 +1238,7 @@ function to_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     management?: bigint;
     psychology?: bigint;
     kannada?: bigint;
+    appliedMaths?: bigint;
     english?: bigint;
     statistics?: bigint;
     science?: bigint;
@@ -1096,8 +1246,9 @@ function to_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     ai: [] | [bigint];
     pe: [] | [bigint];
     evs: [] | [bigint];
+    ssc: [] | [bigint];
+    maths: [] | [bigint];
     biology: [] | [bigint];
-    social: [] | [bigint];
     hindi: [] | [bigint];
     math: [] | [bigint];
     businessStudies: [] | [bigint];
@@ -1109,6 +1260,7 @@ function to_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     management: [] | [bigint];
     psychology: [] | [bigint];
     kannada: [] | [bigint];
+    appliedMaths: [] | [bigint];
     english: [] | [bigint];
     statistics: [] | [bigint];
     science: [] | [bigint];
@@ -1117,8 +1269,9 @@ function to_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8
         ai: value.ai ? candid_some(value.ai) : candid_none(),
         pe: value.pe ? candid_some(value.pe) : candid_none(),
         evs: value.evs ? candid_some(value.evs) : candid_none(),
+        ssc: value.ssc ? candid_some(value.ssc) : candid_none(),
+        maths: value.maths ? candid_some(value.maths) : candid_none(),
         biology: value.biology ? candid_some(value.biology) : candid_none(),
-        social: value.social ? candid_some(value.social) : candid_none(),
         hindi: value.hindi ? candid_some(value.hindi) : candid_none(),
         math: value.math ? candid_some(value.math) : candid_none(),
         businessStudies: value.businessStudies ? candid_some(value.businessStudies) : candid_none(),
@@ -1130,6 +1283,7 @@ function to_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8
         management: value.management ? candid_some(value.management) : candid_none(),
         psychology: value.psychology ? candid_some(value.psychology) : candid_none(),
         kannada: value.kannada ? candid_some(value.kannada) : candid_none(),
+        appliedMaths: value.appliedMaths ? candid_some(value.appliedMaths) : candid_none(),
         english: value.english ? candid_some(value.english) : candid_none(),
         statistics: value.statistics ? candid_some(value.statistics) : candid_none(),
         science: value.science ? candid_some(value.science) : candid_none()
@@ -1139,8 +1293,9 @@ function to_candid_record_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     ai?: number;
     pe?: number;
     evs?: number;
+    ssc?: number;
+    maths?: number;
     biology?: number;
-    social?: number;
     hindi?: number;
     math?: number;
     businessStudies?: number;
@@ -1152,6 +1307,7 @@ function to_candid_record_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     management?: number;
     psychology?: number;
     kannada?: number;
+    appliedMaths?: number;
     english?: number;
     statistics?: number;
     science?: number;
@@ -1159,8 +1315,9 @@ function to_candid_record_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     ai: [] | [number];
     pe: [] | [number];
     evs: [] | [number];
+    ssc: [] | [number];
+    maths: [] | [number];
     biology: [] | [number];
-    social: [] | [number];
     hindi: [] | [number];
     math: [] | [number];
     businessStudies: [] | [number];
@@ -1172,6 +1329,7 @@ function to_candid_record_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     management: [] | [number];
     psychology: [] | [number];
     kannada: [] | [number];
+    appliedMaths: [] | [number];
     english: [] | [number];
     statistics: [] | [number];
     science: [] | [number];
@@ -1180,8 +1338,9 @@ function to_candid_record_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8
         ai: value.ai ? candid_some(value.ai) : candid_none(),
         pe: value.pe ? candid_some(value.pe) : candid_none(),
         evs: value.evs ? candid_some(value.evs) : candid_none(),
+        ssc: value.ssc ? candid_some(value.ssc) : candid_none(),
+        maths: value.maths ? candid_some(value.maths) : candid_none(),
         biology: value.biology ? candid_some(value.biology) : candid_none(),
-        social: value.social ? candid_some(value.social) : candid_none(),
         hindi: value.hindi ? candid_some(value.hindi) : candid_none(),
         math: value.math ? candid_some(value.math) : candid_none(),
         businessStudies: value.businessStudies ? candid_some(value.businessStudies) : candid_none(),
@@ -1193,6 +1352,7 @@ function to_candid_record_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8
         management: value.management ? candid_some(value.management) : candid_none(),
         psychology: value.psychology ? candid_some(value.psychology) : candid_none(),
         kannada: value.kannada ? candid_some(value.kannada) : candid_none(),
+        appliedMaths: value.appliedMaths ? candid_some(value.appliedMaths) : candid_none(),
         english: value.english ? candid_some(value.english) : candid_none(),
         statistics: value.statistics ? candid_some(value.statistics) : candid_none(),
         science: value.science ? candid_some(value.science) : candid_none()
@@ -1207,7 +1367,7 @@ function to_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
         proposed_top_up_amount: value.proposed_top_up_amount ? candid_some(value.proposed_top_up_amount) : candid_none()
     };
 }
-function to_candid_record_n37(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function to_candid_record_n43(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     academicEntries: AcademicEntriesExport;
     coding: CodingExport;
 }): {
@@ -1215,11 +1375,11 @@ function to_candid_record_n37(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     coding: _CodingExport;
 } {
     return {
-        academicEntries: to_candid_AcademicEntriesExport_n38(_uploadFile, _downloadFile, value.academicEntries),
-        coding: to_candid_CodingExport_n45(_uploadFile, _downloadFile, value.coding)
+        academicEntries: to_candid_AcademicEntriesExport_n44(_uploadFile, _downloadFile, value.academicEntries),
+        coding: to_candid_CodingExport_n51(_uploadFile, _downloadFile, value.coding)
     };
 }
-function to_candid_record_n39(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function to_candid_record_n45(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     academicEntries: Array<[Principal, Array<AcademicEntry>]>;
     boardExamResults: Array<[Principal, BoardExamResults]>;
 }): {
@@ -1227,18 +1387,21 @@ function to_candid_record_n39(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     boardExamResults: Array<[Principal, _BoardExamResults]>;
 } {
     return {
-        academicEntries: to_candid_vec_n40(_uploadFile, _downloadFile, value.academicEntries),
+        academicEntries: to_candid_vec_n46(_uploadFile, _downloadFile, value.academicEntries),
         boardExamResults: value.boardExamResults
     };
 }
-function to_candid_record_n44(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function to_candid_record_n50(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     totalFinalMarks: bigint;
+    scienceSubgroup?: string;
     stream?: string;
-    subjects: SubjectScores;
+    subjects: Subjects;
     term: bigint;
+    mathsMaxMarks: bigint;
     gradeText: string;
+    commerceSubgroup?: string;
     overallPercentage: bigint;
-    subgroup?: string;
+    appliedMathsMaxMarks: bigint;
     maxMarksPerSubject: bigint;
     overallMaxMarks: bigint;
     grade: bigint;
@@ -1251,12 +1414,15 @@ function to_candid_record_n44(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     aiMaxMarks: bigint;
 }): {
     totalFinalMarks: bigint;
+    scienceSubgroup: [] | [string];
     stream: [] | [string];
-    subjects: _SubjectScores;
+    subjects: _Subjects;
     term: bigint;
+    mathsMaxMarks: bigint;
     gradeText: string;
+    commerceSubgroup: [] | [string];
     overallPercentage: bigint;
-    subgroup: [] | [string];
+    appliedMathsMaxMarks: bigint;
     maxMarksPerSubject: bigint;
     overallMaxMarks: bigint;
     grade: bigint;
@@ -1270,12 +1436,15 @@ function to_candid_record_n44(_uploadFile: (file: ExternalBlob) => Promise<Uint8
 } {
     return {
         totalFinalMarks: value.totalFinalMarks,
+        scienceSubgroup: value.scienceSubgroup ? candid_some(value.scienceSubgroup) : candid_none(),
         stream: value.stream ? candid_some(value.stream) : candid_none(),
-        subjects: to_candid_SubjectScores_n11(_uploadFile, _downloadFile, value.subjects),
+        subjects: to_candid_Subjects_n11(_uploadFile, _downloadFile, value.subjects),
         term: value.term,
+        mathsMaxMarks: value.mathsMaxMarks,
         gradeText: value.gradeText,
+        commerceSubgroup: value.commerceSubgroup ? candid_some(value.commerceSubgroup) : candid_none(),
         overallPercentage: value.overallPercentage,
-        subgroup: value.subgroup ? candid_some(value.subgroup) : candid_none(),
+        appliedMathsMaxMarks: value.appliedMathsMaxMarks,
         maxMarksPerSubject: value.maxMarksPerSubject,
         overallMaxMarks: value.overallMaxMarks,
         grade: value.grade,
@@ -1288,7 +1457,7 @@ function to_candid_record_n44(_uploadFile: (file: ExternalBlob) => Promise<Uint8
         aiMaxMarks: value.aiMaxMarks
     };
 }
-function to_candid_record_n46(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function to_candid_record_n52(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     attempts: Array<[Principal, Array<CodingAttempt>]>;
     challenges: Array<CodingChallenge>;
 }): {
@@ -1296,11 +1465,11 @@ function to_candid_record_n46(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     challenges: Array<_CodingChallenge>;
 } {
     return {
-        attempts: to_candid_vec_n47(_uploadFile, _downloadFile, value.attempts),
+        attempts: to_candid_vec_n53(_uploadFile, _downloadFile, value.attempts),
         challenges: value.challenges
     };
 }
-function to_candid_record_n51(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function to_candid_record_n57(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     result: string;
     code: string;
     score?: bigint;
@@ -1321,16 +1490,16 @@ function to_candid_record_n51(_uploadFile: (file: ExternalBlob) => Promise<Uint8
         timestamp: value.timestamp
     };
 }
-function to_candid_tuple_n41(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [Principal, Array<AcademicEntry>]): [Principal, Array<_AcademicEntry>] {
+function to_candid_tuple_n47(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [Principal, Array<AcademicEntry>]): [Principal, Array<_AcademicEntry>] {
     return [
         value[0],
-        to_candid_vec_n42(_uploadFile, _downloadFile, value[1])
+        to_candid_vec_n48(_uploadFile, _downloadFile, value[1])
     ];
 }
-function to_candid_tuple_n48(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [Principal, Array<CodingAttempt>]): [Principal, Array<_CodingAttempt>] {
+function to_candid_tuple_n54(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [Principal, Array<CodingAttempt>]): [Principal, Array<_CodingAttempt>] {
     return [
         value[0],
-        to_candid_vec_n49(_uploadFile, _downloadFile, value[1])
+        to_candid_vec_n55(_uploadFile, _downloadFile, value[1])
     ];
 }
 function to_candid_variant_n27(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {
@@ -1348,17 +1517,17 @@ function to_candid_variant_n27(_uploadFile: (file: ExternalBlob) => Promise<Uint
         guest: null
     } : value;
 }
-function to_candid_vec_n40(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<[Principal, Array<AcademicEntry>]>): Array<[Principal, Array<_AcademicEntry>]> {
-    return value.map((x)=>to_candid_tuple_n41(_uploadFile, _downloadFile, x));
+function to_candid_vec_n46(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<[Principal, Array<AcademicEntry>]>): Array<[Principal, Array<_AcademicEntry>]> {
+    return value.map((x)=>to_candid_tuple_n47(_uploadFile, _downloadFile, x));
 }
-function to_candid_vec_n42(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<AcademicEntry>): Array<_AcademicEntry> {
-    return value.map((x)=>to_candid_AcademicEntry_n43(_uploadFile, _downloadFile, x));
+function to_candid_vec_n48(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<AcademicEntry>): Array<_AcademicEntry> {
+    return value.map((x)=>to_candid_AcademicEntry_n49(_uploadFile, _downloadFile, x));
 }
-function to_candid_vec_n47(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<[Principal, Array<CodingAttempt>]>): Array<[Principal, Array<_CodingAttempt>]> {
-    return value.map((x)=>to_candid_tuple_n48(_uploadFile, _downloadFile, x));
+function to_candid_vec_n53(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<[Principal, Array<CodingAttempt>]>): Array<[Principal, Array<_CodingAttempt>]> {
+    return value.map((x)=>to_candid_tuple_n54(_uploadFile, _downloadFile, x));
 }
-function to_candid_vec_n49(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<CodingAttempt>): Array<_CodingAttempt> {
-    return value.map((x)=>to_candid_CodingAttempt_n50(_uploadFile, _downloadFile, x));
+function to_candid_vec_n55(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<CodingAttempt>): Array<_CodingAttempt> {
+    return value.map((x)=>to_candid_CodingAttempt_n56(_uploadFile, _downloadFile, x));
 }
 function to_candid_vec_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<SaveAcademicInput>): Array<_SaveAcademicInput> {
     return value.map((x)=>to_candid_SaveAcademicInput_n9(_uploadFile, _downloadFile, x));

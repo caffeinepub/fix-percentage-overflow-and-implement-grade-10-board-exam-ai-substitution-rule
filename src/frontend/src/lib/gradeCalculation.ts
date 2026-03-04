@@ -1,81 +1,42 @@
-/**
- * Grade calculation utilities for consistent grade determination across the application
- * All grades are calculated from percentage (marks/maxMarks * 100), not from grading system numbers
- */
+// Grade calculation utilities - nine-point scale ONLY
 
 /**
- * Calculate letter grade from percentage using 10-point intervals
- * @param marks Raw marks scored
- * @param maxMarks Maximum marks possible
- * @returns Letter grade (A+, A, B+, B, C+, C, D+, D, E+, E, F)
+ * Convert a percentage to a nine-point scale score (1-9).
+ * Uses exact boundaries as per the nine-scale grading system.
  */
-export function calculateLetterGrade(marks: number, maxMarks: number): string {
-  if (maxMarks === 0) return 'N/A';
-  
-  const percentage = (marks * 100) / maxMarks;
-  
-  if (percentage >= 90) return 'A+';
-  if (percentage >= 80) return 'A';
-  if (percentage >= 70) return 'B+';
-  if (percentage >= 60) return 'B';
-  if (percentage >= 50) return 'C+';
-  if (percentage >= 40) return 'C';
-  if (percentage >= 30) return 'D+';
-  if (percentage >= 20) return 'D';
-  if (percentage >= 10) return 'E+';
-  if (percentage >= 0) return 'E';
-  return 'F';
-}
-
-/**
- * Calculate 9-scale grade from raw marks
- * @param marks Raw marks scored
- * @param maxMarks Maximum marks possible
- * @returns Grade on 9-scale (1-9, or 0 for very low scores)
- */
-export function calculateNineScaleGrade(marks: number, maxMarks: number): number {
-  if (maxMarks === 0) return 0;
-  
-  const percentage = (marks * 100) / maxMarks;
-  
-  if (percentage >= 91) return 9;
-  if (percentage >= 81) return 8;
-  if (percentage >= 71) return 7;
-  if (percentage >= 61) return 6;
-  if (percentage >= 51) return 5;
-  if (percentage >= 41) return 4;
+export function calculateNineScaleFromPercentage(percentage: number): number {
+  if (percentage >= 90) return 9;
+  if (percentage >= 80) return 8;
+  if (percentage >= 70) return 7;
+  if (percentage >= 60) return 6;
+  if (percentage >= 50) return 5;
+  if (percentage >= 40) return 4;
   if (percentage >= 33) return 3;
   if (percentage >= 21) return 2;
-  if (percentage >= 11) return 1;
+  if (percentage >= 10) return 1;
   return 0;
 }
 
 /**
- * Get color class for 9-scale grade badge
- * @param grade Grade value (1-9)
- * @returns Tailwind color class
+ * Get a Tailwind color class for a nine-point scale score.
  */
-export function getNineScaleGradeColor(grade: number): string {
-  if (grade >= 9) return 'bg-green-600 text-white';
-  if (grade >= 8) return 'bg-green-500 text-white';
-  if (grade >= 7) return 'bg-blue-500 text-white';
-  if (grade >= 6) return 'bg-blue-400 text-white';
-  if (grade >= 5) return 'bg-yellow-500 text-white';
-  if (grade >= 4) return 'bg-orange-500 text-white';
-  if (grade >= 3) return 'bg-orange-600 text-white';
-  if (grade >= 2) return 'bg-red-500 text-white';
-  if (grade >= 1) return 'bg-red-600 text-white';
-  return 'bg-gray-500 text-white';
+export function getNineScaleGradeColor(score: number): string {
+  if (score >= 9) return "bg-emerald-500 text-white";
+  if (score >= 8) return "bg-green-500 text-white";
+  if (score >= 7) return "bg-lime-500 text-white";
+  if (score >= 6) return "bg-yellow-500 text-white";
+  if (score >= 5) return "bg-amber-500 text-white";
+  if (score >= 4) return "bg-orange-500 text-white";
+  if (score >= 3) return "bg-red-400 text-white";
+  if (score >= 2) return "bg-red-600 text-white";
+  if (score >= 1) return "bg-red-800 text-white";
+  return "bg-gray-400 text-white";
 }
 
 /**
- * Calculate percentage from raw marks
- * @param marks Raw marks scored
- * @param maxMarks Maximum marks possible
- * @returns Percentage (0-100)
+ * Calculate percentage from raw marks and max marks.
  */
 export function calculatePercentage(marks: number, maxMarks: number): number {
-  if (maxMarks === 0) return 0;
-  const percentage = (marks * 100) / maxMarks;
-  return Math.min(100, Math.max(0, percentage));
+  if (maxMarks <= 0) return 0;
+  return Math.min(100, (marks / maxMarks) * 100);
 }

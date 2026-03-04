@@ -1,30 +1,36 @@
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useSaveCallerUserProfile } from '@/hooks/useQueries';
-import { toast } from 'sonner';
-import { User } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useSaveCallerUserProfile } from "@/hooks/useQueries";
+import { User } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function ProfileSetup() {
-  const [name, setName] = useState('');
+  const [name, setName] = useState("");
   const saveProfileMutation = useSaveCallerUserProfile();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!name.trim()) {
-      toast.error('Please enter your name');
+      toast.error("Please enter your name");
       return;
     }
 
     try {
       await saveProfileMutation.mutateAsync({ name: name.trim() });
-      toast.success('Profile created successfully!');
+      toast.success("Profile created successfully!");
     } catch (error: any) {
-      console.error('Error saving profile:', error);
-      toast.error(error.message || 'Failed to save profile. Please try again.');
+      console.error("Error saving profile:", error);
+      toast.error(error.message || "Failed to save profile. Please try again.");
     }
   };
 
@@ -64,7 +70,7 @@ export default function ProfileSetup() {
                 Saving...
               </>
             ) : (
-              'Continue'
+              "Continue"
             )}
           </Button>
         </form>

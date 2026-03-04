@@ -1,330 +1,277 @@
-import { useMemo, useState } from 'react';
-import { useGetAcademicEntries } from '@/hooks/useQueries';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { GraduationCap, Calendar, BookOpen, Filter } from 'lucide-react';
-import type { AcademicEntry, Score9Scale } from '../backend';
-import { calculateNineScaleGrade, getNineScaleGradeColor } from '@/lib/gradeCalculation';
-import { getExpectedMaxMarksForSubjectKey } from '@/lib/maxMarks';
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import React, { useState } from "react";
+import type { AcademicEntry } from "../backend";
+import { useGetAcademicEntries } from "../hooks/useQueries";
+import {
+  calculateNineScaleFromPercentage,
+  getNineScaleGradeColor,
+} from "../lib/gradeCalculation";
+import { getExpectedMaxMarksForSubjectKey } from "../lib/maxMarks";
+import { ErrorMessage } from "./ErrorMessage";
+import { LoadingState } from "./LoadingState";
 
-const SUBJECT_DISPLAY_NAMES: Record<string, string> = {
-  math: 'Math',
-  english: 'English',
-  hindi: 'Hindi',
-  evs: 'EVS',
-  computer: 'Computer',
-  kannada: 'Kannada',
-  science: 'Science',
-  social: 'Social',
-  ai: 'AI',
-  physics: 'Physics',
-  chemistry: 'Chemistry',
-  biology: 'Biology',
-  economics: 'Economics',
-  businessStudies: 'Business Studies',
-  accountancy: 'Accountancy',
-  statistics: 'Statistics',
-  management: 'Management',
-  psychology: 'Psychology',
-  pe: 'PE',
+const SUBJECT_LABELS: Record<string, string> = {
+  math: "Maths",
+  english: "English",
+  hindi: "Hindi",
+  evs: "EVS",
+  computer: "Computer",
+  kannada: "Kannada",
+  science: "Science",
+  ssc: "SSC",
+  ai: "AI",
+  physics: "Physics",
+  chemistry: "Chemistry",
+  biology: "Biology",
+  economics: "Economics",
+  businessStudies: "Business Studies",
+  accountancy: "Accountancy",
+  statistics: "Statistics",
+  management: "Management",
+  psychology: "Psychology",
+  pe: "P.E.",
+  appliedMaths: "Applied Maths",
+  maths: "Maths (Elective)",
 };
 
-interface GradeCard {
-  subjectName: string;
-  grade: number;
-  marks: string;
-  gradeLevel: number;
-  section: string;
-  term: number;
-  timestamp: bigint;
+const ALL_SUBJECT_KEYS = [
+  "math",
+  "english",
+  "hindi",
+  "evs",
+  "computer",
+  "kannada",
+  "science",
+  "ssc",
+  "ai",
+  "physics",
+  "chemistry",
+  "biology",
+  "economics",
+  "businessStudies",
+  "accountancy",
+  "statistics",
+  "management",
+  "psychology",
+  "pe",
+  "appliedMaths",
+  "maths",
+] as const;
+
+function getSubjectNineScale(
+  entry: AcademicEntry,
+  subjectKey: string,
+): {
+  marks: number;
+  maxMarks: number;
+  percentage: number;
+  scale: number;
+} | null {
+  const subjects = entry.subjects as Record<string, bigint | undefined>;
+  const rawVal = subjects[subjectKey];
+  if (rawVal === undefined || rawVal === null) return null;
+
+  const marks = Number(rawVal);
+  const grade = Number(entry.grade);
+  const term = Number(entry.term);
+
+  // Always use the authoritative grade-based max marks — stored values may be stale
+  const maxMarks = getExpectedMaxMarksForSubjectKey(subjectKey, grade, term);
+  if (maxMarks === 0) return null;
+
+  const percentage = Math.min(100, (marks / maxMarks) * 100);
+  const scale = calculateNineScaleFromPercentage(percentage);
+
+  return { marks, maxMarks, percentage, scale };
 }
 
 export default function NineScaleGradesView() {
   const { data: entries = [], isLoading, error } = useGetAcademicEntries();
-  const [filterGrade, setFilterGrade] = useState<string>('all');
-  const [filterSection, setFilterSection] = useState<string>('all');
-  const [filterTerm, setFilterTerm] = useState<string>('all');
+  const [filterGrade, setFilterGrade] = useState<string>("all");
+  const [filterTerm, setFilterTerm] = useState<string>("all");
 
-  // Get unique grades, sections, and terms for filters
-  const { grades, sections, terms } = useMemo(() => {
-    const gradesSet = new Set<number>();
-    const sectionsSet = new Set<string>();
-    const termsSet = new Set<number>();
+  if (isLoading) return <LoadingState message="Loading nine-scale grades..." />;
+  if (error) return <ErrorMessage message="Failed to load academic entries." />;
 
-    entries.forEach((entry) => {
-      gradesSet.add(Number(entry.grade));
-      termsSet.add(Number(entry.term));
-      
-      const section = entry.stream || entry.subgroup;
-      if (section) {
-        sectionsSet.add(section);
-      }
-    });
+  const uniqueGrades = Array.from(
+    new Set(entries.map((e) => Number(e.grade))),
+  ).sort((a, b) => a - b);
+  const uniqueTerms = Array.from(
+    new Set(
+      entries
+        .filter(
+          (e) =>
+            filterGrade === "all" || Number(e.grade) === Number(filterGrade),
+        )
+        .map((e) => Number(e.term)),
+    ),
+  ).sort((a, b) => a - b);
 
-    return {
-      grades: Array.from(gradesSet).sort((a, b) => a - b),
-      sections: Array.from(sectionsSet).sort(),
-      terms: Array.from(termsSet).sort((a, b) => a - b),
-    };
-  }, [entries]);
+  const filtered = entries.filter((e) => {
+    if (filterGrade !== "all" && Number(e.grade) !== Number(filterGrade))
+      return false;
+    if (filterTerm !== "all" && Number(e.term) !== Number(filterTerm))
+      return false;
+    return true;
+  });
 
-  const getSubjectMarksAndGrade = (
-    entry: AcademicEntry,
-    subjectKey: keyof typeof entry.subjects
-  ): { marks: string; grade: number } | null => {
-    const marks = entry.subjects[subjectKey];
-    if (marks === undefined || marks === null) return null;
-
-    const grade = Number(entry.grade);
-    const term = Number(entry.term);
-    const termMaxMarks = Number(entry.termMaxMarks);
-    let maxMarks: number;
-
-    // Determine which stored max marks field to use
-    if (subjectKey === 'computer') {
-      maxMarks = Number(entry.computerMaxMarks);
-    } else if (subjectKey === 'ai') {
-      maxMarks = Number(entry.aiMaxMarks);
-    } else {
-      maxMarks = Number(entry.maxMarksPerSubject);
+  // Group by grade then term — keep latest entry per grade+term
+  const grouped = new Map<number, Map<number, AcademicEntry>>();
+  for (const entry of filtered) {
+    const g = Number(entry.grade);
+    const t = Number(entry.term);
+    if (!grouped.has(g)) grouped.set(g, new Map());
+    const termMap = grouped.get(g)!;
+    const existing = termMap.get(t);
+    if (!existing || Number(entry.timestamp) > Number(existing.timestamp)) {
+      termMap.set(t, entry);
     }
-
-    // Validate stored max marks and apply fallback if suspicious
-    if (maxMarks === 0 || maxMarks === termMaxMarks || maxMarks > 150) {
-      maxMarks = getExpectedMaxMarksForSubjectKey(subjectKey as string, grade, term);
-    }
-
-    if (maxMarks === 0) return null;
-
-    // Calculate 9-scale grade from raw marks
-    const nineScaleGrade = calculateNineScaleGrade(Number(marks), maxMarks);
-
-    return {
-      marks: `${Number(marks)}/${maxMarks}`,
-      grade: nineScaleGrade,
-    };
-  };
-
-  const gradeCards = useMemo((): GradeCard[] => {
-    const cards: GradeCard[] = [];
-
-    // Filter entries first
-    const filtered = entries.filter((entry) => {
-      if (filterGrade !== 'all' && Number(entry.grade) !== Number(filterGrade)) {
-        return false;
-      }
-      if (filterTerm !== 'all' && Number(entry.term) !== Number(filterTerm)) {
-        return false;
-      }
-      if (filterSection !== 'all') {
-        const section = entry.stream || entry.subgroup || '';
-        if (section !== filterSection) {
-          return false;
-        }
-      }
-      return true;
-    });
-
-    for (const entry of filtered) {
-      const subjects = entry.subjects;
-      const section = entry.stream || entry.subgroup || 'N/A';
-
-      for (const [key, value] of Object.entries(subjects)) {
-        if (value !== undefined && value !== null) {
-          const result = getSubjectMarksAndGrade(entry, key as keyof typeof entry.subjects);
-          
-          if (result) {
-            cards.push({
-              subjectName: SUBJECT_DISPLAY_NAMES[key] || key,
-              grade: result.grade,
-              marks: result.marks,
-              gradeLevel: Number(entry.grade),
-              section: section,
-              term: Number(entry.term),
-              timestamp: entry.timestamp,
-            });
-          }
-        }
-      }
-    }
-
-    // Sort by timestamp (newest first)
-    cards.sort((a, b) => Number(b.timestamp) - Number(a.timestamp));
-
-    return cards;
-  }, [entries, filterGrade, filterSection, filterTerm]);
-
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-6 w-48" />
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-          </CardContent>
-        </Card>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Skeleton key={i} className="h-40 w-full" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <Card className="border-destructive">
-        <CardHeader>
-          <CardTitle className="text-destructive">Error Loading 9-Scale Grades</CardTitle>
-          <CardDescription>
-            {error instanceof Error ? error.message : 'Failed to load academic entries'}
-          </CardDescription>
-        </CardHeader>
-      </Card>
-    );
-  }
-
-  if (entries.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>No Data Available</CardTitle>
-          <CardDescription>
-            Add academic entries to see 9-scale grades.
-          </CardDescription>
-        </CardHeader>
-      </Card>
-    );
   }
 
   return (
     <div className="space-y-6">
       {/* Filters */}
-      <Card className="border-border/50 shadow-md">
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Filter className="h-5 w-5 text-primary" />
-            <CardTitle>Filters</CardTitle>
+      <div className="flex flex-wrap gap-4 items-center">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-muted-foreground">
+            Grade:
+          </span>
+          <Select
+            value={filterGrade}
+            onValueChange={(v) => {
+              setFilterGrade(v);
+              setFilterTerm("all");
+            }}
+          >
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="All Grades" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Grades</SelectItem>
+              {uniqueGrades.map((g) => (
+                <SelectItem key={g} value={String(g)}>
+                  Grade {g}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-muted-foreground">
+            Term:
+          </span>
+          <Select value={filterTerm} onValueChange={setFilterTerm}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="All Terms" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Terms</SelectItem>
+              {uniqueTerms.map((t) => (
+                <SelectItem key={t} value={String(t)}>
+                  Term {t}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Nine-scale legend */}
+      <div className="flex flex-wrap gap-2 text-xs">
+        {[
+          { range: "90–100%", score: 9 },
+          { range: "80–89%", score: 8 },
+          { range: "70–79%", score: 7 },
+          { range: "60–69%", score: 6 },
+          { range: "50–59%", score: 5 },
+          { range: "40–49%", score: 4 },
+          { range: "33–39%", score: 3 },
+          { range: "21–32%", score: 2 },
+          { range: "10–20%", score: 1 },
+        ].map(({ range, score }) => (
+          <div key={score} className="flex items-center gap-1">
+            <Badge
+              className={`text-xs px-1.5 py-0.5 ${getNineScaleGradeColor(score)}`}
+            >
+              {score}
+            </Badge>
+            <span className="text-muted-foreground">{range}</span>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Grade Level</label>
-              <Select value={filterGrade} onValueChange={setFilterGrade}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Grades" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Grades</SelectItem>
-                  {grades.map((grade) => (
-                    <SelectItem key={grade} value={String(grade)}>
-                      Grade {grade}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        ))}
+      </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Section</label>
-              <Select value={filterSection} onValueChange={setFilterSection}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Sections" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Sections</SelectItem>
-                  {sections.map((section) => (
-                    <SelectItem key={section} value={section}>
-                      {section}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Term</label>
-              <Select value={filterTerm} onValueChange={setFilterTerm}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Terms" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Terms</SelectItem>
-                  {terms.map((term) => (
-                    <SelectItem key={term} value={String(term)}>
-                      Term {term}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {gradeCards.length === 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>No Data for Selected Filters</CardTitle>
-            <CardDescription>
-              Try adjusting your filter selections to see 9-scale grades.
-            </CardDescription>
-          </CardHeader>
-        </Card>
+      {filtered.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground">
+          <p className="text-lg font-medium">No data available</p>
+          <p className="text-sm mt-1">
+            Add academic entries to see nine-scale grades.
+          </p>
+        </div>
       ) : (
-        <>
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">9-Scale Grades</h2>
-            <p className="text-sm text-muted-foreground">
-              Showing {gradeCards.length} grade{gradeCards.length !== 1 ? 's' : ''}
-            </p>
-          </div>
+        <div className="space-y-6">
+          {Array.from(grouped.entries())
+            .sort(([a], [b]) => a - b)
+            .map(([grade, termMap]) => (
+              <div key={grade}>
+                <h3 className="text-lg font-semibold mb-3 text-foreground">
+                  Grade {grade}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {Array.from(termMap.entries())
+                    .sort(([a], [b]) => a - b)
+                    .map(([term, entry]) => {
+                      const subjectResults = ALL_SUBJECT_KEYS.map((key) => ({
+                        key,
+                        result: getSubjectNineScale(entry, key),
+                      })).filter(({ result }) => result !== null);
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {gradeCards.map((card, index) => (
-              <Card key={index} className="border-border/50 shadow-md hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{card.subjectName}</CardTitle>
-                    <Badge className={`text-lg font-bold px-3 py-1 ${getNineScaleGradeColor(card.grade)}`}>
-                      {card.grade}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm">
-                    <BookOpen className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">Marks:</span>
-                    <span className="font-mono">{card.marks}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">Grade {card.gradeLevel}</span>
-                    <span className="text-muted-foreground">•</span>
-                    <span>{card.section}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">Term {card.term}</span>
-                    <span className="text-muted-foreground">•</span>
-                    <span className="text-muted-foreground">
-                      {new Date(Number(card.timestamp) / 1000000).toLocaleDateString()}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
+                      return (
+                        <Card key={term} className="border shadow-sm">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-base">
+                              Term {term}
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-2">
+                              {subjectResults.map(({ key, result }) => (
+                                <div
+                                  key={key}
+                                  className="flex items-center justify-between py-1 border-b border-border/50 last:border-0"
+                                >
+                                  <span className="text-sm text-foreground">
+                                    {SUBJECT_LABELS[key] ?? key}
+                                  </span>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs text-muted-foreground">
+                                      {result!.marks}/{result!.maxMarks} (
+                                      {result!.percentage.toFixed(1)}%)
+                                    </span>
+                                    <Badge
+                                      className={`text-xs font-bold px-2 py-0.5 ${getNineScaleGradeColor(result!.scale)}`}
+                                    >
+                                      {result!.scale}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                </div>
+              </div>
             ))}
-          </div>
-        </>
+        </div>
       )}
     </div>
   );
